@@ -45,16 +45,24 @@
   },
   "auth": {
     "loginTitle": "Login to Kaamdha",
-    "loginSubtitle": "Enter your phone number to get started",
+    "loginSubtitle": "Login or Register with your phone number",
     "phoneLabel": "Phone Number",
     "phonePlaceholder": "Enter your 10-digit phone number",
     "sendOtp": "Send OTP",
     "otpTitle": "Enter OTP",
     "otpSubtitle": "We sent a verification code to {phone}",
     "otpPlaceholder": "Enter 6-digit OTP",
-    "verifyOtp": "Verify OTP",
+    "verifyOtp": "Verify & Continue",
     "resendOtp": "Resend OTP",
-    "resendIn": "Resend in {seconds}s"
+    "resendIn": "Resend in {seconds}s",
+    "didntReceive": "Didn't receive?",
+    "resendCountdown": "Resend in {time}",
+    "invalidPhone": "Please enter a valid 10-digit phone number",
+    "otpSendError": "Could not send OTP. Please try again.",
+    "otpVerifyError": "Invalid OTP. Please check and try again.",
+    "otpExpired": "OTP has expired. Please request a new one.",
+    "rateLimited": "Too many attempts. Please wait a moment and try again.",
+    "changeNumber": "Change number"
   },
   "onboarding": {
     "title": "Welcome to Kaamdha!",
