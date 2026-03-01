@@ -45,16 +45,24 @@
   },
   "auth": {
     "loginTitle": "कामधा में लॉगिन करें",
-    "loginSubtitle": "शुरू करने के लिए अपना फ़ोन नंबर दर्ज करें",
+    "loginSubtitle": "अपने फ़ोन नंबर से लॉगिन या रजिस्टर करें",
     "phoneLabel": "फ़ोन नंबर",
     "phonePlaceholder": "अपना 10 अंकों का फ़ोन नंबर दर्ज करें",
     "sendOtp": "OTP भेजें",
     "otpTitle": "OTP दर्ज करें",
     "otpSubtitle": "हमने {phone} पर सत्यापन कोड भेजा है",
     "otpPlaceholder": "6 अंकों का OTP दर्ज करें",
-    "verifyOtp": "OTP सत्यापित करें",
+    "verifyOtp": "सत्यापित करें और आगे बढ़ें",
     "resendOtp": "OTP दोबारा भेजें",
-    "resendIn": "{seconds} सेकंड में दोबारा भेजें"
+    "resendIn": "{seconds} सेकंड में दोबारा भेजें",
+    "didntReceive": "OTP नहीं मिला?",
+    "resendCountdown": "{time} में दोबारा भेजें",
+    "invalidPhone": "कृपया 10 अंकों का सही फ़ोन नंबर दर्ज करें",
+    "otpSendError": "OTP नहीं भेजा जा सका। कृपया दोबारा कोशिश करें।",
+    "otpVerifyError": "गलत OTP। कृपया जांचें और दोबारा कोशिश करें।",
+    "otpExpired": "OTP की समय सीमा समाप्त हो गई। कृपया नया OTP मांगें।",
+    "rateLimited": "बहुत अधिक प्रयास। कृपया कुछ देर बाद दोबारा कोशिश करें।",
+    "changeNumber": "नंबर बदलें"
   },
   "onboarding": {
     "title": "कामधा में आपका स्वागत है!",

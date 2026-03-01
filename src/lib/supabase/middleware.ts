@@ -13,7 +13,7 @@ export async function updateSession(request: NextRequest) {
     return supabaseResponse;
   }
 
-  createServerClient(
+  const supabase = createServerClient(
     supabaseUrl,
     supabaseAnonKey,
     {
@@ -35,6 +35,10 @@ export async function updateSession(request: NextRequest) {
       },
     }
   );
+
+  // Refresh the session by calling getUser(). This is required to
+  // keep the auth token fresh and update cookies on every request.
+  await supabase.auth.getUser();
 
   return supabaseResponse;
 }

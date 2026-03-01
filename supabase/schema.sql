@@ -191,3 +191,28 @@ CREATE POLICY "To user can update interest status" ON interest_requests
 -- Reference tables (public read)
 CREATE POLICY "Anyone can read job types" ON job_types FOR SELECT USING (true);
 CREATE POLICY "Anyone can read cities" ON cities FOR SELECT USING (true);
+
+-- Users can insert their own row (needed for the trigger fallback)
+CREATE POLICY "Users can insert own profile" ON users
+  FOR INSERT WITH CHECK (auth.uid() = id);
+
+-- ============================================================
+-- Auth Trigger: auto-create public.users row on signup
+-- ============================================================
+
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER SET search_path = ''
+AS $$
+BEGIN
+  INSERT INTO public.users (id, phone)
+  VALUES (NEW.id, NEW.phone)
+  ON CONFLICT (id) DO NOTHING;
+  RETURN NEW;
+END;
+$$;
+
+CREATE OR REPLACE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
