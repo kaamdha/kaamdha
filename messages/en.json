@@ -10,7 +10,6 @@
     "delete": "Delete",
     "search": "Search",
     "loading": "Loading...",
-    "backToDashboard": "Back to Dashboard",
     "viewProfile": "View Profile",
     "comingSoon": "Coming Soon",
     "underConstruction": "This page is under construction",
@@ -64,39 +63,11 @@
     "rateLimited": "Too many attempts. Please wait a moment and try again.",
     "changeNumber": "Change number"
   },
-  "onboarding": {
-    "title": "Welcome to Kaamdha!",
-    "subtitle": "How would you like to use Kaamdha?",
-    "iAmWorker": "I'm looking for work",
-    "iAmWorkerDesc": "I offer household services like cooking, cleaning, driving, etc.",
-    "iAmEmployer": "I'm looking to hire",
-    "iAmEmployerDesc": "I need household help — maid, cook, driver, etc.",
-    "continue": "Continue"
-  },
-  "dashboard": {
-    "welcome": "Welcome, {name}",
-    "switchRole": "Switch to {role}",
-    "myProfile": "My Profile",
-    "findJobs": "Find Jobs",
-    "findWorkers": "Find Workers",
-    "myJobPosts": "My Job Posts",
-    "requests": "Requests",
-    "postJob": "Post a Job",
-    "completeProfile": "Complete Your Profile",
-    "completeProfileDesc": "Fill in your details so employers can find you",
-    "noJobPosts": "You haven't posted any jobs yet",
-    "noResults": "No results found. Try adjusting your filters."
-  },
-  "interest": {
-    "imInterested": "I'm Interested",
-    "interested": "Interested",
-    "phoneRevealed": "Phone number revealed",
-    "callNow": "Call Now",
-    "whatsapp": "WhatsApp",
-    "sentRequests": "Sent Requests",
-    "receivedRequests": "Received Requests",
-    "noSentRequests": "You haven't sent any interest requests yet",
-    "noReceivedRequests": "No one has shown interest yet"
+  "nav": {
+    "home": "Home",
+    "search": "Search",
+    "favorites": "Favorites",
+    "account": "Account"
   },
   "profile": {
     "jobTypes": "Job Types",
