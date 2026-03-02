@@ -20,9 +20,11 @@ export async function checkUserRole(): Promise<string> {
     .eq("id", user.id)
     .single<User>();
 
-  if (!data?.active_role) {
-    return "/onboarding";
+  // New user without a name → needs onboarding
+  if (!data?.name) {
+    return "/account";
   }
 
-  return "/dashboard";
+  // Returning user → home
+  return "/";
 }

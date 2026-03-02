@@ -10,7 +10,6 @@
     "delete": "हटाएं",
     "search": "खोजें",
     "loading": "लोड हो रहा है...",
-    "backToDashboard": "डैशबोर्ड पर वापस जाएं",
     "viewProfile": "प्रोफ़ाइल देखें",
     "comingSoon": "जल्द आ रहा है",
     "underConstruction": "यह पेज निर्माणाधीन है",
@@ -64,39 +63,11 @@
     "rateLimited": "बहुत अधिक प्रयास। कृपया कुछ देर बाद दोबारा कोशिश करें।",
     "changeNumber": "नंबर बदलें"
   },
-  "onboarding": {
-    "title": "कामधा में आपका स्वागत है!",
-    "subtitle": "आप कामधा का उपयोग कैसे करना चाहेंगे?",
-    "iAmWorker": "मुझे काम चाहिए",
-    "iAmWorkerDesc": "मैं खाना बनाना, सफ़ाई, ड्राइविंग जैसी घरेलू सेवाएं देता/देती हूं।",
-    "iAmEmployer": "मुझे काम करने वाले चाहिए",
-    "iAmEmployerDesc": "मुझे घरेलू सहायता चाहिए — कामवाली, रसोइया, ड्राइवर, आदि।",
-    "continue": "आगे बढ़ें"
-  },
-  "dashboard": {
-    "welcome": "स्वागत है, {name}",
-    "switchRole": "{role} पर स्विच करें",
-    "myProfile": "मेरी प्रोफ़ाइल",
-    "findJobs": "नौकरियां खोजें",
-    "findWorkers": "कामगार खोजें",
-    "myJobPosts": "मेरी नौकरी पोस्ट",
-    "requests": "अनुरोध",
-    "postJob": "नौकरी पोस्ट करें",
-    "completeProfile": "अपनी प्रोफ़ाइल पूरी करें",
-    "completeProfileDesc": "अपनी जानकारी भरें ताकि नियोक्ता आपको ढूंढ सकें",
-    "noJobPosts": "आपने अभी तक कोई नौकरी पोस्ट नहीं की है",
-    "noResults": "कोई परिणाम नहीं मिला। अपने फ़िल्टर बदलकर देखें।"
-  },
-  "interest": {
-    "imInterested": "मुझे दिलचस्पी है",
-    "interested": "दिलचस्पी दिखाई",
-    "phoneRevealed": "फ़ोन नंबर दिखाया गया",
-    "callNow": "अभी कॉल करें",
-    "whatsapp": "WhatsApp",
-    "sentRequests": "भेजे गए अनुरोध",
-    "receivedRequests": "प्राप्त अनुरोध",
-    "noSentRequests": "आपने अभी तक कोई दिलचस्पी अनुरोध नहीं भेजा है",
-    "noReceivedRequests": "अभी तक किसी ने दिलचस्पी नहीं दिखाई है"
+  "nav": {
+    "home": "होम",
+    "search": "खोजें",
+    "favorites": "पसंदीदा",
+    "account": "खाता"
   },
   "profile": {
     "jobTypes": "काम के प्रकार",

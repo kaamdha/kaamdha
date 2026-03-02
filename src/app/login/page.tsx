@@ -17,10 +17,10 @@ export default async function LoginPage() {
       .eq("id", user.id)
       .single<User>();
 
-    if (data?.active_role) {
-      redirect("/dashboard");
+    if (data?.name) {
+      redirect("/");
     } else {
-      redirect("/onboarding");
+      redirect("/account");
     }
   }
 

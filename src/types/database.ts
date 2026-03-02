@@ -7,9 +7,13 @@ export type Database = {
           phone: string;
           name: string | null;
           avatar_url: string | null;
-          active_role: "worker" | "employer" | null;
-          has_worker_profile: boolean;
-          has_employer_profile: boolean;
+          location: unknown;
+          locality: string | null;
+          city: string | null;
+          free_leads_remaining: number;
+          wallet_balance: number;
+          last_active_mode: "find_help" | "find_jobs" | null;
+          search_status: "actively_looking" | "not_looking";
           created_at: string;
           updated_at: string;
         };
@@ -18,9 +22,13 @@ export type Database = {
           phone: string;
           name?: string | null;
           avatar_url?: string | null;
-          active_role?: "worker" | "employer" | null;
-          has_worker_profile?: boolean;
-          has_employer_profile?: boolean;
+          location?: unknown;
+          locality?: string | null;
+          city?: string | null;
+          free_leads_remaining?: number;
+          wallet_balance?: number;
+          last_active_mode?: "find_help" | "find_jobs" | null;
+          search_status?: "actively_looking" | "not_looking";
           created_at?: string;
           updated_at?: string;
         };
@@ -29,24 +37,31 @@ export type Database = {
           phone?: string;
           name?: string | null;
           avatar_url?: string | null;
-          active_role?: "worker" | "employer" | null;
-          has_worker_profile?: boolean;
-          has_employer_profile?: boolean;
+          location?: unknown;
+          locality?: string | null;
+          city?: string | null;
+          free_leads_remaining?: number;
+          wallet_balance?: number;
+          last_active_mode?: "find_help" | "find_jobs" | null;
+          search_status?: "actively_looking" | "not_looking";
           updated_at?: string;
         };
       };
       worker_profiles: {
         Row: {
           id: string;
+          custom_id: string;
           user_id: string;
-          job_types: string[];
+          categories: string[];
           bio: string | null;
           experience_years: number;
           salary_min: number | null;
           salary_max: number | null;
-          availability: "full_time" | "part_time" | "flexible" | null;
           available_days: string[];
+          available_timings: string[];
           languages: string[];
+          gender: "male" | "female" | "other" | null;
+          originally_from: string | null;
           location: unknown;
           locality: string | null;
           city: string | null;
@@ -56,15 +71,18 @@ export type Database = {
         };
         Insert: {
           id?: string;
+          custom_id: string;
           user_id: string;
-          job_types?: string[];
+          categories?: string[];
           bio?: string | null;
           experience_years?: number;
           salary_min?: number | null;
           salary_max?: number | null;
-          availability?: "full_time" | "part_time" | "flexible" | null;
           available_days?: string[];
+          available_timings?: string[];
           languages?: string[];
+          gender?: "male" | "female" | "other" | null;
+          originally_from?: string | null;
           location?: unknown;
           locality?: string | null;
           city?: string | null;
@@ -73,15 +91,18 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          custom_id?: string;
           user_id?: string;
-          job_types?: string[];
+          categories?: string[];
           bio?: string | null;
           experience_years?: number;
           salary_min?: number | null;
           salary_max?: number | null;
-          availability?: "full_time" | "part_time" | "flexible" | null;
           available_days?: string[];
+          available_timings?: string[];
           languages?: string[];
+          gender?: "male" | "female" | "other" | null;
+          originally_from?: string | null;
           location?: unknown;
           locality?: string | null;
           city?: string | null;
@@ -92,63 +113,20 @@ export type Database = {
       employer_profiles: {
         Row: {
           id: string;
+          custom_id: string;
           user_id: string;
+          categories_needed: string[];
+          description: string | null;
           household_type:
             | "apartment"
             | "independent_house"
             | "villa"
             | "other"
             | null;
-          location: unknown;
-          locality: string | null;
-          city: string | null;
-          is_active: boolean;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          user_id: string;
-          household_type?:
-            | "apartment"
-            | "independent_house"
-            | "villa"
-            | "other"
-            | null;
-          location?: unknown;
-          locality?: string | null;
-          city?: string | null;
-          is_active?: boolean;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          user_id?: string;
-          household_type?:
-            | "apartment"
-            | "independent_house"
-            | "villa"
-            | "other"
-            | null;
-          location?: unknown;
-          locality?: string | null;
-          city?: string | null;
-          is_active?: boolean;
-          updated_at?: string;
-        };
-      };
-      job_posts: {
-        Row: {
-          id: string;
-          employer_id: string;
-          job_type: string;
-          title: string | null;
-          description: string | null;
-          schedule: "full_time" | "part_time" | "flexible" | null;
-          preferred_days: string[];
-          preferred_timings: string | null;
           salary_min: number | null;
           salary_max: number | null;
+          available_days: string[];
+          available_timings: string[];
           location: unknown;
           locality: string | null;
           city: string | null;
@@ -158,15 +136,20 @@ export type Database = {
         };
         Insert: {
           id?: string;
-          employer_id: string;
-          job_type: string;
-          title?: string | null;
+          custom_id: string;
+          user_id: string;
+          categories_needed?: string[];
           description?: string | null;
-          schedule?: "full_time" | "part_time" | "flexible" | null;
-          preferred_days?: string[];
-          preferred_timings?: string | null;
+          household_type?:
+            | "apartment"
+            | "independent_house"
+            | "villa"
+            | "other"
+            | null;
           salary_min?: number | null;
           salary_max?: number | null;
+          available_days?: string[];
+          available_timings?: string[];
           location?: unknown;
           locality?: string | null;
           city?: string | null;
@@ -175,15 +158,20 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
-          employer_id?: string;
-          job_type?: string;
-          title?: string | null;
+          custom_id?: string;
+          user_id?: string;
+          categories_needed?: string[];
           description?: string | null;
-          schedule?: "full_time" | "part_time" | "flexible" | null;
-          preferred_days?: string[];
-          preferred_timings?: string | null;
+          household_type?:
+            | "apartment"
+            | "independent_house"
+            | "villa"
+            | "other"
+            | null;
           salary_min?: number | null;
           salary_max?: number | null;
+          available_days?: string[];
+          available_timings?: string[];
           location?: unknown;
           locality?: string | null;
           city?: string | null;
@@ -191,9 +179,10 @@ export type Database = {
           updated_at?: string;
         };
       };
-      job_types: {
+      categories: {
         Row: {
           id: string;
+          slug: string;
           label_en: string;
           label_hi: string;
           icon: string | null;
@@ -202,6 +191,7 @@ export type Database = {
         };
         Insert: {
           id: string;
+          slug: string;
           label_en: string;
           label_hi: string;
           icon?: string | null;
@@ -209,6 +199,7 @@ export type Database = {
           sort_order?: number;
         };
         Update: {
+          slug?: string;
           label_en?: string;
           label_hi?: string;
           icon?: string | null;
@@ -241,45 +232,102 @@ export type Database = {
           center_lng?: number | null;
         };
       };
-      interest_requests: {
+      lead_reveals: {
         Row: {
           id: string;
           from_user_id: string;
           to_user_id: string;
-          type: "worker_to_job" | "employer_to_worker";
-          job_post_id: string | null;
+          reveal_type: "employer_to_worker" | "worker_to_employer";
           worker_profile_id: string | null;
-          status: "sent" | "viewed" | "connected";
-          notification_sent: boolean;
-          phone_revealed: boolean;
+          employer_profile_id: string | null;
+          amount_paid: number;
+          was_free_lead: boolean;
+          whatsapp_sent: boolean;
+          whatsapp_message_id: string | null;
           created_at: string;
         };
         Insert: {
           id?: string;
           from_user_id: string;
           to_user_id: string;
-          type: "worker_to_job" | "employer_to_worker";
-          job_post_id?: string | null;
+          reveal_type: "employer_to_worker" | "worker_to_employer";
           worker_profile_id?: string | null;
-          status?: "sent" | "viewed" | "connected";
-          notification_sent?: boolean;
-          phone_revealed?: boolean;
+          employer_profile_id?: string | null;
+          amount_paid?: number;
+          was_free_lead?: boolean;
+          whatsapp_sent?: boolean;
+          whatsapp_message_id?: string | null;
           created_at?: string;
         };
         Update: {
           from_user_id?: string;
           to_user_id?: string;
-          type?: "worker_to_job" | "employer_to_worker";
-          job_post_id?: string | null;
+          reveal_type?: "employer_to_worker" | "worker_to_employer";
           worker_profile_id?: string | null;
-          status?: "sent" | "viewed" | "connected";
-          notification_sent?: boolean;
-          phone_revealed?: boolean;
+          employer_profile_id?: string | null;
+          amount_paid?: number;
+          was_free_lead?: boolean;
+          whatsapp_sent?: boolean;
+          whatsapp_message_id?: string | null;
+        };
+      };
+      favorites: {
+        Row: {
+          id: string;
+          user_id: string;
+          target_type: "worker_profile" | "employer_profile";
+          worker_profile_id: string | null;
+          employer_profile_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          target_type: "worker_profile" | "employer_profile";
+          worker_profile_id?: string | null;
+          employer_profile_id?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          target_type?: "worker_profile" | "employer_profile";
+          worker_profile_id?: string | null;
+          employer_profile_id?: string | null;
+        };
+      };
+      recently_viewed: {
+        Row: {
+          id: string;
+          user_id: string;
+          target_type: "worker_profile" | "employer_profile";
+          worker_profile_id: string | null;
+          employer_profile_id: string | null;
+          viewed_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          target_type: "worker_profile" | "employer_profile";
+          worker_profile_id?: string | null;
+          employer_profile_id?: string | null;
+          viewed_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          target_type?: "worker_profile" | "employer_profile";
+          worker_profile_id?: string | null;
+          employer_profile_id?: string | null;
+          viewed_at?: string;
         };
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      next_custom_id: {
+        Args: { p_type: string };
+        Returns: string;
+      };
+    };
     Enums: Record<string, never>;
   };
 };
@@ -303,16 +351,13 @@ export type EmployerProfileInsert =
 export type EmployerProfileUpdate =
   Database["public"]["Tables"]["employer_profiles"]["Update"];
 
-export type JobPost = Database["public"]["Tables"]["job_posts"]["Row"];
-export type JobPostInsert = Database["public"]["Tables"]["job_posts"]["Insert"];
-export type JobPostUpdate = Database["public"]["Tables"]["job_posts"]["Update"];
-
-export type JobType = Database["public"]["Tables"]["job_types"]["Row"];
+export type Category = Database["public"]["Tables"]["categories"]["Row"];
 export type City = Database["public"]["Tables"]["cities"]["Row"];
 
-export type InterestRequest =
-  Database["public"]["Tables"]["interest_requests"]["Row"];
-export type InterestRequestInsert =
-  Database["public"]["Tables"]["interest_requests"]["Insert"];
-export type InterestRequestUpdate =
-  Database["public"]["Tables"]["interest_requests"]["Update"];
+export type LeadReveal = Database["public"]["Tables"]["lead_reveals"]["Row"];
+export type LeadRevealInsert =
+  Database["public"]["Tables"]["lead_reveals"]["Insert"];
+
+export type Favorite = Database["public"]["Tables"]["favorites"]["Row"];
+export type RecentlyViewed =
+  Database["public"]["Tables"]["recently_viewed"]["Row"];
