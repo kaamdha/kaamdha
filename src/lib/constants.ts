@@ -45,3 +45,21 @@ export const HOUSEHOLD_TYPES = [
   "villa",
   "other",
 ] as const;
+
+export const JID_STATUSES = [
+  "active",
+  "expired",
+  "deactivated",
+  "filled",
+] as const;
+
+export const JOB_CATEGORIES = [
+  { id: "C0001", emoji: "🧹", labelEn: "Maid", labelHi: "कामवाली बाई" },
+  { id: "C0002", emoji: "🍳", labelEn: "Cook", labelHi: "रसोइया" },
+  { id: "C0003", emoji: "🚗", labelEn: "Driver", labelHi: "ड्राइवर" },
+  { id: "C0004", emoji: "🌿", labelEn: "Gardener", labelHi: "माली" },
+  { id: "C0005", emoji: "🚿", labelEn: "Car Cleaner", labelHi: "कार क्लीनर" },
+  { id: "C0006", emoji: "👶", labelEn: "Nanny", labelHi: "आया" },
+  { id: "C0007", emoji: "💪", labelEn: "Trainer", labelHi: "ट्रेनर" },
+  { id: "C0008", emoji: "👴", labelEn: "Elder Care", labelHi: "बुज़ुर्गों की देखभाल" },
+] as const;

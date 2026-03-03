@@ -115,18 +115,12 @@ export type Database = {
           id: string;
           custom_id: string;
           user_id: string;
-          categories_needed: string[];
-          description: string | null;
           household_type:
             | "apartment"
             | "independent_house"
             | "villa"
             | "other"
             | null;
-          salary_min: number | null;
-          salary_max: number | null;
-          available_days: string[];
-          available_timings: string[];
           location: unknown;
           locality: string | null;
           city: string | null;
@@ -138,18 +132,12 @@ export type Database = {
           id?: string;
           custom_id: string;
           user_id: string;
-          categories_needed?: string[];
-          description?: string | null;
           household_type?:
             | "apartment"
             | "independent_house"
             | "villa"
             | "other"
             | null;
-          salary_min?: number | null;
-          salary_max?: number | null;
-          available_days?: string[];
-          available_timings?: string[];
           location?: unknown;
           locality?: string | null;
           city?: string | null;
@@ -160,23 +148,83 @@ export type Database = {
         Update: {
           custom_id?: string;
           user_id?: string;
-          categories_needed?: string[];
-          description?: string | null;
           household_type?:
             | "apartment"
             | "independent_house"
             | "villa"
             | "other"
             | null;
-          salary_min?: number | null;
-          salary_max?: number | null;
-          available_days?: string[];
-          available_timings?: string[];
           location?: unknown;
           locality?: string | null;
           city?: string | null;
           is_active?: boolean;
           updated_at?: string;
+        };
+      };
+      job_listings: {
+        Row: {
+          id: string;
+          custom_id: string;
+          employer_id: string;
+          category: string;
+          title: string | null;
+          description: string | null;
+          salary_min: number | null;
+          salary_max: number | null;
+          schedule: "full_time" | "part_time" | "flexible" | null;
+          preferred_days: string[];
+          preferred_timings: string[];
+          search_radius_km: number;
+          location: unknown;
+          locality: string | null;
+          city: string | null;
+          is_active: boolean;
+          status: "active" | "expired" | "deactivated" | "filled";
+          created_at: string;
+          updated_at: string;
+          expires_at: string;
+        };
+        Insert: {
+          id?: string;
+          custom_id: string;
+          employer_id: string;
+          category: string;
+          title?: string | null;
+          description?: string | null;
+          salary_min?: number | null;
+          salary_max?: number | null;
+          schedule?: "full_time" | "part_time" | "flexible" | null;
+          preferred_days?: string[];
+          preferred_timings?: string[];
+          search_radius_km?: number;
+          location?: unknown;
+          locality?: string | null;
+          city?: string | null;
+          is_active?: boolean;
+          status?: "active" | "expired" | "deactivated" | "filled";
+          created_at?: string;
+          updated_at?: string;
+          expires_at?: string;
+        };
+        Update: {
+          custom_id?: string;
+          employer_id?: string;
+          category?: string;
+          title?: string | null;
+          description?: string | null;
+          salary_min?: number | null;
+          salary_max?: number | null;
+          schedule?: "full_time" | "part_time" | "flexible" | null;
+          preferred_days?: string[];
+          preferred_timings?: string[];
+          search_radius_km?: number;
+          location?: unknown;
+          locality?: string | null;
+          city?: string | null;
+          is_active?: boolean;
+          status?: "active" | "expired" | "deactivated" | "filled";
+          updated_at?: string;
+          expires_at?: string;
         };
       };
       categories: {
@@ -239,7 +287,7 @@ export type Database = {
           to_user_id: string;
           reveal_type: "employer_to_worker" | "worker_to_employer";
           worker_profile_id: string | null;
-          employer_profile_id: string | null;
+          job_listing_id: string | null;
           amount_paid: number;
           was_free_lead: boolean;
           whatsapp_sent: boolean;
@@ -252,7 +300,7 @@ export type Database = {
           to_user_id: string;
           reveal_type: "employer_to_worker" | "worker_to_employer";
           worker_profile_id?: string | null;
-          employer_profile_id?: string | null;
+          job_listing_id?: string | null;
           amount_paid?: number;
           was_free_lead?: boolean;
           whatsapp_sent?: boolean;
@@ -264,7 +312,7 @@ export type Database = {
           to_user_id?: string;
           reveal_type?: "employer_to_worker" | "worker_to_employer";
           worker_profile_id?: string | null;
-          employer_profile_id?: string | null;
+          job_listing_id?: string | null;
           amount_paid?: number;
           was_free_lead?: boolean;
           whatsapp_sent?: boolean;
@@ -275,48 +323,48 @@ export type Database = {
         Row: {
           id: string;
           user_id: string;
-          target_type: "worker_profile" | "employer_profile";
+          target_type: "worker_profile" | "job_listing";
           worker_profile_id: string | null;
-          employer_profile_id: string | null;
+          job_listing_id: string | null;
           created_at: string;
         };
         Insert: {
           id?: string;
           user_id: string;
-          target_type: "worker_profile" | "employer_profile";
+          target_type: "worker_profile" | "job_listing";
           worker_profile_id?: string | null;
-          employer_profile_id?: string | null;
+          job_listing_id?: string | null;
           created_at?: string;
         };
         Update: {
           user_id?: string;
-          target_type?: "worker_profile" | "employer_profile";
+          target_type?: "worker_profile" | "job_listing";
           worker_profile_id?: string | null;
-          employer_profile_id?: string | null;
+          job_listing_id?: string | null;
         };
       };
       recently_viewed: {
         Row: {
           id: string;
           user_id: string;
-          target_type: "worker_profile" | "employer_profile";
+          target_type: "worker_profile" | "job_listing";
           worker_profile_id: string | null;
-          employer_profile_id: string | null;
+          job_listing_id: string | null;
           viewed_at: string;
         };
         Insert: {
           id?: string;
           user_id: string;
-          target_type: "worker_profile" | "employer_profile";
+          target_type: "worker_profile" | "job_listing";
           worker_profile_id?: string | null;
-          employer_profile_id?: string | null;
+          job_listing_id?: string | null;
           viewed_at?: string;
         };
         Update: {
           user_id?: string;
-          target_type?: "worker_profile" | "employer_profile";
+          target_type?: "worker_profile" | "job_listing";
           worker_profile_id?: string | null;
-          employer_profile_id?: string | null;
+          job_listing_id?: string | null;
           viewed_at?: string;
         };
       };
@@ -350,6 +398,12 @@ export type EmployerProfileInsert =
   Database["public"]["Tables"]["employer_profiles"]["Insert"];
 export type EmployerProfileUpdate =
   Database["public"]["Tables"]["employer_profiles"]["Update"];
+
+export type JobListing = Database["public"]["Tables"]["job_listings"]["Row"];
+export type JobListingInsert =
+  Database["public"]["Tables"]["job_listings"]["Insert"];
+export type JobListingUpdate =
+  Database["public"]["Tables"]["job_listings"]["Update"];
 
 export type Category = Database["public"]["Tables"]["categories"]["Row"];
 export type City = Database["public"]["Tables"]["cities"]["Row"];
