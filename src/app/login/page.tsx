@@ -20,7 +20,7 @@ export default async function LoginPage() {
     if (data?.name) {
       redirect("/");
     } else {
-      redirect("/account");
+      redirect("/onboard");
     }
   }
 

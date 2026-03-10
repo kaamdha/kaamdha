@@ -3,7 +3,6 @@ import { DM_Sans, Outfit } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -33,12 +32,11 @@ export default async function RootLayout({
 
   return (
     <html lang={locale}>
-      <body className={`${dmSans.variable} ${outfit.variable} font-sans antialiased`}>
+      <body className={`${dmSans.variable} ${outfit.variable} font-sans antialiased bg-slate-100`}>
         <NextIntlClientProvider messages={messages}>
-          <div className="flex min-h-screen flex-col">
+          <div className="mx-auto flex min-h-screen w-full max-w-[420px] flex-col bg-background shadow-xl sm:my-0 sm:min-h-screen">
             <Header />
-            <main className="flex-1 pb-14">{children}</main>
-            <Footer />
+            <main className="flex-1">{children}</main>
           </div>
         </NextIntlClientProvider>
       </body>

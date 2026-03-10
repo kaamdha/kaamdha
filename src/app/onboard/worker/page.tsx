@@ -1,9 +1,9 @@
-"use server";
-
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { User } from "@/types/database";
+import { WorkerOnboard } from "@/components/onboard/worker-onboard";
 
-export async function checkUserRole(): Promise<string> {
+export default async function WorkerOnboardPage() {
   const supabase = await createClient();
 
   const {
@@ -11,7 +11,7 @@ export async function checkUserRole(): Promise<string> {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return "/login";
+    redirect("/login");
   }
 
   const { data } = await supabase
@@ -20,11 +20,13 @@ export async function checkUserRole(): Promise<string> {
     .eq("id", user.id)
     .single<User>();
 
-  // New user without a name → needs onboarding
-  if (!data?.name) {
-    return "/onboard";
+  if (data?.name) {
+    redirect("/");
   }
 
-  // Returning user → home
-  return "/";
+  return (
+    <div className="px-6 py-8">
+      <WorkerOnboard />
+    </div>
+  );
 }

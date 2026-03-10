@@ -1,4 +1,4 @@
-# CLAUDE.md — Kaamdha Project Brief (v3.1 — Final)
+# CLAUDE.md — Kaamdha Project Brief (v4 — Wireframes v5)
 
 > **Single source of truth. Read this fully before writing any code.**
 
@@ -41,7 +41,8 @@ Both sides can discover each other. Both sides pay to reveal phone numbers.
 | Job Listing | JID | JID + 10 digits | JID0000000001 |
 
 - Auto-generated sequentially via `next_custom_id()` Postgres function
-- Displayed on all cards, profiles, detail pages, and WhatsApp communications
+- **NOT displayed on cards, detail pages, or UI** — IDs are internal/backend only
+- Used in WhatsApp communications and backend references
 - Stored alongside UUID primary keys (UUID for DB relations, custom ID for human-facing)
 
 ---
@@ -71,16 +72,16 @@ Both sides can discover each other. Both sides pay to reveal phone numbers.
 - Supabase RLS for all access control
 - Server Components by default, Client Components only for interactivity
 - Server Actions for form submissions and mutations
-- Role detected from behavior, not explicit selection
+- Explicit role selection at onboarding (no role switching in Phase 1)
 
 ---
 
 ## 4. Roles
 
-**No explicit role selection.** One phone number = one account. Role detected from behavior:
-- Uses "Find Help" tab → Employer
-- Uses "Find Jobs" tab → Worker
-- A user can be both (e.g., a driver who also needs a maid)
+**Explicit role selection at onboarding.** One phone number = one account with one role.
+- New user selects: "Household Owner" (Employer) or "Work Seeker" (Worker) during onboarding
+- **No role switching in Phase 1** — users are locked into their registered role
+- Role switching will be introduced in a later product release
 - `last_active_mode` field tracks current mode
 
 ---
@@ -123,42 +124,31 @@ Created (auto from search or manual)
 ### Flow 1: New Employer
 ```
 Home (Not Logged In)
-  → "Find Help" tab
+  → "Find Staff" button
     → "Login to Get Started"
-      → Login Page → Enter Phone → OTP → Verify
-        → New user detected
-          → Ask: Name, Location (auto-detect via GPS, manual fallback)
-            → Redirect to Search Page (/search)
-              → Select category tab (Cook, Maid, etc.)
-              → Area/locality (pre-filled from profile, editable)
-              → Distance (3km / 5km / 10km)
-              → Hit "Search Workers"
-                → JID auto-created (or existing one reused)
-                → "✅ Job listing created: JID0000000045"
-                → Worker results shown (Listings Page)
-                  → Browse worker cards
-                    → Tap card → Worker Detail Page → Reveal Phone
-                    → Tap ❤️ → Added to Favorites
-                    → Tap 📤 → Share via WhatsApp/link
-                    → Card auto-added to Recently Viewed
+      → Login Page → Enter Phone → "Send OTP" → OTP screen appears → Verify
+        → New user detected → Role Selection screen
+          → Select "Household Owner"
+            → Onboarding: "What are you looking for?" (same search UI as home)
+              → Complete search → Land on Staff Listings (/listings) with results
+                → Browse worker cards
+                  → Tap card → Worker Detail Page → Reveal Phone
+                  → Tap ❤️ → Added to Favorites
 ```
 
 ### Flow 2: New Worker
 ```
 Home (Not Logged In)
-  → "Find Jobs" tab
+  → "Find Jobs" button
     → "Login to Get Started"
-      → Login Page → Enter Phone → OTP → Verify
-        → New user detected
-          → Ask: Name, Location (auto-detect), Categories, Availability (days + timings)
-            → Redirect to Listings Page (/listings)
-              → JID cards matching their criteria shown immediately
-              → Filter bar on top: Category tabs, Area, Distance
-                → Browse JID cards (employer job listings)
-                  → Tap card → Job Detail Page (/details/JID...) → Reveal Phone
+      → Login Page → Enter Phone → "Send OTP" → OTP screen appears → Verify
+        → New user detected → Role Selection screen
+          → Select "Work Seeker"
+            → Onboarding: Fill profile (name, skills, experience, location, etc.)
+              → Redirect to Home (Logged In)
+                → JID cards matching their criteria shown on home screen
+                  → Tap card → Job Detail Page → Reveal Phone
                   → Tap ❤️ → Added to Favorites
-                  → Tap 📤 → Share
-                  → Card auto-added to Recently Viewed
 ```
 
 ### Flow 3: Returning User (Employer)
@@ -166,10 +156,9 @@ Home (Not Logged In)
 Login → OTP → Returning user detected
   → Redirect to Home (Logged In)
     → "Welcome back, Priya 👋"
-    → Recent JIDs created shown
     → Search bar at top
-      → Tap search → Search Page → same employer search flow
-    → Quick category tiles → tap → Search Page pre-filtered
+    → "Your recent searches" section (listing cards, no JID displayed)
+      → Tap search → same employer search flow → Staff Listings
 ```
 
 ### Flow 4: Returning User (Worker)
@@ -177,9 +166,8 @@ Login → OTP → Returning user detected
 Login → OTP → Returning user detected
   → Redirect to Home (Logged In)
     → "Welcome back, Ramesh 👋"
-    → Recent JIDs near location shown
-    → Search bar at top
-      → Tap search → Listings Page with filters → browse JIDs
+    → Job listing cards on home screen (no JID, no share icon)
+    → Heart icon top-right, distance below heart
 ```
 
 ### Flow 5: Phone Number Reveal
@@ -205,86 +193,119 @@ Phase 2: Razorpay payment triggered after 3 free leads used.
 ### Flow 6: Account & Profile Management
 ```
 Account Page (/account)
+  → Greeting with name (same pattern as home page)
   → Edit Profile → Worker or Employer profile editor
-  → Search Preferences → Status (Actively Looking / Not Looking), Categories, Days, Timings
   → My Job Listings → Favorites page, Jobs Created tab (employer only)
+  → Language → English / हिंदी
   → Favorites → /favorites
-  → Role Switch → Toggle between Worker/Employer mode
+  → Help & Support → kaamdha@gmail.com
   → Logout
 ```
+Note: No role switch, terms & privacy, delete account, or profile status in Phase 1.
 
 ---
 
 ## 7. Site Structure — Pages
 
-### Global Footer Navigation (persistent on all pages)
+### Navigation
 
-| Icon | Label | Route (Employer) | Route (Worker) |
-|---|---|---|---|
-| 🏠 | Home | `/` | `/` |
-| 🔍 | Search | `/search` | `/listings` |
-| ❤️ | Favorites | `/favorites` | `/favorites` |
-| 👤 | Account | `/account` | `/account` |
+**No bottom navigation bar.** Navigation is handled through:
+- Header with logo, locale switcher, and login/account button
+- In-page links and CTAs that route between screens
+- Back buttons where appropriate
 
-Note: 🔍 Search icon routes differently based on active role.
+The app renders as a **mobile-only view** (max 420px width), centered on larger screens.
 
 ---
 
 ### Page 1: Home `/`
 
-**Not Logged In — Two tabs:**
+**Not Logged In — Two equi-sized buttons:**
 
-**Tab 1: "Find Help" (default)**
-- Headline: "Find trusted household help near you"
-- Subtext: "Search for maids, cooks, drivers & more. Get leads in just ₹10."
-- Trust badge: "🎉 First 3 leads are FREE"
-- How it works: Register → Search → Connect
-- Category icons grid (tappable — each opens search pre-filtered)
+**"Find Staff" button (default):**
+- Headline: "How Kaamdha works for household owners"
+- Service categories below headline (Cook, Maid, Driver, Nanny, Gardener, etc.)
+- Brief explainer steps for how the platform works
 - CTA: "Login to Get Started" → /login
 
-**Tab 2: "Find Jobs"**
-- Headline: "Get hired by families near you"
-- Subtext: "Share your profile and connect with employers. List yourself for just ₹10."
-- Trust badge: "🎉 First 3 listings are FREE"
-- How it works: Register → Create Profile → Get Calls
+**"Find Jobs" button:**
+- Headline: "How Kaamdha works for work seekers"
+- Job categories for registration (mirroring staff categories)
+- Brief explainer steps for how the platform works
 - CTA: "Login to Get Started" → /login
 
-**Logged In:**
+**Employer — Logged In:**
 - Time-aware greeting: "Good morning, Priya 👋"
-- Prominent search bar → tapping opens /search (employer) or /listings (worker)
-- **Employer mode:** Category quick tiles + recent JIDs created (with status) + stats (free leads, leads used, profile views)
-- **Worker mode:** Recent JIDs near their location + stats
-- Option to switch mode via tabs at top
+- **No role-switching tabs** — locked into registered role
+- **No stats boxes** (free leads, jobs created, leads used — deferred)
+- Prominent search bar (no "Search for staff" header — search bar CTA is sufficient)
+- **"Your recent searches" section** (renamed from "Your job listings")
+  - Listing cards with status badge (Active/Expiring)
+  - **No JID displayed** on cards
+  - Edit action as icon only, below "Active" status badge
+
+**Worker — Logged In:**
+- Time-aware greeting
+- **No role-switching tabs**
+- **No stats boxes**
+- **No "Browse jobs near you" bar**
+- Job listing cards:
+  - **No JID displayed**
+  - **No share icon**
+  - **Heart (favorite) icon at top right** of card
+  - **Distance displayed below heart icon**
 
 ---
 
 ### Page 2: Login `/login`
 
 - Phone number input with +91 prefix
-- "Send OTP" button → OTP sent via Gupshup
+- "Send OTP" button
+- **OTP input screen appears ONLY after "Send OTP" is clicked** (not shown preemptively)
 - 6-digit OTP input
 - Resend timer (30 seconds)
 - "Verify & Continue" button
 
 **Post-verification routing:**
 
-| User Type | Data Collected | Redirect To |
-|---|---|---|
-| New Employer (from "Find Help") | Name, Location (auto-detect + manual) | `/search` |
-| New Worker (from "Find Jobs") | Name, Location, Categories, Availability (days + timings) | `/listings` (with matching JIDs) |
-| Returning User | — | `/` (Home, logged in) |
+| User Type | Redirect To |
+|---|---|
+| New User | Role Selection (Screen 4a) |
+| Returning User | `/` (Home, logged in) |
 
 **Location auto-detection:**
 Use browser Geolocation API on first visit. Show "📍 Detecting your location..." → resolve to nearest locality name. User can override with manual text entry. Saved to user profile for future sessions.
 
 ---
 
+### Page 2b: Role Selection `/onboard/role`
+
+New users select their role:
+- **Household Owner** (Employer)
+- **Work Seeker** (Worker)
+
+No role switching after selection in Phase 1.
+
+---
+
+### Page 2c: Onboarding — Employer `/onboard/employer`
+
+- Presents "What are you looking for?" — same search UI pattern as Home (Employer)
+- Category selection, location, etc.
+- Upon completing search → lands directly on Staff Listings (`/listings`) with results populated
+
+### Page 2d: Onboarding — Worker `/onboard/worker`
+
+- Worker fills in profile details (name, skills, experience, location, availability, etc.)
+- Upon completing → redirects to Home (Worker, logged in)
+
+---
+
 ### Page 3: Search `/search` — Employer Only
 
-This page is the employer's search interface. **Workers do not use this page** — they go directly to `/listings` with filters.
+This page is the employer's search interface. **Workers do not use this page.**
 
 **Elements:**
-- "Create Job Listing" button in header
 - Category tabs (horizontal scroll): Maid, Cook, Driver, Gardener, Car Cleaner, Nanny, Trainer, Elder Care, etc.
 - Area/locality search bar (auto-filled from profile, editable) with 📍 auto-detect button
 - Distance pills: 3km / 5km / 10km
@@ -292,18 +313,14 @@ This page is the employer's search interface. **Workers do not use this page** �
 - **"Search Workers" button**
 
 **On search:**
-1. JID auto-created (or existing one reused per dedup rule)
-2. Green notification: "✅ Job listing created: JID0000000045 — Workers can now find you!"
-3. Worker profile cards load below (or navigate to /listings)
+1. JID auto-created in background (or existing one reused per dedup rule)
+2. Worker profile cards load on Staff Listings page (`/listings`)
 
 ---
 
-### Page 4: Listings `/listings`
+### Page 4: Staff Listings `/listings` — Employer View
 
-#### Employer View — Worker Profile Cards:
-
-Filter pills on top: Category, Distance, Salary, Experience
-"Create Job Listing" button in header
+List of staff/worker profiles matching the employer's search criteria.
 
 Each worker card:
 - Photo / Default gender icon (👨/👩)
@@ -314,29 +331,17 @@ Each worker card:
 - Day availability (Mon-Sun)
 - Time availability (Morning / Afternoon / Evening / 12-hour / 24-hour)
 - Originally from (state/city)
-- ❤️ Favorite icon
-- 📤 Share icon (native share sheet)
+- **❤️ Favorite icon at top right** of card
+- **Distance displayed below heart icon**
 - 📞 Masked phone: "981-XXX-XXXX" + [Reveal] button
-- Worker ID (W000000123) + distance (📍 1.2km)
+- **No Worker ID displayed**
+- **No share icon**
 
-#### Worker View — JID Cards:
+**Empty state:** Friendly message if no results: "We couldn't find any staffers matching your criteria right now. We're working hard to find great staff near you — check back soon!"
 
-**Filter bar on top** (this IS the worker's search experience — no separate search page):
-- Category tabs (horizontal scroll)
-- Area/locality search with 📍 auto-detect
-- Distance pills (3/5/10km)
+#### Job Listings Page `/listings` (Worker View) — REMOVED
 
-Each JID card:
-- Category icon + Job title (if set by employer, else category name)
-- Employer name (preview)
-- Location / locality
-- Salary offered (₹ range/month)
-- Day availability
-- Time availability
-- ❤️ Favorite icon
-- 📤 Share icon
-- 📞 Masked phone + [Reveal] button
-- JID number (JID0000000045) + distance
+**This page has been removed.** Workers discover jobs through their home screen (Screen 2b). No separate job listings/search page for workers in Phase 1.
 
 ---
 
@@ -344,86 +349,88 @@ Each JID card:
 
 #### Worker Detail `/details/W...` (viewed by employer):
 - Large photo / gender icon
-- Name + Worker ID (W000000123)
+- Name (**no Worker ID displayed**)
 - Location + distance badge ("Sector 49 · 1.2km away")
 - Category tags
 - Experience, Salary expectations, Day availability, Time availability
 - Languages spoken
 - Originally from
 - Bio / About section
-- ❤️ Favorite + 📤 Share
-- 📞 Reveal button (sticky bottom): "Reveal Number · ~~₹10~~ FREE"
-- Free leads remaining counter
-- 🚩 Report link
+- **No Report button**
+- **Sticky footer:** ❤️ Heart (save) on left + "Reveal Number" CTA on right
+
+**Self / Edit view (worker's own profile):**
+- Same layout but with **edit icon (pencil) next to worker's name** — no separate View/Edit toggle
+- Active/inactive toggle below name
+- Editable fields for skills, salary, days, timings, about
+- "Save Changes" button at bottom
 
 #### Job Detail `/details/JID...` (viewed by worker):
-- Category icon + Job title
-- JID number
-- **Employer preview section:** Name, Employer ID (E000000045), Household type, Location
+- **Category icon** before the main header (represents job category)
+- Job title (**no JID number displayed**)
+- **Employer preview section:** Name, Household type, Location (**no Employer ID**)
 - Full description / requirements
 - Salary offered
 - Schedule (full-time/part-time/flexible)
 - Preferred days + timings
 - Location + distance
 - Created date + expires in X days
-- ❤️ Favorite + 📤 Share
-- 📞 Reveal button (sticky bottom): "Reveal Employer's Number · ~~₹10~~ FREE"
-- Free leads remaining counter
-- 🚩 Report link
+- **No Report button**
+- **Sticky footer:** ❤️ Heart (save) on left + "Reveal Employer's Number" CTA on right
+
+**Self / Edit view (employer's own job):**
+- Same layout but with **edit icon (pencil) next to job title** — no separate View/Edit toggle
+- Active/inactive toggle below header
+- Editable fields for title, category, salary, schedule, days, requirements
+- "Save Changes" button at bottom
 
 ---
 
 ### Page 6: Favorites `/favorites`
 
 #### Employer — 3 tabs:
-1. **Jobs Created** — All JIDs created by this employer (active/expiring/expired/deactivated)
-   - Each shows: Category, title, area, salary, status badge, created date, expiry, match count
+1. **Jobs Created** — Employer's own job listings with status (Active/Expiring) and edit icon
    - Actions: Edit, Renew (if expiring/expired), Deactivate
-2. **Recently Viewed** — Worker profiles they clicked on (auto-tracked, last 50)
-   - Same card UI as worker listings
-3. **❤️ Saved** — Worker profiles they hearted
-   - Same card UI as worker listings
+2. **Recently Contacted** — Staff profiles the employer has already revealed/contacted, with phone numbers visible
+   - Same card UI as staff listings
+3. **Saved** — Staff profiles the employer has hearted/saved
+   - Same card UI as staff listings
 
 #### Worker — 2 tabs:
-1. **Recently Viewed** — JIDs they clicked on (auto-tracked, last 50)
-   - Same card UI as JID listings
-2. **❤️ Saved** — JIDs they hearted
-   - Same card UI as JID listings
+1. **Recently Contacted** — Employers/jobs the worker has already revealed/contacted, with phone numbers visible
+   - Same card UI as job listings
+2. **Saved** — Jobs the worker has hearted/saved
+   - Same card UI as job listings
+
+Note: No heart icon on tab labels. All listing cards use consistent design across the app.
 
 ---
 
 ### Page 7: Account `/account`
 
-**User card at top:**
-- Photo + Name
-- Phone number
-- Custom ID (W... or E...)
-- Current mode indicator
-- **[Switch to Worker / Employer]** button
+**Greeting with name** — Same pattern as home page ("Your account" / "Priya Sharma 👋" / phone number). No green highlighted card. **No user ID displayed.**
 
 **Menu items:**
 - 📝 **Edit Profile →** Opens role-specific profile editor (`/account/profile`)
 - 📋 **My Job Listings →** Opens Favorites → Jobs Created tab (employer only)
-- 🔍 **Search Preferences →**
-  - Status: Actively Looking / Not Looking (controls profile visibility)
-  - Preferred categories (highlighted)
-  - Preferred days
-  - Preferred timings
-- 📊 **My Activity** — Free leads remaining, total leads used, profile views received
 - ❤️ **Favorites →** Links to `/favorites`
 - 🌐 **Language:** English / हिंदी toggle
-- 📄 **Terms & Privacy**
-- 📞 **Help & Support**
+- 📞 **Help & Support** — Email: kaamdha@gmail.com
 - **[Logout]**
-- **[Delete Account]** (danger zone)
+
+**Removed from Phase 1:**
+- ~~Switch to Worker / Employer~~ (role switching deferred)
+- ~~Search Preferences / Profile status~~ (deferred)
+- ~~My Activity / Stats~~ (deferred)
+- ~~Terms & Privacy~~ (deferred)
+- ~~Delete Account~~ (deferred)
+- ~~User ID display~~ (removed)
 
 ---
 
-### Page 8: Profile Editor `/account/profile`
+### Page 8: Profile Editor
 
-Accessed from Account → Edit Profile. Shows fields for the currently active role.
-
-#### Worker Profile Fields:
+**Worker profile** — accessed via Worker Detail (self view) edit icon or Account → Edit Profile:
 - Photo (upload)
 - Name *
 - Gender * (male/female/other — used for default avatar)
@@ -436,43 +443,32 @@ Accessed from Account → Edit Profile. Shows fields for the currently active ro
 - Originally from (state/city)
 - Bio / About (textarea)
 - Location / Area * (with auto-detect 📍)
-- **Profile Active toggle** (on/off — controls visibility in search)
+- Active/inactive toggle below name (on detail self-view)
 
-#### Employer Profile Fields:
+**Employer Profile Fields** — accessed via Account → Edit Profile:
 - Name *
 - Photo (optional)
 - Household type (Apartment/Independent House/Villa/Other)
 - Location / Area * (with auto-detect 📍)
-- **Profile Active toggle**
 
-Note: Employer's job-specific details (category, salary, schedule, requirements) live in their JIDs, not in the employer profile itself.
+Note: Employer's job-specific details (category, salary, schedule, requirements) live in their JIDs, not in the employer profile itself. JIDs are edited via their detail page (self-view with edit icon).
 
 ---
 
-### Page 9: JID Editor `/account/job/[jid]`
+### Page 9: JID Editing
 
-Accessed from Favorites → Jobs Created → Edit
+JID editing is done **inline on the Job Detail page** (self-view with edit icon next to title). No separate `/account/job/[jid]` page.
 
-**Fields:**
-- Category (read-only — set from original search)
+**Editable fields (on detail self-view):**
 - Title (editable — e.g., "Cook for vegetarian family of 4")
+- Category (read-only — set from original search)
 - Description / Requirements (editable textarea)
 - Salary range (editable min-max)
 - Schedule: Full-time / Part-time / Flexible
 - Preferred days (checkboxes)
 - Preferred timings (multi-select)
-- Location (editable with auto-detect)
-- **Expiry info:** "Expires in X days" + expiry date
-- **[Renew for 30 days]** button
-- **[Save Changes]** button
-- **[Deactivate]** / **[Delete]** buttons
-
----
-
-### Static Pages:
-- `/terms` — Terms of Service
-- `/privacy` — Privacy Policy
-- `/contact` — Help & Support
+- Active/inactive toggle below header
+- "Save Changes" button at bottom
 
 ---
 
@@ -955,26 +951,28 @@ Renew now: kaamdha.com/account
 ## 14. Phase 1 Scope
 
 ### ✅ Build:
-- Home page (2 tabs, logged in/out states)
-- Login (phone OTP via Gupshup)
+- Home page (2 equi-sized buttons: Find Staff / Find Jobs, logged in/out states)
+- Login (phone OTP via Gupshup, OTP screen only after Send OTP click)
+- Role selection at onboarding (Household Owner / Work Seeker)
+- Employer onboarding (search-based → lands on staff listings)
+- Worker onboarding (profile creation)
 - Search page (employer-only, auto-creates JID)
-- Listings page (worker cards for employers, JID cards with filter bar for workers)
-- Detail pages (worker profile + JID job detail)
-- Favorites (3 tabs employer: Jobs Created / Recently Viewed / Saved | 2 tabs worker: Recently Viewed / Saved)
-- Account page (settings, search prefs, role switch, logout)
-- Profile editor (worker + employer)
-- JID editor (edit, renew, deactivate from Favorites)
+- Staff listings page (worker cards for employers)
+- Detail pages (worker profile + JID job detail, with inline edit for owners)
+- Favorites (3 tabs employer: Jobs Created / Recently Contacted / Saved | 2 tabs worker: Recently Contacted / Saved)
+- Account page (edit profile, my job listings, language, favorites, help, logout)
+- Profile editor (worker + employer, with inline edit icon)
+- JID editor (edit, renew, deactivate from detail page or Favorites)
 - Phone reveal flow (modal → WhatsApp delivery → unmask on screen)
 - JID auto-creation from search
 - JID deduplication (same employer + category + locality)
 - JID 30-day auto-expiry with WhatsApp reminder
-- Share (native share sheet)
 - PostGIS location search (3/5/10km)
 - Location auto-detection (Geolocation API)
-- Custom ID system (E/W/C/JID prefixes)
-- Search status (actively looking / not looking)
+- Custom ID system (E/W/C/JID prefixes — backend only, NOT displayed in UI)
 - "Coming soon" for inactive cities
-- 4-icon footer navigation
+- Mobile-only view (max 420px, centered on desktop)
+- Friendly empty states for no search results
 
 ### ❌ Don't Build (Phase 2+):
 - Actual ₹10 payments (Razorpay)
@@ -987,6 +985,14 @@ Renew now: kaamdha.com/account
 - Notifications page
 - Native mobile app
 - Multi-language beyond EN + HI
+- **Role switching** (Employer ↔ Worker)
+- **Lead tracking stats** (Free leads, Leads used, Profile views)
+- **Report functionality** on detail pages
+- **Terms & Privacy** page
+- **Delete Account** option
+- **Profile status toggle** (actively looking / not looking)
+- **Share icon** on listing cards (share only available on detail pages)
+- **Separate job listings page for workers** (workers use home screen)
 
 ---
 
@@ -1022,5 +1028,5 @@ Signups (by role), profile completions, JIDs created, searches, lead reveals, fa
 - **Phone masking server-side** — NEVER expose full phone numbers in API responses
 - **JID dedup** enforced via unique index + application-level check
 - **JID expiry** via daily cron (Edge Function or pg_cron)
-- **Recently viewed** tracked on detail page open, max 50 per user
+- **Recently Contacted** tab powered by lead_reveals table (profiles/jobs where phone was revealed)
 - **Location auto-detect** via Geolocation API, resolve to locality name, save to profile
