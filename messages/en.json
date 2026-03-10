@@ -186,6 +186,23 @@
     "findStaffHint": "You'll be taken to matching staff listings",
     "createProfile": "Create Profile"
   },
+  "jidEdit": {
+    "editJob": "Edit Job Listing",
+    "jobTitle": "Job Title",
+    "requirements": "Requirements",
+    "requirementsPlaceholder": "Describe what you're looking for...",
+    "salaryRange": "Salary Range (₹/month)",
+    "schedule": "Schedule",
+    "preferredDays": "Preferred Days",
+    "preferredTimings": "Preferred Timings",
+    "saveChanges": "Save Changes",
+    "renewFor30Days": "Renew for 30 days",
+    "deactivate": "Deactivate",
+    "active": "Active",
+    "expired": "Expired",
+    "expiresOn": "Expires",
+    "daysLeft": "days left"
+  },
   "reveal": {
     "revealWorkerTitle": "Reveal {name}'s number?",
     "revealEmployerTitle": "Reveal {name}'s number?",

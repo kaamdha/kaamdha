@@ -57,7 +57,8 @@ export default async function DetailsPage({
 
     const isOwner = ep?.user_id === authUser.id;
 
-    // Track recently viewed (if not owner)
+    // Track recently viewed + check favorite (if not owner)
+    let isFavorited = false;
     if (!isOwner) {
       await supabase
         .from("recently_viewed")
@@ -66,6 +67,14 @@ export default async function DetailsPage({
           target_type: "job_listing",
           job_listing_id: job.id as string,
         } as Record<string, unknown> as never);
+
+      const { data: favRaw } = await supabase
+        .from("favorites")
+        .select("id")
+        .eq("user_id", authUser.id)
+        .eq("job_listing_id", job.id as string)
+        .single();
+      isFavorited = !!favRaw;
     }
 
     return (
@@ -92,6 +101,7 @@ export default async function DetailsPage({
           locality: ep?.locality ?? null,
         }}
         isOwner={isOwner}
+        isFavorited={isFavorited}
       />
     );
   }
@@ -118,7 +128,8 @@ export default async function DetailsPage({
   const workerUser = wuRaw as { name: string | null; phone: string } | null;
   const isOwner = (wp.user_id as string) === authUser.id;
 
-  // Track recently viewed (if not owner)
+  // Track recently viewed + check favorite (if not owner)
+  let isFavoritedWorker = false;
   if (!isOwner) {
     await supabase
       .from("recently_viewed")
@@ -127,6 +138,14 @@ export default async function DetailsPage({
         target_type: "worker_profile",
         worker_profile_id: wp.id as string,
       } as Record<string, unknown> as never);
+
+    const { data: favRaw } = await supabase
+      .from("favorites")
+      .select("id")
+      .eq("user_id", authUser.id)
+      .eq("worker_profile_id", wp.id as string)
+      .single();
+    isFavoritedWorker = !!favRaw;
   }
 
   // Check if already revealed
@@ -170,6 +189,7 @@ export default async function DetailsPage({
       isOwner={isOwner}
       isRevealed={isRevealed}
       revealedPhone={revealedPhone}
+      isFavorited={isFavoritedWorker}
     />
   );
 }

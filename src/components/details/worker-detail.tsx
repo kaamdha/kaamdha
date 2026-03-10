@@ -7,6 +7,7 @@ import { ArrowLeft } from "lucide-react";
 import { JOB_CATEGORIES, DAYS_OF_WEEK } from "@/lib/constants";
 import { RevealModal } from "@/components/shared/reveal-modal";
 import { revealWorkerPhone } from "@/app/actions/reveal";
+import { toggleFavorite } from "@/app/actions/favorite";
 
 interface WorkerDetailProps {
   worker: {
@@ -29,6 +30,7 @@ interface WorkerDetailProps {
   isOwner: boolean;
   isRevealed: boolean;
   revealedPhone: string | null;
+  isFavorited: boolean;
 }
 
 export function WorkerDetail({
@@ -36,6 +38,7 @@ export function WorkerDetail({
   isOwner,
   isRevealed: initialRevealed,
   revealedPhone: initialPhone,
+  isFavorited: initialFavorited,
 }: WorkerDetailProps) {
   const router = useRouter();
   const t = useTranslations("detail");
@@ -43,6 +46,7 @@ export function WorkerDetail({
   const [showRevealModal, setShowRevealModal] = useState(false);
   const [isRevealed, setIsRevealed] = useState(initialRevealed);
   const [revealedPhone, setRevealedPhone] = useState(initialPhone);
+  const [isFavorited, setIsFavorited] = useState(initialFavorited);
 
   const avatar = worker.gender === "female" ? "👩" : "👨";
 
@@ -171,8 +175,16 @@ export function WorkerDetail({
       {!isOwner && (
         <div className="fixed bottom-0 left-1/2 w-full max-w-[420px] -translate-x-1/2 border-t border-slate-200 bg-white px-4 py-3">
           <div className="flex items-center gap-3">
-            <button className="flex size-11 items-center justify-center rounded-lg border-[1.5px] border-slate-200 text-[16px]">
-              ♥
+            <button
+              onClick={async () => {
+                const result = await toggleFavorite("worker_profile", worker.id);
+                setIsFavorited(result.isFavorited);
+              }}
+              className={`flex size-11 items-center justify-center rounded-lg border-[1.5px] text-[16px] ${
+                isFavorited ? "border-red-200 bg-red-50" : "border-slate-200"
+              }`}
+            >
+              {isFavorited ? "❤️" : "♥"}
             </button>
             {isRevealed && revealedPhone ? (
               <div className="flex flex-1 items-center justify-center gap-2 rounded-[10px] bg-green-50 py-2.5">

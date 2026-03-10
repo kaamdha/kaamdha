@@ -186,6 +186,23 @@
     "findStaffHint": "आपको मिलते-जुलते स्टाफ की सूची दिखाई जाएगी",
     "createProfile": "प्रोफ़ाइल बनाएं"
   },
+  "jidEdit": {
+    "editJob": "नौकरी सूची संपादित करें",
+    "jobTitle": "नौकरी शीर्षक",
+    "requirements": "आवश्यकताएं",
+    "requirementsPlaceholder": "बताएं आप क्या खोज रहे हैं...",
+    "salaryRange": "वेतन सीमा (₹/माह)",
+    "schedule": "समय-सारणी",
+    "preferredDays": "पसंदीदा दिन",
+    "preferredTimings": "पसंदीदा समय",
+    "saveChanges": "बदलाव सहेजें",
+    "renewFor30Days": "30 दिन के लिए नवीनीकृत करें",
+    "deactivate": "निष्क्रिय करें",
+    "active": "सक्रिय",
+    "expired": "समाप्त",
+    "expiresOn": "समाप्ति",
+    "daysLeft": "दिन बाकी"
+  },
   "reveal": {
     "revealWorkerTitle": "{name} का नंबर देखें?",
     "revealEmployerTitle": "{name} का नंबर देखें?",
