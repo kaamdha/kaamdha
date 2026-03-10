@@ -7,6 +7,7 @@ import { ArrowLeft } from "lucide-react";
 import { JOB_CATEGORIES, DAYS_OF_WEEK } from "@/lib/constants";
 import { RevealModal } from "@/components/shared/reveal-modal";
 import { revealEmployerPhone } from "@/app/actions/reveal";
+import { toggleFavorite } from "@/app/actions/favorite";
 
 interface JobDetailProps {
   job: {
@@ -31,13 +32,15 @@ interface JobDetailProps {
     locality: string | null;
   };
   isOwner: boolean;
+  isFavorited: boolean;
 }
 
-export function JobDetail({ job, employer, isOwner }: JobDetailProps) {
+export function JobDetail({ job, employer, isOwner, isFavorited: initialFavorited }: JobDetailProps) {
   const router = useRouter();
   const t = useTranslations("detail");
   const locale = useLocale();
   const [showRevealModal, setShowRevealModal] = useState(false);
+  const [isFavorited, setIsFavorited] = useState(initialFavorited);
   const [revealedPhone, setRevealedPhone] = useState<string | null>(null);
 
   const catInfo = JOB_CATEGORIES.find((c) => c.id === job.category);
@@ -183,8 +186,16 @@ export function JobDetail({ job, employer, isOwner }: JobDetailProps) {
       {!isOwner && (
         <div className="fixed bottom-0 left-1/2 w-full max-w-[420px] -translate-x-1/2 border-t border-slate-200 bg-white px-4 py-3">
           <div className="flex items-center gap-3">
-            <button className="flex size-11 items-center justify-center rounded-lg border-[1.5px] border-slate-200 text-[16px]">
-              ♥
+            <button
+              onClick={async () => {
+                const result = await toggleFavorite("job_listing", job.id);
+                setIsFavorited(result.isFavorited);
+              }}
+              className={`flex size-11 items-center justify-center rounded-lg border-[1.5px] text-[16px] ${
+                isFavorited ? "border-red-200 bg-red-50" : "border-slate-200"
+              }`}
+            >
+              {isFavorited ? "❤️" : "♥"}
             </button>
             {revealedPhone ? (
               <div className="flex flex-1 items-center justify-center gap-2 rounded-[10px] bg-green-50 py-2.5">

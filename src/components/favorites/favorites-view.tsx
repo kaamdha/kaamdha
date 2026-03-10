@@ -93,11 +93,6 @@ export function FavoritesView({
                       <div
                         key={job.id as string}
                         className="rounded-[12px] border-[1.5px] border-slate-200 bg-white p-3"
-                        onClick={() =>
-                          router.push(
-                            `/details/${job.custom_id as string}`
-                          )
-                        }
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex items-center gap-2">
@@ -127,7 +122,16 @@ export function FavoritesView({
                                   ? t("expiredStatus")
                                   : status}
                             </span>
-                            <span className="text-[14px]">✏️</span>
+                            <button
+                              onClick={() =>
+                                router.push(
+                                  `/account/job/${job.custom_id as string}`
+                                )
+                              }
+                              className="text-[14px]"
+                            >
+                              ✏️
+                            </button>
                           </div>
                         </div>
                         <p className="mt-1.5 text-[10px] text-slate-400">
