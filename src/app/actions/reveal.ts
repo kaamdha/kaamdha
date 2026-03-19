@@ -105,49 +105,52 @@ export async function revealWorkerPhone(
   const revealId = (revealData as { id: string } | null)?.id;
 
   // Send WhatsApp/SMS notifications (non-blocking)
-  try {
-    const [requesterData, workerData, categoryData] = await Promise.all([
-      supabase.from("users").select("phone, name, locality").eq("id", user.id).single(),
-      supabase.from("users").select("phone, name").eq("id", wp.user_id).single(),
-      wp.categories?.length
-        ? supabase.from("categories").select("label_en").eq("id", wp.categories[0] as string).single()
-        : Promise.resolve({ data: null }),
-    ]);
-
-    const requester = requesterData.data as { phone: string; name: string | null; locality: string | null } | null;
-    const worker = workerData.data as { phone: string; name: string | null } | null;
-    const categoryLabel = (categoryData.data as { label_en: string } | null)?.label_en ?? "Staff";
-
-    if (requester && worker) {
-      const [connectResult] = await Promise.all([
-        sendLeadConnectMessage({
-          recipientPhone: requester.phone,
-          name: worker.name ?? "Staff",
-          phone,
-          category: categoryLabel,
-          locality: wp.locality ?? "your area",
-        }),
-        sendLeadNotifyMessage({
-          recipientPhone: worker.phone,
-          viewerName: requester.name ?? "Someone",
-          viewerLocality: requester.locality ?? "your area",
-        }),
+  // TODO: Enable once MSG91 WhatsApp or Gupshup is configured
+  // For now, notifications are disabled — users see the number on screen
+  if (process.env.GUPSHUP_API_KEY || process.env.MSG91_AUTH_KEY) {
+    try {
+      const [requesterData, workerData, categoryData] = await Promise.all([
+        supabase.from("users").select("phone, name, locality").eq("id", user.id).single(),
+        supabase.from("users").select("phone, name").eq("id", wp.user_id).single(),
+        wp.categories?.length
+          ? supabase.from("categories").select("label_en").eq("id", wp.categories[0] as string).single()
+          : Promise.resolve({ data: null }),
       ]);
 
-      // Update lead_reveals with WhatsApp/SMS status
-      if (revealId && connectResult.success) {
-        await supabase
-          .from("lead_reveals")
-          .update({
-            whatsapp_sent: true,
-            whatsapp_message_id: connectResult.messageId ?? null,
-          } as Record<string, unknown> as never)
-          .eq("id", revealId);
+      const requester = requesterData.data as { phone: string; name: string | null; locality: string | null } | null;
+      const worker = workerData.data as { phone: string; name: string | null } | null;
+      const categoryLabel = (categoryData.data as { label_en: string } | null)?.label_en ?? "Staff";
+
+      if (requester && worker) {
+        const [connectResult] = await Promise.all([
+          sendLeadConnectMessage({
+            recipientPhone: requester.phone,
+            name: worker.name ?? "Staff",
+            phone,
+            category: categoryLabel,
+            locality: wp.locality ?? "your area",
+          }),
+          sendLeadNotifyMessage({
+            recipientPhone: worker.phone,
+            viewerName: requester.name ?? "Someone",
+            viewerLocality: requester.locality ?? "your area",
+          }),
+        ]);
+
+        // Update lead_reveals with WhatsApp/SMS status
+        if (revealId && connectResult.success) {
+          await supabase
+            .from("lead_reveals")
+            .update({
+              whatsapp_sent: true,
+              whatsapp_message_id: connectResult.messageId ?? null,
+            } as Record<string, unknown> as never)
+            .eq("id", revealId);
+        }
       }
+    } catch (err) {
+      console.error("[reveal] Notification send error (worker reveal):", err);
     }
-  } catch (err) {
-    // WhatsApp/SMS failure must never block the reveal
-    console.error("[reveal] WhatsApp send error (worker reveal):", err);
   }
 
   return { success: true, phone: formatPhone(phone) };
@@ -258,47 +261,48 @@ export async function revealEmployerPhone(
   const revealId = (revealData as { id: string } | null)?.id;
 
   // Send WhatsApp/SMS notifications (non-blocking)
-  try {
-    const [requesterData, employerData, categoryData] = await Promise.all([
-      supabase.from("users").select("phone, name, locality").eq("id", user.id).single(),
-      supabase.from("users").select("phone, name").eq("id", ep.user_id).single(),
-      supabase.from("categories").select("label_en").eq("id", jl.category).single(),
-    ]);
-
-    const requester = requesterData.data as { phone: string; name: string | null; locality: string | null } | null;
-    const employer = employerData.data as { phone: string; name: string | null } | null;
-    const categoryLabel = (categoryData.data as { label_en: string } | null)?.label_en ?? "Staff";
-
-    if (requester && employer) {
-      const [connectResult] = await Promise.all([
-        sendLeadConnectMessage({
-          recipientPhone: requester.phone,
-          name: employer.name ?? "Employer",
-          phone,
-          category: categoryLabel,
-          locality: jl.locality ?? "your area",
-        }),
-        sendLeadNotifyMessage({
-          recipientPhone: employer.phone,
-          viewerName: requester.name ?? "Someone",
-          viewerLocality: requester.locality ?? "your area",
-        }),
+  // TODO: Enable once MSG91 WhatsApp or Gupshup is configured
+  if (process.env.GUPSHUP_API_KEY || process.env.MSG91_AUTH_KEY) {
+    try {
+      const [requesterData, employerData, categoryData] = await Promise.all([
+        supabase.from("users").select("phone, name, locality").eq("id", user.id).single(),
+        supabase.from("users").select("phone, name").eq("id", ep.user_id).single(),
+        supabase.from("categories").select("label_en").eq("id", jl.category).single(),
       ]);
 
-      // Update lead_reveals with WhatsApp/SMS status
-      if (revealId && connectResult.success) {
-        await supabase
-          .from("lead_reveals")
-          .update({
-            whatsapp_sent: true,
-            whatsapp_message_id: connectResult.messageId ?? null,
-          } as Record<string, unknown> as never)
-          .eq("id", revealId);
+      const requester = requesterData.data as { phone: string; name: string | null; locality: string | null } | null;
+      const employer = employerData.data as { phone: string; name: string | null } | null;
+      const categoryLabel = (categoryData.data as { label_en: string } | null)?.label_en ?? "Staff";
+
+      if (requester && employer) {
+        const [connectResult] = await Promise.all([
+          sendLeadConnectMessage({
+            recipientPhone: requester.phone,
+            name: employer.name ?? "Employer",
+            phone,
+            category: categoryLabel,
+            locality: jl.locality ?? "your area",
+          }),
+          sendLeadNotifyMessage({
+            recipientPhone: employer.phone,
+            viewerName: requester.name ?? "Someone",
+            viewerLocality: requester.locality ?? "your area",
+          }),
+        ]);
+
+        if (revealId && connectResult.success) {
+          await supabase
+            .from("lead_reveals")
+            .update({
+              whatsapp_sent: true,
+              whatsapp_message_id: connectResult.messageId ?? null,
+            } as Record<string, unknown> as never)
+            .eq("id", revealId);
+        }
       }
+    } catch (err) {
+      console.error("[reveal] Notification send error (employer reveal):", err);
     }
-  } catch (err) {
-    // WhatsApp/SMS failure must never block the reveal
-    console.error("[reveal] WhatsApp send error (employer reveal):", err);
   }
 
   return { success: true, phone: formatPhone(phone) };
