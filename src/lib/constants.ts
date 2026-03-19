@@ -1,9 +1,3 @@
-export const DISTANCE_OPTIONS = [
-  { value: 3, label: "3 km" },
-  { value: 5, label: "5 km" },
-  { value: 10, label: "10 km" },
-] as const;
-
 export const SALARY_MIN = 1000;
 export const SALARY_MAX = 100000;
 export const SALARY_STEP = 500;
@@ -33,12 +27,6 @@ export const LANGUAGES = [
 
 export const EXPERIENCE_OPTIONS = [0, 1, 2, 3, 5, 7, 10, 15, 20] as const;
 
-export const SCHEDULE_OPTIONS = [
-  "full_time",
-  "part_time",
-  "flexible",
-] as const;
-
 export const HOUSEHOLD_TYPES = [
   "apartment",
   "independent_house",
@@ -57,8 +45,6 @@ export const JOB_CATEGORIES = [
   { id: "C0001", emoji: "🧹", labelEn: "Maid", labelHi: "कामवाली बाई" },
   { id: "C0002", emoji: "🍳", labelEn: "Cook", labelHi: "रसोइया" },
   { id: "C0003", emoji: "🚗", labelEn: "Driver", labelHi: "ड्राइवर" },
-  { id: "C0004", emoji: "🌿", labelEn: "Gardener", labelHi: "माली" },
-  { id: "C0005", emoji: "🚿", labelEn: "Car Cleaner", labelHi: "कार क्लीनर" },
   { id: "C0006", emoji: "👶", labelEn: "Nanny", labelHi: "आया" },
   { id: "C0007", emoji: "💪", labelEn: "Trainer", labelHi: "ट्रेनर" },
   { id: "C0008", emoji: "👴", labelEn: "Elder Care", labelHi: "बुज़ुर्गों की देखभाल" },

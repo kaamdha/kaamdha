@@ -1,11 +1,18 @@
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { EmployerSearch } from "@/components/search/employer-search";
 
+export const metadata: Metadata = {
+  title: "Search staff",
+  description:
+    "Search for maids, cooks, drivers, nannies and more near you on kaamdha. Find verified household staff in Gurgaon.",
+};
+
 export default async function SearchPage({
   searchParams,
 }: {
-  searchParams: Promise<{ category?: string }>;
+  searchParams: Promise<{ category?: string; locality?: string }>;
 }) {
   const supabase = await createClient();
 
@@ -34,7 +41,7 @@ export default async function SearchPage({
 
   return (
     <EmployerSearch
-      initialLocality={user.locality ?? ""}
+      initialLocality={params.locality || user.locality || ""}
       initialCategory={params.category}
     />
   );

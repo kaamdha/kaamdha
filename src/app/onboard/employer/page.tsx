@@ -21,7 +21,15 @@ export default async function EmployerOnboardPage() {
     .single<User>();
 
   if (data?.name) {
-    redirect("/");
+    // Only redirect if they also have an employer profile
+    const { data: ep } = await supabase
+      .from("employer_profiles")
+      .select("id")
+      .eq("user_id", user.id)
+      .single();
+    if (ep) {
+      redirect("/");
+    }
   }
 
   return (

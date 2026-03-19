@@ -2,16 +2,18 @@
 
 import { useState, useTransition } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import { MapPin, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { saveWorkerOnboarding } from "@/app/onboard/actions";
-import { detectLocation, type LocationResult } from "@/lib/location";
-import { JOB_CATEGORIES, DAYS_OF_WEEK } from "@/lib/constants";
+import { JOB_CATEGORIES } from "@/lib/constants";
+import { LocationInput } from "@/components/shared/location-input";
 
 const TIMINGS = [
   { value: "morning", labelEn: "Morning", labelHi: "सुबह" },
   { value: "afternoon", labelEn: "Afternoon", labelHi: "दोपहर" },
   { value: "evening", labelEn: "Evening", labelHi: "शाम" },
+  { value: "12_hour", labelEn: "12 hours", labelHi: "12 घंटे" },
+  { value: "24_hour", labelEn: "24 hours", labelHi: "24 घंटे" },
 ] as const;
 
 export function WorkerOnboard() {
@@ -20,15 +22,19 @@ export function WorkerOnboard() {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [gender, setGender] = useState<string | null>(null);
   const [locality, setLocality] = useState("");
   const [categories, setCategories] = useState<string[]>([]);
-  const [availableDays, setAvailableDays] = useState<string[]>([]);
   const [availableTimings, setAvailableTimings] = useState<string[]>([]);
+  const [experience, setExperience] = useState("");
+  const [salaryMin, setSalaryMin] = useState("");
+  const [salaryMax, setSalaryMax] = useState("");
+  const [bio, setBio] = useState("");
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(
     null
   );
-  const [detectingLocation, setDetectingLocation] = useState(false);
 
   function toggle(list: string[], item: string): string[] {
     return list.includes(item)
@@ -36,21 +42,8 @@ export function WorkerOnboard() {
       : [...list, item];
   }
 
-  async function handleDetectLocation() {
-    setDetectingLocation(true);
-    try {
-      const result: LocationResult = await detectLocation();
-      setCoords({ lat: result.latitude, lng: result.longitude });
-      if (result.locality) setLocality(result.locality);
-    } catch {
-      // User can type manually
-    } finally {
-      setDetectingLocation(false);
-    }
-  }
-
   function handleSubmit() {
-    if (!name.trim()) {
+    if (!firstName.trim()) {
       setError(t("nameRequired"));
       return;
     }
@@ -60,16 +53,21 @@ export function WorkerOnboard() {
     }
 
     setError(null);
+    const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
     const formData = new FormData();
-    formData.set("name", name);
+    formData.set("name", fullName);
+    if (gender) formData.set("gender", gender);
     formData.set("locality", locality);
     if (coords) {
       formData.set("latitude", String(coords.lat));
       formData.set("longitude", String(coords.lng));
     }
     categories.forEach((c) => formData.append("categories", c));
-    availableDays.forEach((d) => formData.append("available_days", d));
     availableTimings.forEach((t) => formData.append("available_timings", t));
+    if (experience) formData.set("experience", experience);
+    if (salaryMin) formData.set("salaryMin", salaryMin);
+    if (salaryMax) formData.set("salaryMax", salaryMax);
+    if (bio) formData.set("bio", bio);
 
     startTransition(async () => {
       const result = await saveWorkerOnboarding(formData);
@@ -91,100 +89,137 @@ export function WorkerOnboard() {
       <div className="space-y-4">
         {/* Name */}
         <div>
-          <label className="mb-1 block text-[11px] font-semibold text-slate-500">
-            {t("nameLabel")} *
+          <label className="mb-1 block text-xs font-semibold text-slate-500">
+            Name *
           </label>
-          <Input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder={t("namePlaceholder")}
-            autoFocus
-          />
+          <div className="flex gap-2">
+            <Input
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              placeholder="First name"
+              className="flex-1"
+              autoFocus
+            />
+            <Input
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              placeholder="Last name"
+              className="flex-1"
+            />
+          </div>
+        </div>
+
+        {/* Gender */}
+        <div>
+          <label className="mb-1 block text-xs font-semibold text-slate-500">
+            Gender
+          </label>
+          <div className="flex gap-2">
+            {[
+              { value: "male", label: "Male" },
+              { value: "female", label: "Female" },
+            ].map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setGender(opt.value)}
+                className={`flex-1 rounded-lg border-[1.5px] py-2 text-[13px] font-semibold transition-all ${
+                  gender === opt.value
+                    ? "border-primary bg-teal-light text-teal-dark"
+                    : "border-slate-200 text-slate-500"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Location */}
         <div>
-          <label className="mb-1 block text-[11px] font-semibold text-slate-500">
+          <label className="mb-1 block text-xs font-semibold text-slate-500">
             {t("locationLabel")} *
           </label>
-          <div className="flex gap-2">
-            <Input
-              value={locality}
-              onChange={(e) => setLocality(e.target.value)}
-              placeholder={t("locationPlaceholder")}
-              className="flex-1"
-            />
-            <button
-              type="button"
-              onClick={handleDetectLocation}
-              disabled={detectingLocation}
-              className="flex size-10 shrink-0 items-center justify-center rounded-lg border-[1.5px] border-slate-200 bg-teal-light text-sm"
-            >
-              {detectingLocation ? (
-                <Loader2 className="size-4 animate-spin text-primary" />
-              ) : (
-                <MapPin className="size-4 text-primary" />
-              )}
-            </button>
-          </div>
-          {detectingLocation && (
-            <p className="mt-1 text-[11px] text-primary">
-              📍 {t("detectingLocation")}
-            </p>
-          )}
+          <LocationInput
+            value={locality}
+            onChange={setLocality}
+            onCoords={(lat, lng) => setCoords({ lat, lng })}
+            placeholder={t("locationPlaceholder")}
+          />
         </div>
 
         {/* Categories */}
         <div>
-          <label className="mb-1 block text-[11px] font-semibold text-slate-500">
+          <label className="mb-1 block text-xs font-semibold text-slate-500">
             {t("categoriesLabel")} *
           </label>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="grid grid-cols-3 gap-2">
             {JOB_CATEGORIES.map((cat) => (
               <button
                 key={cat.id}
                 type="button"
                 onClick={() => setCategories(toggle(categories, cat.id))}
-                className={`rounded-full border-[1.5px] px-2.5 py-1.5 text-[11px] font-semibold transition-all ${
+                className={`flex flex-col items-center justify-center rounded-xl border-[1.5px] py-3.5 px-1.5 ${
                   categories.includes(cat.id)
-                    ? "border-primary bg-teal-light text-teal-dark"
-                    : "border-slate-200 text-slate-600"
+                    ? "border-primary bg-teal-light"
+                    : "border-slate-200 bg-white"
                 }`}
               >
-                {cat.emoji} {locale === "hi" ? cat.labelHi : cat.labelEn}
+                <span className="text-[28px]">{cat.emoji}</span>
+                <span
+                  className={`mt-1 text-[10px] font-semibold ${
+                    categories.includes(cat.id)
+                      ? "text-teal-dark"
+                      : "text-slate-600"
+                  }`}
+                >
+                  {locale === "hi" ? cat.labelHi : cat.labelEn}
+                </span>
               </button>
             ))}
           </div>
         </div>
 
-        {/* Available Days */}
+        {/* Experience */}
         <div>
-          <label className="mb-1 block text-[11px] font-semibold text-slate-500">
-            {t("daysLabel")} *
+          <label className="mb-1 block text-xs font-semibold text-slate-500">
+            Experience (years)
           </label>
-          <div className="flex gap-1.5">
-            {DAYS_OF_WEEK.map((day) => (
-              <button
-                key={day.value}
-                type="button"
-                onClick={() =>
-                  setAvailableDays(toggle(availableDays, day.value))
-                }
-                className={`flex size-9 items-center justify-center rounded-full border-[1.5px] text-[11px] font-semibold transition-all ${
-                  availableDays.includes(day.value)
-                    ? "border-primary bg-primary text-white"
-                    : "border-slate-200 text-slate-500"
-                }`}
-              >
-                {day.labelEn.charAt(0)}
-              </button>
-            ))}
+          <Input
+            type="number"
+            value={experience}
+            onChange={(e) => setExperience(e.target.value)}
+            placeholder="e.g. 5"
+          />
+        </div>
+
+        {/* Salary range */}
+        <div>
+          <label className="mb-1 block text-xs font-semibold text-slate-500">
+            Salary range (₹/month)
+          </label>
+          <div className="flex items-center gap-2">
+            <Input
+              type="number"
+              value={salaryMin}
+              onChange={(e) => setSalaryMin(e.target.value)}
+              placeholder="Min ₹"
+              className="flex-1"
+            />
+            <span className="text-xs text-slate-400">to</span>
+            <Input
+              type="number"
+              value={salaryMax}
+              onChange={(e) => setSalaryMax(e.target.value)}
+              placeholder="Max ₹"
+              className="flex-1"
+            />
           </div>
         </div>
 
         {/* Available Timings */}
         <div>
-          <label className="mb-1 block text-[11px] font-semibold text-slate-500">
+          <label className="mb-1 block text-xs font-semibold text-slate-500">
             {t("timingsLabel")} *
           </label>
           <div className="flex flex-wrap gap-1.5">
@@ -195,7 +230,7 @@ export function WorkerOnboard() {
                 onClick={() =>
                   setAvailableTimings(toggle(availableTimings, timing.value))
                 }
-                className={`rounded-full border-[1.5px] px-3 py-1.5 text-[11px] font-semibold transition-all ${
+                className={`rounded-full border-[1.5px] px-3 py-1.5 text-xs font-semibold transition-all ${
                   availableTimings.includes(timing.value)
                     ? "border-primary bg-teal-light text-teal-dark"
                     : "border-slate-200 text-slate-500"
@@ -207,13 +242,27 @@ export function WorkerOnboard() {
           </div>
         </div>
 
+        {/* About */}
+        <div>
+          <label className="mb-1 block text-xs font-semibold text-slate-500">
+            About (optional)
+          </label>
+          <textarea
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
+            placeholder="Tell employers about yourself..."
+            className="w-full rounded-lg border-[1.5px] border-slate-200 px-3 py-2 text-[13px] placeholder:text-slate-400 focus:border-primary focus:outline-none"
+            rows={3}
+          />
+        </div>
+
         {/* Error */}
         {error && <p className="text-[12px] text-destructive">{error}</p>}
 
         {/* Submit */}
         <button
           onClick={handleSubmit}
-          disabled={isPending || !name.trim() || categories.length === 0}
+          disabled={isPending || !firstName.trim() || categories.length === 0}
           className="flex w-full items-center justify-center gap-2 rounded-[10px] bg-primary py-3 text-[13px] font-bold text-white transition-opacity disabled:opacity-40"
         >
           {isPending && <Loader2 className="size-4 animate-spin" />}

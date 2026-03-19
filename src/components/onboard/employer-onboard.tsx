@@ -2,11 +2,19 @@
 
 import { useState, useTransition } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import { MapPin, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { saveEmployerOnboarding } from "@/app/onboard/actions";
-import { detectLocation, type LocationResult } from "@/lib/location";
-import { JOB_CATEGORIES, DISTANCE_OPTIONS } from "@/lib/constants";
+import { JOB_CATEGORIES } from "@/lib/constants";
+import { LocationInput } from "@/components/shared/location-input";
+
+const TIMINGS = [
+  { value: "morning", labelEn: "Morning", labelHi: "सुबह" },
+  { value: "afternoon", labelEn: "Afternoon", labelHi: "दोपहर" },
+  { value: "evening", labelEn: "Evening", labelHi: "शाम" },
+  { value: "12_hour", labelEn: "12 hours", labelHi: "12 घंटे" },
+  { value: "24_hour", labelEn: "24 hours", labelHi: "24 घंटे" },
+] as const;
 
 export function EmployerOnboard() {
   const t = useTranslations("onboard");
@@ -14,40 +22,36 @@ export function EmployerOnboard() {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [locality, setLocality] = useState("");
-  const [distance, setDistance] = useState(5);
+  const [jobTitle, setJobTitle] = useState("");
+  const [requirements, setRequirements] = useState("");
+  const [salaryMin, setSalaryMin] = useState("");
+  const [salaryMax, setSalaryMax] = useState("");
+  const [timings, setTimings] = useState<string[]>([]);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(
     null
   );
-  const [detectingLocation, setDetectingLocation] = useState(false);
-
-  async function handleDetectLocation() {
-    setDetectingLocation(true);
-    try {
-      const result: LocationResult = await detectLocation();
-      setCoords({ lat: result.latitude, lng: result.longitude });
-      if (result.locality) setLocality(result.locality);
-    } catch {
-      // User can type manually
-    } finally {
-      setDetectingLocation(false);
-    }
-  }
 
   function handleSubmit() {
-    if (!name.trim()) {
+    if (!firstName.trim()) {
       setError(t("nameRequired"));
       return;
     }
 
     setError(null);
+    const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
     const formData = new FormData();
-    formData.set("name", name);
+    formData.set("name", fullName);
     formData.set("locality", locality);
     if (selectedCategory) formData.set("category", selectedCategory);
-    formData.set("distance", String(distance));
+    if (jobTitle) formData.set("jobTitle", jobTitle);
+    if (requirements) formData.set("requirements", requirements);
+    if (salaryMin) formData.set("salaryMin", salaryMin);
+    if (salaryMax) formData.set("salaryMax", salaryMax);
+    timings.forEach((t) => formData.append("timings", t));
     if (coords) {
       formData.set("latitude", String(coords.lat));
       formData.set("longitude", String(coords.lng));
@@ -73,35 +77,53 @@ export function EmployerOnboard() {
       <div className="space-y-4">
         {/* Name */}
         <div>
-          <label className="mb-1 block text-[11px] font-semibold text-slate-500">
-            {t("nameLabel")} *
+          <label className="mb-1 block text-xs font-semibold text-slate-500">
+            Name *
           </label>
-          <Input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder={t("namePlaceholder")}
-            autoFocus
-          />
+          <div className="flex gap-2">
+            <Input
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              placeholder="First name"
+              className="flex-1"
+              autoFocus
+            />
+            <Input
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              placeholder="Last name"
+              className="flex-1"
+            />
+          </div>
         </div>
 
         {/* Category selection */}
         <div>
-          <label className="mb-1 block text-[11px] font-semibold text-slate-500">
+          <label className="mb-1 block text-xs font-semibold text-slate-500">
             {t("selectCategory")} *
           </label>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="grid grid-cols-3 gap-2">
             {JOB_CATEGORIES.map((cat) => (
               <button
                 key={cat.id}
                 type="button"
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`rounded-full border-[1.5px] px-2.5 py-1.5 text-[11px] font-semibold transition-all ${
+                className={`flex flex-col items-center justify-center rounded-xl border-[1.5px] py-3.5 px-1.5 ${
                   selectedCategory === cat.id
-                    ? "border-primary bg-teal-light text-teal-dark"
-                    : "border-slate-200 text-slate-600"
+                    ? "border-primary bg-teal-light"
+                    : "border-slate-200 bg-white"
                 }`}
               >
-                {cat.emoji} {locale === "hi" ? cat.labelHi : cat.labelEn}
+                <span className="text-[28px]">{cat.emoji}</span>
+                <span
+                  className={`mt-1 text-[10px] font-semibold ${
+                    selectedCategory === cat.id
+                      ? "text-teal-dark"
+                      : "text-slate-600"
+                  }`}
+                >
+                  {locale === "hi" ? cat.labelHi : cat.labelEn}
+                </span>
               </button>
             ))}
           </div>
@@ -109,54 +131,91 @@ export function EmployerOnboard() {
 
         {/* Location */}
         <div>
-          <label className="mb-1 block text-[11px] font-semibold text-slate-500">
+          <label className="mb-1 block text-xs font-semibold text-slate-500">
             {t("locationLabel")} *
           </label>
-          <div className="flex gap-2">
-            <Input
-              value={locality}
-              onChange={(e) => setLocality(e.target.value)}
-              placeholder={t("locationPlaceholder")}
-              className="flex-1"
-            />
-            <button
-              type="button"
-              onClick={handleDetectLocation}
-              disabled={detectingLocation}
-              className="flex size-10 shrink-0 items-center justify-center rounded-lg border-[1.5px] border-slate-200 bg-teal-light text-sm"
-            >
-              {detectingLocation ? (
-                <Loader2 className="size-4 animate-spin text-primary" />
-              ) : (
-                <MapPin className="size-4 text-primary" />
-              )}
-            </button>
-          </div>
-          {detectingLocation && (
-            <p className="mt-1 text-[11px] text-primary">
-              📍 {t("detectingLocation")}
-            </p>
-          )}
+          <LocationInput
+            value={locality}
+            onChange={setLocality}
+            onCoords={(lat, lng) => setCoords({ lat, lng })}
+            placeholder={t("locationPlaceholder")}
+          />
         </div>
 
-        {/* Distance */}
+        {/* Job title (optional) */}
         <div>
-          <label className="mb-1 block text-[11px] font-semibold text-slate-500">
-            {t("distanceLabel")}
+          <label className="mb-1 block text-xs font-semibold text-slate-500">
+            Job title (optional)
           </label>
-          <div className="flex gap-1.5">
-            {DISTANCE_OPTIONS.map((opt) => (
+          <Input
+            value={jobTitle}
+            onChange={(e) => setJobTitle(e.target.value)}
+            placeholder="e.g. Maid for family of 4"
+          />
+        </div>
+
+        {/* Requirements (optional) */}
+        <div>
+          <label className="mb-1 block text-xs font-semibold text-slate-500">
+            Requirements (optional)
+          </label>
+          <textarea
+            value={requirements}
+            onChange={(e) => setRequirements(e.target.value)}
+            placeholder="Any specific requirements..."
+            className="w-full rounded-lg border-[1.5px] border-slate-200 px-3 py-2 text-[13px] placeholder:text-slate-400 focus:border-primary focus:outline-none"
+            rows={3}
+          />
+        </div>
+
+        {/* Salary range (optional) */}
+        <div>
+          <label className="mb-1 block text-xs font-semibold text-slate-500">
+            Salary range (optional)
+          </label>
+          <div className="flex items-center gap-2">
+            <Input
+              type="number"
+              value={salaryMin}
+              onChange={(e) => setSalaryMin(e.target.value)}
+              placeholder="Min ₹"
+              className="flex-1"
+            />
+            <span className="text-xs text-slate-400">to</span>
+            <Input
+              type="number"
+              value={salaryMax}
+              onChange={(e) => setSalaryMax(e.target.value)}
+              placeholder="Max ₹"
+              className="flex-1"
+            />
+          </div>
+        </div>
+
+        {/* Preferred timings (optional) */}
+        <div>
+          <label className="mb-1 block text-xs font-semibold text-slate-500">
+            Preferred timings (optional)
+          </label>
+          <div className="flex flex-wrap gap-1.5">
+            {TIMINGS.map((timing) => (
               <button
-                key={opt.value}
+                key={timing.value}
                 type="button"
-                onClick={() => setDistance(opt.value)}
-                className={`rounded-full border-[1.5px] px-3 py-1.5 text-[11px] font-semibold transition-all ${
-                  distance === opt.value
-                    ? "border-primary bg-primary text-white"
+                onClick={() =>
+                  setTimings(
+                    timings.includes(timing.value)
+                      ? timings.filter((t) => t !== timing.value)
+                      : [...timings, timing.value]
+                  )
+                }
+                className={`rounded-full border-[1.5px] px-3 py-1.5 text-xs font-semibold transition-all ${
+                  timings.includes(timing.value)
+                    ? "border-primary bg-teal-light text-teal-dark"
                     : "border-slate-200 text-slate-500"
                 }`}
               >
-                {opt.label}
+                {locale === "hi" ? timing.labelHi : timing.labelEn}
               </button>
             ))}
           </div>
@@ -168,13 +227,13 @@ export function EmployerOnboard() {
         {/* Submit */}
         <button
           onClick={handleSubmit}
-          disabled={isPending || !name.trim()}
+          disabled={isPending || !firstName.trim()}
           className="flex w-full items-center justify-center gap-2 rounded-[10px] bg-primary py-3 text-[13px] font-bold text-white transition-opacity disabled:opacity-40"
         >
           {isPending && <Loader2 className="size-4 animate-spin" />}
-          🔍 {t("findStaffBtn")}
+          {t("findStaffBtn")}
         </button>
-        <p className="text-center text-[11px] text-slate-400">
+        <p className="text-center text-xs text-slate-400">
           {t("findStaffHint")}
         </p>
       </div>

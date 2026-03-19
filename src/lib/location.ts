@@ -56,6 +56,28 @@ async function reverseGeocode(
   }
 }
 
+export interface LocationSuggestion {
+  displayName: string;
+  locality: string;
+  latitude: number;
+  longitude: number;
+}
+
+export async function searchLocations(
+  query: string
+): Promise<LocationSuggestion[]> {
+  if (query.trim().length < 2) return [];
+  try {
+    const res = await fetch(
+      `/api/location-search?q=${encodeURIComponent(query)}`
+    );
+    if (!res.ok) return [];
+    return await res.json();
+  } catch {
+    return [];
+  }
+}
+
 function geolocationErrorMessage(code: number): string {
   switch (code) {
     case 1:

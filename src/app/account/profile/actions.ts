@@ -24,6 +24,7 @@ export async function updateWorkerProfile(formData: FormData) {
 
   const profileId = formData.get("profile_id") as string;
   const name = (formData.get("name") as string)?.trim();
+  const gender = (formData.get("gender") as string) || null;
   const locality = (formData.get("locality") as string)?.trim() || null;
   const lat = formData.get("latitude") as string | null;
   const lng = formData.get("longitude") as string | null;
@@ -62,6 +63,7 @@ export async function updateWorkerProfile(formData: FormData) {
   // Update worker profile
   const profileFields = {
     categories,
+    gender,
     experience_years: experienceYears,
     salary_min: salaryMin,
     salary_max: salaryMax,

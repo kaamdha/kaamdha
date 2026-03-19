@@ -1,10 +1,27 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@/types/database";
+
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
+}
+
+function useGreeting() {
+  const [greeting, setGreeting] = useState("Welcome");
+  useEffect(() => {
+    setGreeting(getGreeting());
+  }, []);
+  return greeting;
+}
 
 interface AccountMenuProps {
   user: User;
@@ -14,6 +31,7 @@ interface AccountMenuProps {
 export function AccountMenu({ user, activeJobCount }: AccountMenuProps) {
   const t = useTranslations("account");
   const router = useRouter();
+  const greeting = useGreeting();
   const isEmployer = user.last_active_mode === "find_help";
 
   async function handleLogout() {
@@ -25,13 +43,21 @@ export function AccountMenu({ user, activeJobCount }: AccountMenuProps) {
 
   return (
     <div className="flex flex-col">
-      {/* User info */}
+      {/* Back button */}
       <div className="px-4 pt-4">
-        <p className="text-[11px] text-slate-500">{t("yourAccount")}</p>
-        <p className="mt-1 font-heading text-[18px] font-extrabold text-foreground">
-          {user.name} 👋
+        <button onClick={() => router.back()} className="flex items-center gap-1 text-foreground">
+          <ArrowLeft className="size-4" />
+          <span className="text-[13px] font-medium text-slate-500">Back</span>
+        </button>
+      </div>
+
+      {/* User info */}
+      <div className="px-4 pt-3">
+        <p className="text-[13px] leading-tight text-slate-500">👋 {greeting}</p>
+        <p className="font-heading text-[26px] font-[800] leading-tight text-foreground">
+          {user.name}
         </p>
-        <p className="text-[12px] text-slate-500">
+        <p className="mt-1 text-[12px] text-slate-500">
           +91 {user.phone.slice(-10)}
         </p>
       </div>
@@ -39,31 +65,25 @@ export function AccountMenu({ user, activeJobCount }: AccountMenuProps) {
       {/* Menu items */}
       <div className="mx-4 mt-4 overflow-hidden rounded-[14px] bg-white">
         <MenuItem
-          emoji="📝"
+          icon="/icons/edit.png"
           label={t("editProfile")}
           href="/account/profile"
         />
         {isEmployer && (
           <MenuItem
-            emoji="📋"
+            icon="/icons/job-listing.png"
             label={t("myJobListings")}
             value={activeJobCount > 0 ? `${activeJobCount} ${t("active")}` : undefined}
             href="/favorites"
           />
         )}
         <MenuItem
-          emoji="🌐"
-          label={t("language")}
-          value="English"
-          href="#"
-        />
-        <MenuItem
-          emoji="❤️"
-          label={t("favorites")}
+          icon="/icons/bookmark-nav.png"
+          label={isEmployer ? t("savedProfiles") : t("savedJobs")}
           href="/favorites"
         />
         <MenuItem
-          emoji="📞"
+          icon="/icons/help-support.png"
           label={t("helpSupport")}
           value="kaamdha@gmail.com"
           href="mailto:kaamdha@gmail.com"
@@ -81,13 +101,16 @@ export function AccountMenu({ user, activeJobCount }: AccountMenuProps) {
   );
 }
 
+/* eslint-disable @next/next/no-img-element */
 function MenuItem({
   emoji,
+  icon,
   label,
   value,
   href,
 }: {
-  emoji: string;
+  emoji?: string;
+  icon?: string;
   label: string;
   value?: string;
   href: string;
@@ -98,12 +121,16 @@ function MenuItem({
       className="flex items-center justify-between border-b border-slate-50 px-4 py-3.5 last:border-b-0"
     >
       <div className="flex items-center gap-3">
-        <span className="text-[14px]">{emoji}</span>
+        {icon ? (
+          <img src={icon} alt="" className="size-4" />
+        ) : (
+          <span className="text-[14px]">{emoji}</span>
+        )}
         <span className="text-[13px] font-medium text-foreground">{label}</span>
       </div>
       <div className="flex items-center gap-1">
         {value && (
-          <span className="text-[11px] text-slate-400">{value}</span>
+          <span className="text-xs text-slate-400">{value}</span>
         )}
         <span className="text-slate-300">→</span>
       </div>

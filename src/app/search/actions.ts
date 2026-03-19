@@ -23,6 +23,8 @@ export interface WorkerResult {
   available_days: string[];
   available_timings: string[];
   locality: string | null;
+  is_favorited: boolean;
+  distance_km: number | null;
 }
 
 export interface SearchResult {
@@ -131,42 +133,104 @@ export async function employerSearch(formData: FormData): Promise<SearchResult> 
     }
   }
 
-  // Fetch matching workers — simple query (PostGIS radius search would need RPC)
-  // For now, filter by category and city
-  const { data: workersRaw } = await supabase
-    .from("worker_profiles")
-    .select("id, user_id, categories, experience_years, salary_min, salary_max, available_days, available_timings, locality, gender")
-    .eq("is_active", true)
-    .eq("city", "gurgaon")
-    .contains("categories", [category])
-    .limit(20);
-
-  // Join worker names from users table
+  // Fetch matching workers — use PostGIS RPC when location available, fallback to basic query
   const workers: WorkerResult[] = [];
-  const workerRows = (workersRaw ?? []) as Record<string, unknown>[];
 
-  for (const w of workerRows) {
-    const { data: userRow } = await supabase
-      .from("users")
-      .select("name")
-      .eq("id", w.user_id as string)
-      .single();
+  if (location) {
+    // Use PostGIS distance-based search
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: rpcRows } = await (supabase.rpc as any)(
+      "search_workers_nearby",
+      {
+        p_category: category,
+        p_location: location,
+        p_radius_m: 10000,
+      }
+    );
 
-    const userName = (userRow as { name: string | null } | null)?.name ?? "Worker";
+    const rpcResults = (rpcRows ?? []) as Record<string, unknown>[];
 
-    workers.push({
-      id: w.id as string,
-      user_id: w.user_id as string,
-      name: userName,
-      gender: w.gender as string | null,
-      categories: w.categories as string[],
-      experience_years: w.experience_years as number,
-      salary_min: w.salary_min as number | null,
-      salary_max: w.salary_max as number | null,
-      available_days: w.available_days as string[],
-      available_timings: w.available_timings as string[],
-      locality: w.locality as string | null,
-    });
+    for (const w of rpcResults) {
+      const { data: userRow } = await supabase
+        .from("users")
+        .select("name")
+        .eq("id", w.user_id as string)
+        .single();
+
+      const userName = (userRow as { name: string | null } | null)?.name ?? "Worker";
+      const distanceM = w.distance_m as number | null;
+
+      workers.push({
+        id: w.id as string,
+        user_id: w.user_id as string,
+        name: userName,
+        gender: w.gender as string | null,
+        categories: w.categories as string[],
+        experience_years: w.experience_years as number,
+        salary_min: w.salary_min as number | null,
+        salary_max: w.salary_max as number | null,
+        available_days: [],
+        available_timings: w.available_timings as string[],
+        locality: w.locality as string | null,
+        is_favorited: false,
+        distance_km: distanceM != null ? Math.round((distanceM / 1000) * 10) / 10 : null,
+      });
+    }
+  } else {
+    // Fallback: basic category + city query (no distance info)
+    const { data: workersRaw } = await supabase
+      .from("worker_profiles")
+      .select("id, user_id, categories, experience_years, salary_min, salary_max, available_timings, locality, gender")
+      .eq("is_active", true)
+      .eq("city", "gurgaon")
+      .contains("categories", [category])
+      .limit(20);
+
+    const workerRows = (workersRaw ?? []) as Record<string, unknown>[];
+
+    for (const w of workerRows) {
+      const { data: userRow } = await supabase
+        .from("users")
+        .select("name")
+        .eq("id", w.user_id as string)
+        .single();
+
+      const userName = (userRow as { name: string | null } | null)?.name ?? "Worker";
+
+      workers.push({
+        id: w.id as string,
+        user_id: w.user_id as string,
+        name: userName,
+        gender: w.gender as string | null,
+        categories: w.categories as string[],
+        experience_years: w.experience_years as number,
+        salary_min: w.salary_min as number | null,
+        salary_max: w.salary_max as number | null,
+        available_days: [],
+        available_timings: w.available_timings as string[],
+        locality: w.locality as string | null,
+        is_favorited: false,
+        distance_km: null,
+      });
+    }
+  }
+
+  // Fetch user's favorited worker profiles
+  if (workers.length > 0) {
+    const workerIds = workers.map((w) => w.id);
+    const { data: favRaw } = await supabase
+      .from("favorites")
+      .select("worker_profile_id")
+      .eq("user_id", user.id)
+      .eq("target_type", "worker_profile")
+      .in("worker_profile_id", workerIds);
+
+    const favSet = new Set(
+      ((favRaw ?? []) as { worker_profile_id: string }[]).map((f) => f.worker_profile_id)
+    );
+    for (const w of workers) {
+      w.is_favorited = favSet.has(w.id);
+    }
   }
 
   return { jidCustomId, jidReused, workers };

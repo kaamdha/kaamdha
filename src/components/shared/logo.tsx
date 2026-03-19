@@ -26,7 +26,7 @@ export function Logo({ size = "md", variant = "full", href = "/" }: LogoProps) {
     <Link href={href} className="flex shrink-0 items-center">
       <Image
         src={src}
-        alt="Kaamdha"
+        alt="kaamdha"
         width={width}
         height={height}
         priority

@@ -106,7 +106,7 @@ export function LoginForm() {
         <h1 className="font-heading text-[32px] font-extrabold tracking-tight text-primary">
           kaamdha
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <p className="mt-2 text-base text-muted-foreground">
           {t("loginSubtitle")}
         </p>
       </div>

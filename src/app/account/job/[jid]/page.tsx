@@ -58,6 +58,7 @@ export default async function JidEditorPage({
         locality: job.locality as string | null,
         status: job.status as string,
         expiresAt: job.expires_at as string,
+        createdAt: job.created_at as string,
       }}
     />
   );

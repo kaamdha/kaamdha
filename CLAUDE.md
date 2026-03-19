@@ -1,53 +1,72 @@
-# CLAUDE.md — Kaamdha Project Brief (v4 — Wireframes v5)
+# CLAUDE.md — kaamdha project brief (v5 — final MVP)
 
 > **Single source of truth. Read this fully before writing any code.**
 
 ---
 
-## 1. Project Overview
+## 1. Project overview
 
-**Kaamdha** (कामधा) is a two-sided marketplace connecting household workers with employers in India.
+**kaamdha** (कामधा) is a two-sided marketplace connecting household staff (workers) with employers in India.
 
 - **Website:** kaamdha.com
-- **Tagline:** "Post or find jobs in just ₹10"
 - **Platform:** Responsive web (mobile-first, no native app)
 - **Launch:** Gurgaon first, organic registrations accepted from all cities
 
-### Core Model — Asymmetric Marketplace
-
-The marketplace has two discovery paths:
+### Core model — asymmetric marketplace
 
 **Path 1 — Employer-initiated:**
-Employer searches for help → search auto-creates a Job Listing (JID) → Workers discover these JIDs → Worker reveals employer's phone via WhatsApp
+Employer searches for staff → search auto-creates a job listing (JID) → Workers discover these JIDs → Worker connects with employer via WhatsApp
 
 **Path 2 — Worker-initiated:**
-Worker creates a profile → Employers search and browse worker profiles → Employer reveals worker's phone via WhatsApp
+Worker creates a profile → Employers search and browse worker profiles → Employer connects with worker via WhatsApp
 
-Both sides can discover each other. Both sides pay to reveal phone numbers.
+Both sides can discover each other. Both sides pay ₹10 to connect (reveal phone numbers).
 
 ### Monetization
-- **Phase 1 (Launch):** Everything FREE. Price shown crossed out: ~~₹10~~ FREE
+- **Phase 1 (launch):** Everything FREE. Price shown crossed out: ~~₹10~~ FREE
 - **Phase 2+:** ₹10 per phone reveal. First 3 free for new users. Both sides pay.
 
 ---
 
-## 2. ID System
+## 2. Terminology & style rules
+
+### Naming
+| Old term | New term (use everywhere) |
+|---|---|
+| Find Help | Find staff |
+| Workers | Staff |
+| Help | Staff |
+| Reveal | Connect |
+| Reveal number | Connect |
+
+### Style rules
+- **Sentence casing everywhere** — "Find staff" not "Find Staff", "Edit profile" not "Edit Profile"
+- **Brand name without logo** — always lowercase "kaamdha" (never "Kaamdha" or "KAAMDHA")
+- **Brand with logo** — use the logo image file (provided separately)
+- **No tagline** displayed anywhere in UI
+- **6 categories only** for MVP: Maid, Cook, Driver, Nanny, Personal trainer, Elder care
+- **Phone format:** Always show `+91` prefix with first 3 digits visible, rest masked: `+91 981-XXX-XXXX`
+- **No telephone icon (📞)** before phone numbers
+- **"Connect"** button with teal background (brand color) — replaces all instances of orange "Reveal"
+
+---
+
+## 3. ID system
 
 | Entity | Prefix | Format | Example |
 |---|---|---|---|
 | Employer | E | E + 9 digits | E000000001 |
-| Worker | W | W + 9 digits | W000000001 |
+| Worker (staff) | W | W + 9 digits | W000000001 |
 | Category | C | C + 4 digits | C0001 |
-| Job Listing | JID | JID + 10 digits | JID0000000001 |
+| Job listing | JID | JID + 10 digits | JID0000000001 |
 
 - Auto-generated sequentially via `next_custom_id()` Postgres function
-- **NOT displayed on cards, detail pages, or UI** — IDs are internal/backend only
-- Used in WhatsApp communications and backend references
-- Stored alongside UUID primary keys (UUID for DB relations, custom ID for human-facing)
+- **IDs are NOT displayed** on cards or detail pages to end users
+- Used internally for URLs, WhatsApp messages, and support reference
 
 ---
 
-## 3. Tech Stack
+## 4. Tech stack
 
 | Layer | Technology |
 |---|---|
@@ -55,424 +74,514 @@ Both sides can discover each other. Both sides pay to reveal phone numbers.
 | Language | TypeScript (strict mode) |
 | Styling | Tailwind CSS + shadcn/ui |
 | Database | Supabase (PostgreSQL + PostGIS) |
-| DB Access | Supabase JS SDK (no ORM) |
-| Auth | Supabase Auth (Phone OTP → Gupshup custom SMS hook) |
-| Storage | Supabase Storage (profile photos) |
+| DB access | Supabase JS SDK (no ORM) |
+| Auth | Supabase Auth (phone OTP → Gupshup custom SMS hook) |
+| Storage | Supabase Storage (profile photos, logo) |
 | SMS/WhatsApp | Gupshup |
 | Payments | Razorpay (Phase 2+ only — NOT in Phase 1) |
-| Analytics | PostHog (free tier) |
-| Errors | Sentry (free tier) |
-| Hosting | Vercel (auto-deploy from GitHub) |
+| Analytics | PostHog |
+| Errors | Sentry |
+| Hosting | Vercel |
 | VCS | GitHub |
 
-### Key Technical Decisions
-- No ORM — Supabase JS SDK for all DB operations
-- PostGIS for km-radius location search
-- Phone OTP only — no email/password
-- Supabase RLS for all access control
-- Server Components by default, Client Components only for interactivity
-- Server Actions for form submissions and mutations
-- Explicit role selection at onboarding (no role switching in Phase 1)
+---
+
+## 5. Roles
+
+**Role selected after OTP verification** during onboarding. User chooses:
+- "I'm looking for staff" → Employer
+- "I'm looking for jobs" → Worker (staff)
+
+One phone = one account. Role switching is NOT in Phase 1 MVP. `last_active_mode` tracks current mode.
 
 ---
 
-## 4. Roles
+## 6. Categories (6 only for MVP)
 
-**Explicit role selection at onboarding.** One phone number = one account with one role.
-- New user selects: "Household Owner" (Employer) or "Work Seeker" (Worker) during onboarding
-- **No role switching in Phase 1** — users are locked into their registered role
-- Role switching will be introduced in a later product release
-- `last_active_mode` field tracks current mode
+| ID | Slug | Label (EN) | Label (HI) | Icon |
+|---|---|---|---|---|
+| C0001 | maid | Maid | कामवाली बाई | 🧹 |
+| C0002 | cook | Cook | रसोइया | 🍳 |
+| C0003 | driver | Driver | ड्राइवर | 🚗 |
+| C0004 | nanny | Nanny | आया | 👶 |
+| C0005 | personal_trainer | Personal trainer | पर्सनल ट्रेनर | 💪 |
+| C0006 | eldercare | Elder care | बुज़ुर्गों की देखभाल | 👴 |
+
+No other categories. Remove Gardener, Car Cleaner, Pet Care, Laundry, Security Guard, Other from all pages.
 
 ---
 
-## 5. JID System — Core Concept
+## 7. JID system — core concept
 
-### How JIDs Are Created
+### How JIDs are created
 
 **Auto-creation from employer search:**
-When an employer hits "Search" with criteria (category + area + optional salary), a JID is automatically created with those search parameters. This JID becomes discoverable by workers in their listings.
+When an employer hits "Search staff" with criteria (category + area + optional salary), a JID is automatically created. Workers can then discover it.
 
 **Deduplication:**
-If the same employer already has an **active** JID with the **same category + same locality**, the existing JID is reused and updated (e.g., salary changed) instead of creating a duplicate.
+Same employer + same category + same locality (active) = reuse existing JID, update changed params.
 
-**Manual creation:**
-Employers can also create JIDs explicitly via the "Create Job Listing" button (in search page header or Account page).
-
-### JID Lifecycle
+### JID lifecycle
 ```
 Created (auto from search or manual)
   → Active (visible to workers for 30 days)
-    → Employer can edit anytime (add title, description, change salary, etc.)
-    → Day 27: WhatsApp reminder sent ("expires in 3 days")
-      → Employer renews → 30-day timer resets
-      → No action → Day 30: status = 'expired' (hidden from worker search)
-        → Employer can reactivate later from Favorites → Jobs Created
-  → Employer deactivates manually (hired someone) → status = 'deactivated'
-  → Employer marks as filled → status = 'filled'
+    → Employer can edit anytime
+    → Day 27: WhatsApp reminder
+      → No action → Day 30: status = 'expired'
+  → Employer deactivates manually → status = 'deactivated'
+  → Employer marks filled → status = 'filled'
 ```
 
-### JID Fields
-- **Auto-populated from search:** category, area/locality, location (PostGIS point), search radius, salary range (if entered)
-- **Editable later:** title, description/requirements, salary range, schedule, preferred days, preferred timings
+### JID fields
+- **Auto-populated from search:** category, area/locality, location (PostGIS)
+- **Editable later:** title, description/requirements, salary range, preferred timings
 - **System-managed:** JID number, employer_id, created_at, updated_at, expires_at, status
+- **Removed from JID:** schedule (full-time/part-time), preferred days, distance/km, "renew for 30 days" button
 
 ---
 
-## 6. User Journey Flows
+## 8. Navigation & layout
 
-### Flow 1: New Employer
-```
-Home (Not Logged In)
-  → "Find Staff" button
-    → "Login to Get Started"
-      → Login Page → Enter Phone → "Send OTP" → OTP screen appears → Verify
-        → New user detected → Role Selection screen
-          → Select "Household Owner"
-            → Onboarding: "What are you looking for?" (same search UI as home)
-              → Complete search → Land on Staff Listings (/listings) with results
-                → Browse worker cards
-                  → Tap card → Worker Detail Page → Reveal Phone
-                  → Tap ❤️ → Added to Favorites
-```
+### NO bottom navigation bar. NO search page.
 
-### Flow 2: New Worker
+Navigation is handled via:
+- **Logo (top-left):** Tapping the logo always returns to home page. Logo is a full image file.
+- **Top-right (logged out):** Language toggle (EN/हि) + "Login" button
+- **Top-right (logged in):** ❤️ Favorites icon + 👤 Account icon
+- **Search is embedded directly on the home page** (employer logged in state)
+- **Search triggers actual search** — does not navigate to a separate search page
+
+### Header variants
+
+**Logged out:**
 ```
-Home (Not Logged In)
-  → "Find Jobs" button
-    → "Login to Get Started"
-      → Login Page → Enter Phone → "Send OTP" → OTP screen appears → Verify
-        → New user detected → Role Selection screen
-          → Select "Work Seeker"
-            → Onboarding: Fill profile (name, skills, experience, location, etc.)
-              → Redirect to Home (Logged In)
-                → JID cards matching their criteria shown on home screen
-                  → Tap card → Job Detail Page → Reveal Phone
-                  → Tap ❤️ → Added to Favorites
+[Logo]                    [EN/हि] [Login]
 ```
 
-### Flow 3: Returning User (Employer)
+**Logged in:**
 ```
-Login → OTP → Returning user detected
-  → Redirect to Home (Logged In)
-    → "Welcome back, Priya 👋"
-    → Search bar at top
-    → "Your recent searches" section (listing cards, no JID displayed)
-      → Tap search → same employer search flow → Staff Listings
+[Logo]                    [❤️] [👤]
 ```
 
-### Flow 4: Returning User (Worker)
+**Inner pages:**
 ```
-Login → OTP → Returning user detected
-  → Redirect to Home (Logged In)
-    → "Welcome back, Ramesh 👋"
-    → Job listing cards on home screen (no JID, no share icon)
-    → Heart icon top-right, distance below heart
+[← Back] [Page title]    [📤 share or ✏️ edit]
 ```
 
-### Flow 5: Phone Number Reveal
+**Account page:**
 ```
-Tap [Reveal] or masked phone on any card/detail page
-  → Confirmation modal:
-    "Reveal [Name]'s number?"
-    "~~₹10~~ FREE (X of 3 free leads remaining)"
+[← Back] (no icons in top right)
+```
+
+---
+
+## 9. User journey flows
+
+### Flow 1: New employer
+```
+Home (logged out) → "Find staff" tab → "Login to get started"
+  → Login page → Phone + OTP → Verify
+    → Onboarding: Role selection → "I'm looking for staff"
+    → Onboarding: Employer details (name, area, category, optional: title, requirements, salary, timings)
+    → "Find staff" → Staff listings page with search results
+      → Tap card → Worker detail → Connect
+      → Tap ❤️ → Favorites
+      → Tap 📤 → Share modal
+```
+
+### Flow 2: New worker (staff)
+```
+Home (logged out) → "Find jobs" tab → "Login to get started"
+  → Login page → Phone + OTP → Verify
+    → Onboarding: Role selection → "I'm looking for jobs"
+    → Onboarding: Worker details (name, area, skills, timings, experience, salary, about)
+    → "Create profile" → Home (worker mode) with nearby JIDs
+      → Tap card → Job detail → Connect
+```
+
+### Flow 3: Returning user
+```
+Login → OTP → Returning user → Home (logged in, last active mode)
+```
+
+### Flow 4: Phone connect
+```
+Tap [Connect] on any card or detail page
+  → Bottom sheet modal:
+    "Connect with [Name]?"
+    "~~₹10~~ FREE"
     "Number will be sent to your WhatsApp"
-    [Reveal via WhatsApp] [Cancel]
-  → User confirms:
-    1. Check uniqueness (no duplicate reveals)
-    2. Decrement free_leads_remaining
-    3. Send phone number to user's WhatsApp (Gupshup)
-    4. Send notification to other party via WhatsApp
-    5. Log in lead_reveals table
-    6. Unmask number on screen: "981-234-5678"
-    7. Show "Sent to your WhatsApp ✓"
+    [Connect via WhatsApp] [Cancel]
+  → Confirm → Number sent to WhatsApp + shown on screen with +91 prefix
 ```
-Phase 1: Always free. Counter displays but does not block after 3.
-Phase 2: Razorpay payment triggered after 3 free leads used.
 
-### Flow 6: Account & Profile Management
+### Flow 5: Share
 ```
-Account Page (/account)
-  → Greeting with name (same pattern as home page)
-  → Edit Profile → Worker or Employer profile editor
-  → My Job Listings → Favorites page, Jobs Created tab (employer only)
-  → Language → English / हिंदी
-  → Favorites → /favorites
-  → Help & Support → kaamdha@gmail.com
-  → Logout
+Tap 📤 on any detail page
+  → Custom bottom sheet:
+    "Share this profile" / "Share this job"
+    [Link preview: kaamdha.com/details/[id]]
+    [WhatsApp] [Copy link] [SMS] [Email]
+    [Cancel]
 ```
-Note: No role switch, terms & privacy, delete account, or profile status in Phase 1.
 
 ---
 
-## 7. Site Structure — Pages
+## 10. Site structure — pages
 
-### Navigation
+### Page 1a: Home `/` (not logged in — "Find staff" tab active)
 
-**No bottom navigation bar.** Navigation is handled through:
-- Header with logo, locale switcher, and login/account button
-- In-page links and CTAs that route between screens
-- Back buttons where appropriate
+**Header:** `[Logo] [EN/हि] [Login]`
 
-The app renders as a **mobile-only view** (max 420px width), centered on larger screens.
+- Two big square toggle buttons: "Find staff" (active/teal) | "Find jobs"
+- Headline: "How kaamdha works for household owners"
+- Steps:
+  1. Register for free → Sign up with your phone number in under a minute
+  2. Find staff → Find verified staff like cook, driver, maids etc. near your area
+  3. Get contact → Connect directly via WhatsApp
+- **Hero image** (provided separately — replaces category grid)
+- CTA: "Login to get started"
+- **Footer:** Grey background, "Made with ❤️ for Bharat"
 
----
+### Page 1b: Home `/` (not logged in — "Find jobs" tab active)
 
-### Page 1: Home `/`
-
-**Not Logged In — Two equi-sized buttons:**
-
-**"Find Staff" button (default):**
-- Headline: "How Kaamdha works for household owners"
-- Service categories below headline (Cook, Maid, Driver, Nanny, Gardener, etc.)
-- Brief explainer steps for how the platform works
-- CTA: "Login to Get Started" → /login
-
-**"Find Jobs" button:**
-- Headline: "How Kaamdha works for work seekers"
-- Job categories for registration (mirroring staff categories)
-- Brief explainer steps for how the platform works
-- CTA: "Login to Get Started" → /login
-
-**Employer — Logged In:**
-- Time-aware greeting: "Good morning, Priya 👋"
-- **No role-switching tabs** — locked into registered role
-- **No stats boxes** (free leads, jobs created, leads used — deferred)
-- Prominent search bar (no "Search for staff" header — search bar CTA is sufficient)
-- **"Your recent searches" section** (renamed from "Your job listings")
-  - Listing cards with status badge (Active/Expiring)
-  - **No JID displayed** on cards
-  - Edit action as icon only, below "Active" status badge
-
-**Worker — Logged In:**
-- Time-aware greeting
-- **No role-switching tabs**
-- **No stats boxes**
-- **No "Browse jobs near you" bar**
-- Job listing cards:
-  - **No JID displayed**
-  - **No share icon**
-  - **Heart (favorite) icon at top right** of card
-  - **Distance displayed below heart icon**
+Same layout, content changes:
+- Headline: "How kaamdha works for job seekers"
+- Steps:
+  1. Register for free → Sign up with your phone number in under a minute
+  2. Find jobs → Find households offering jobs near you
+  3. Get contact → Connect directly via WhatsApp
+- Category pills showing what job seekers can register as (6 categories)
+- CTA: "Login to get started"
+- Footer: "Made with ❤️ for Bharat"
 
 ---
 
-### Page 2: Login `/login`
+### Page 2a: Home `/` (logged in — employer)
 
-- Phone number input with +91 prefix
+**Header:** `[Logo] [❤️] [👤]`
+
+- No Find staff/Find jobs tabs (user already registered under one role)
+- Greeting: "Good morning, Priya 👋"
+- No stats boxes (free leads, jobs created, etc. — deferred to later)
+
+**Embedded search section:**
+- Area/locality input with 📍 (on top, right below greeting)
+- Category pills (6 only)
+- No km/distance selection
+- "Search staff" button (no 🔍 icon)
+- Clicking search triggers actual search → navigates to staff listings page
+- Search auto-creates JID
+
+**Your recent searches section:**
+- Cards showing: category icon + category name, location + salary range
+- Status badge (Active) with ✏️ edit icon below it
+- Time display: "Created today" / "Created 3 days ago" — NOT expiry/days left
+- Clicking a recent search card triggers that search again
+- No "Create new job listing" banner
+
+---
+
+### Page 2b: Home `/` (logged in — worker/staff)
+
+**Header:** `[Logo] [❤️] [👤]`
+
+- No tabs
+- Greeting: "Good evening, Ramesh 👋"
+- No stats boxes
+- No "Browse jobs near you" search bar
+
+**Jobs near you section:**
+- JID cards with this format:
+  - Line 1: Job title (or "Category needed" if blank)
+  - Line 2: Location · distance (with . delimiter)
+  - Line 3: Salary (if available)
+  - Line 4: Timings (no days)
+  - Separator line
+  - Below separator: `+91 981-XXX-XXXX` (no 📞 icon)
+  - ♡ heart in top-right of card
+  - "Connect" button (teal background) on right of phone
+  - No 📤 share icon on cards
+
+---
+
+### Page 3a: Login `/login`
+
+**Header:** `[Logo] [EN/हि]`
+
+- No "Login to kaamdha" heading
+- Centered: "Login or register with your phone number" (bigger, bolder text)
+- Phone input (+91 prefix) — centered in middle of screen
 - "Send OTP" button
-- **OTP input screen appears ONLY after "Send OTP" is clicked** (not shown preemptively)
-- 6-digit OTP input
-- Resend timer (30 seconds)
-- "Verify & Continue" button
 
-**Post-verification routing:**
+### Page 3b: OTP `/login` (after send OTP)
 
-| User Type | Redirect To |
-|---|---|
-| New User | Role Selection (Screen 4a) |
-| Returning User | `/` (Home, logged in) |
-
-**Location auto-detection:**
-Use browser Geolocation API on first visit. Show "📍 Detecting your location..." → resolve to nearest locality name. User can override with manual text entry. Saved to user profile for future sessions.
+- "Enter OTP" heading centered in middle of screen
+- 6-digit input boxes
+- "Verify & continue" button
+- Resend timer + "← Change number" link
 
 ---
 
-### Page 2b: Role Selection `/onboard/role`
+### Page 4a: Onboarding — Role selection `/onboard`
 
-New users select their role:
-- **Household Owner** (Employer)
-- **Work Seeker** (Worker)
+**Header:** `[Logo]`
 
-No role switching after selection in Phase 1.
+- "What are you looking for?"
+- Two cards centered at horizontal middle of screen:
+  - 🏠 "I'm looking for staff" — Find maids, cooks, drivers and more near you
+  - 💼 "I'm looking for jobs" — Get hired by households near you
+- "Continue" button
 
----
+### Page 4b: Onboarding — Employer `/onboard/employer`
 
-### Page 2c: Onboarding — Employer `/onboard/employer`
+**Header:** `[Logo]`
 
-- Presents "What are you looking for?" — same search UI pattern as Home (Employer)
-- Category selection, location, etc.
-- Upon completing search → lands directly on Staff Listings (`/listings`) with results populated
+- Starts from top of page (no white space above)
+- "What are you looking for?" + "Tell us so we can find the right staff"
+- Fields (in order):
+  1. Your name * (required)
+  2. Your area / locality * (required, with 📍 auto-detect)
+  3. Select category * (required, 6 pills)
+  4. Job title (optional)
+  5. Requirements (optional, textarea)
+  6. Salary range (optional, min-max)
+  7. Preferred timings (optional): Morning, Afternoon, Evening, 12 hours, 24 hours
+- No distance/km fields
+- CTA: "Find staff" (no 🔍 icon)
+- Subtext: "You'll be taken to matching staff listings"
 
-### Page 2d: Onboarding — Worker `/onboard/worker`
+### Page 4c: Onboarding — Worker `/onboard/worker`
 
-- Worker fills in profile details (name, skills, experience, location, availability, etc.)
-- Upon completing → redirects to Home (Worker, logged in)
+**Header:** `[Logo]`
 
----
-
-### Page 3: Search `/search` — Employer Only
-
-This page is the employer's search interface. **Workers do not use this page.**
-
-**Elements:**
-- Category tabs (horizontal scroll): Maid, Cook, Driver, Gardener, Car Cleaner, Nanny, Trainer, Elder Care, etc.
-- Area/locality search bar (auto-filled from profile, editable) with 📍 auto-detect button
-- Distance pills: 3km / 5km / 10km
-- Salary range (optional): Min-Max inputs
-- **"Search Workers" button**
-
-**On search:**
-1. JID auto-created in background (or existing one reused per dedup rule)
-2. Worker profile cards load on Staff Listings page (`/listings`)
-
----
-
-### Page 4: Staff Listings `/listings` — Employer View
-
-List of staff/worker profiles matching the employer's search criteria.
-
-Each worker card:
-- Photo / Default gender icon (👨/👩)
-- Name
-- Categories offered (tags: Cook, Maid)
-- Experience (years)
-- Salary expectations (₹ range/month)
-- Day availability (Mon-Sun)
-- Time availability (Morning / Afternoon / Evening / 12-hour / 24-hour)
-- Originally from (state/city)
-- **❤️ Favorite icon at top right** of card
-- **Distance displayed below heart icon**
-- 📞 Masked phone: "981-XXX-XXXX" + [Reveal] button
-- **No Worker ID displayed**
-- **No share icon**
-
-**Empty state:** Friendly message if no results: "We couldn't find any staffers matching your criteria right now. We're working hard to find great staff near you — check back soon!"
-
-#### Job Listings Page `/listings` (Worker View) — REMOVED
-
-**This page has been removed.** Workers discover jobs through their home screen (Screen 2b). No separate job listings/search page for workers in Phase 1.
+- Starts from top (no white space)
+- "Set up your profile" + "So employers can find you"
+- Fields (in order):
+  1. Your name * (required)
+  2. Your area / locality * (required, with 📍)
+  3. What work do you do? * (required, 6 category pills)
+  4. Available timings * (required): Morning, Afternoon, Evening, 12 hours, 24 hours
+  5. Experience (years) (optional, numeric input)
+  6. Expected salary ₹/month (optional, min-max)
+  7. About (optional, textarea)
+- No "Available days" field
+- CTA: "Create profile"
+- Subtext: "We will find the right jobs for you"
 
 ---
 
-### Page 5: Detail Pages
+### Page 5: Staff listings / Search results `/search`
 
-#### Worker Detail `/details/W...` (viewed by employer):
-- Large photo / gender icon
-- Name (**no Worker ID displayed**)
-- Location + distance badge ("Sector 49 · 1.2km away")
-- Category tags
-- Experience, Salary expectations, Day availability, Time availability
-- Languages spoken
-- Originally from
-- Bio / About section
-- **No Report button**
-- **Sticky footer:** ❤️ Heart (save) on left + "Reveal Number" CTA on right
+**Header:** `[Logo] [❤️] [👤]`
 
-**Self / Edit view (worker's own profile):**
-- Same layout but with **edit icon (pencil) next to worker's name** — no separate View/Edit toggle
-- Active/inactive toggle below name
-- Editable fields for skills, salary, days, timings, about
-- "Save Changes" button at bottom
+- Search bar on top (same as employer homepage): area input + 📍 + category pills
+- JID creation notice: "✅ Job listing created — workers can now find you!"
+- Results count: "Results (2)"
 
-#### Job Detail `/details/JID...` (viewed by worker):
-- **Category icon** before the main header (represents job category)
-- Job title (**no JID number displayed**)
-- **Employer preview section:** Name, Household type, Location (**no Employer ID**)
-- Full description / requirements
-- Salary offered
-- Schedule (full-time/part-time/flexible)
-- Preferred days + timings
-- Location + distance
-- Created date + expires in X days
-- **No Report button**
-- **Sticky footer:** ❤️ Heart (save) on left + "Reveal Employer's Number" CTA on right
+**Staff card format:**
+- Avatar (👨/👩) + Name
+- Location · distance (with . delimiter)
+- Experience (if available)
+- Salary (if available)
+- Timings (no days)
+- Separator
+- `+91 981-XXX-XXXX` (no 📞 icon)
+- ♡ heart in top-right
+- "Connect" button (teal)
+- No 📤 share icon on cards
+- No JID/worker ID shown
 
-**Self / Edit view (employer's own job):**
-- Same layout but with **edit icon (pencil) next to job title** — no separate View/Edit toggle
-- Active/inactive toggle below header
-- Editable fields for title, category, salary, schedule, days, requirements
-- "Save Changes" button at bottom
+**Empty state:** "Sorry, we don't have any staffers matching your criteria. We are working hard to find staff near you." — friendly tone with illustration
 
 ---
 
-### Page 6: Favorites `/favorites`
+### Page 6a: Worker detail `/details/[uuid]`
 
-#### Employer — 3 tabs:
-1. **Jobs Created** — Employer's own job listings with status (Active/Expiring) and edit icon
-   - Actions: Edit, Renew (if expiring/expired), Deactivate
-2. **Recently Contacted** — Staff profiles the employer has already revealed/contacted, with phone numbers visible
-   - Same card UI as staff listings
-3. **Saved** — Staff profiles the employer has hearted/saved
-   - Same card UI as staff listings
+**Header:** `[← Back] Staff profile [📤 share or ✏️ edit]`
+- If viewing own profile → show ✏️ edit icon
+- If viewing someone else's → show 📤 share icon
 
-#### Worker — 2 tabs:
-1. **Recently Contacted** — Employers/jobs the worker has already revealed/contacted, with phone numbers visible
-   - Same card UI as job listings
-2. **Saved** — Jobs the worker has hearted/saved
-   - Same card UI as job listings
+- Avatar + Name
+- Below name: `+91 981-XXX-XXXX` (masked)
+- No category tags below name (skill is in details table)
+- No location below name (location is in details table)
 
-Note: No heart icon on tab labels. All listing cards use consistent design across the app.
+**Details table:**
+- Skills
+- Location (with distance)
+- Experience
+- Salary
+- Timings
+- Languages
+- From
+- About
 
----
+- No "Days" row
+- No report button
+- No worker ID shown
+- No "2 of 3 leads remaining" subtext
 
-### Page 7: Account `/account`
+**Sticky footer:** ♡ Heart + "Connect · ~~₹10~~ FREE" button (teal)
 
-**Greeting with name** — Same pattern as home page ("Your account" / "Priya Sharma 👋" / phone number). No green highlighted card. **No user ID displayed.**
+### Page 6b: Job detail `/details/JID...`
 
-**Menu items:**
-- 📝 **Edit Profile →** Opens role-specific profile editor (`/account/profile`)
-- 📋 **My Job Listings →** Opens Favorites → Jobs Created tab (employer only)
-- ❤️ **Favorites →** Links to `/favorites`
-- 🌐 **Language:** English / हिंदी toggle
-- 📞 **Help & Support** — Email: kaamdha@gmail.com
-- **[Logout]**
+**Header:** `[← Back] Job detail [📤 share or ✏️ edit]`
+- If own job → ✏️ edit icon
+- If viewing others → 📤 share icon
 
-**Removed from Phase 1:**
-- ~~Switch to Worker / Employer~~ (role switching deferred)
-- ~~Search Preferences / Profile status~~ (deferred)
-- ~~My Activity / Stats~~ (deferred)
-- ~~Terms & Privacy~~ (deferred)
-- ~~Delete Account~~ (deferred)
-- ~~User ID display~~ (removed)
+- Category icon + Job title
+- Below title: `+91 981-XXX-XXXX` (masked)
+- No location below title (location in details table)
 
----
+**Employer section:** "Posted by" — avatar + name + household type + location
 
-### Page 8: Profile Editor
+**Details table:**
+- Salary
+- Timings
+- Location (with distance)
+- Posted date
 
-**Worker profile** — accessed via Worker Detail (self view) edit icon or Account → Edit Profile:
-- Photo (upload)
-- Name *
-- Gender * (male/female/other — used for default avatar)
-- Categories * (multi-select with icons)
-- Experience * (years)
-- Salary expectations * (min-max ₹/month)
-- Day availability * (Mon-Sun checkboxes)
-- Time availability * (Morning/Afternoon/Evening/12-hour/24-hour — multi-select)
-- Languages (multi-select)
-- Originally from (state/city)
-- Bio / About (textarea)
-- Location / Area * (with auto-detect 📍)
-- Active/inactive toggle below name (on detail self-view)
+- No "Days" row
+- No "Schedule" row
+- No "Expires" row
+- No report button
+- No JID shown
+- No "1 of 3 leads remaining" subtext
 
-**Employer Profile Fields** — accessed via Account → Edit Profile:
-- Name *
-- Photo (optional)
-- Household type (Apartment/Independent House/Villa/Other)
-- Location / Area * (with auto-detect 📍)
-
-Note: Employer's job-specific details (category, salary, schedule, requirements) live in their JIDs, not in the employer profile itself. JIDs are edited via their detail page (self-view with edit icon).
+**Sticky footer:** ♡ Heart + "Connect · ~~₹10~~ FREE" button (teal)
 
 ---
 
-### Page 9: JID Editing
+### Page 7a: Connect modal (before)
 
-JID editing is done **inline on the Job Detail page** (self-view with edit icon next to title). No separate `/account/job/[jid]` page.
+Bottom sheet overlay:
+- "Connect with [Name]?"
+- ~~₹10~~ FREE
+- "Number will be sent to your WhatsApp"
+- "Connect via WhatsApp" (teal button)
+- "Cancel"
 
-**Editable fields (on detail self-view):**
-- Title (editable — e.g., "Cook for vegetarian family of 4")
-- Category (read-only — set from original search)
-- Description / Requirements (editable textarea)
-- Salary range (editable min-max)
-- Schedule: Full-time / Part-time / Flexible
-- Preferred days (checkboxes)
-- Preferred timings (multi-select)
-- Active/inactive toggle below header
-- "Save Changes" button at bottom
+### Page 7b: Connect modal (after)
+
+Bottom sheet:
+- `+91 981-234-5678` (no 📞 icon, +91 prefix)
+- "Call" button (green)
+- "Sent to your WhatsApp ✓"
+- "Close"
 
 ---
 
-## 8. Database Schema
+### Page 8: Share modal
+
+Custom bottom sheet (not native Web Share API):
+- "Share this profile" / "Share this job"
+- Link preview: `kaamdha.com/details/[id]`
+- 4 share options: WhatsApp, Copy link, SMS, Email
+- "Cancel"
+
+---
+
+### Page 9a: Favorites `/favorites` (employer)
+
+**Header:** `[← Back] Favorites`
+
+3 tabs: Jobs created | Recently contacted | Saved
+
+**Jobs created tab:**
+- Same card format as job listings on worker home page
+- Status badge (Active/Expired) + ✏️ edit icon
+- Time: "Created X days ago"
+
+**Recently contacted / Saved tabs:**
+- Worker cards matching staff listings card format
+
+### Page 9b: Favorites `/favorites` (worker)
+
+2 tabs: Recently contacted | Saved
+
+- Job cards matching worker home page card format
+- Empty state: "No contacts revealed yet."
+
+---
+
+### Page 10: Account `/account`
+
+**Header:** `[← Back]` — NO icons in top right, NO title "Your account"
+
+- Name + phone number (no ID, no role badge)
+- Menu items:
+  - 📝 Edit profile →
+  - 📋 My job listings → (employer only, shows count)
+  - ❤️ Favorites →
+  - 📞 Help and support → kaamdha@gmail.com
+- Logout button (red text)
+
+**Removed from account:**
+- Language field
+- Terms & privacy
+- Delete account
+- Profile status toggle
+- Staff/Employer tab/ID
+
+---
+
+### Page 10a: Edit employer profile `/account/profile`
+
+**Header:** `[← Back] Edit profile`
+
+Fields:
+1. Phone number (greyed out, non-editable, shown on top)
+2. Name
+3. Location (with 📍)
+4. Household type (pills: Apartment, Independent house, Villa, Other)
+- "Save changes" button
+
+### Page 10b: Edit worker profile `/account/profile`
+
+**Header:** `[← Back] Edit profile`
+
+Fields:
+1. Phone number (greyed out, non-editable, shown on top)
+2. Name
+3. Location (with 📍)
+4. Skills (6 category pills)
+5. Experience (years) — numeric input
+6. Expected salary (₹/month) — min/max
+7. Available timings: Morning, Afternoon, Evening, 12 hours, 24 hours
+8. About (textarea)
+
+**Removed:** Available days
+
+- "Save changes" button
+
+### Page 10c: Edit job listing `/account/job/[jid]`
+
+**Header:** `[← Back] Edit job listing`
+
+- Category header card: icon + category name + status badge + location + "Created X days ago"
+
+Fields:
+1. Job title
+2. Requirements (textarea)
+3. Salary range (min/max)
+4. Preferred timings: Morning, Afternoon, Evening, 12 hours, 24 hours
+
+**Removed:** Schedule (full-time/part-time), Preferred days, "Renew for 30 days" button
+
+- "Save changes" button
+- "Deactivate" button (red outline)
+
+---
+
+### Static pages
+- `/terms` — Terms of service (Phase 2)
+- `/privacy` — Privacy policy (Phase 2)
+- `/contact` — Help & support
+
+---
+
+## 11. Database schema
 
 ### Enable PostGIS
 ```sql
@@ -524,19 +633,13 @@ CREATE TABLE categories (
   sort_order INTEGER DEFAULT 0
 );
 
-INSERT INTO categories (id, slug, label_en, label_hi, sort_order) VALUES
-  ('C0001', 'maid', 'Maid', 'कामवाली बाई', 1),
-  ('C0002', 'cook', 'Cook', 'रसोइया', 2),
-  ('C0003', 'driver', 'Driver', 'ड्राइवर', 3),
-  ('C0004', 'gardener', 'Gardener', 'माली', 4),
-  ('C0005', 'car_cleaner', 'Car Cleaner', 'कार क्लीनर', 5),
-  ('C0006', 'nanny', 'Nanny / Babysitter', 'आया', 6),
-  ('C0007', 'personal_trainer', 'Personal Trainer', 'पर्सनल ट्रेनर', 7),
-  ('C0008', 'eldercare', 'Elder Care', 'बुज़ुर्गों की देखभाल', 8),
-  ('C0009', 'pet_care', 'Pet Care', 'पेट केयर', 9),
-  ('C0010', 'laundry', 'Laundry / Ironing', 'धोबी / प्रेस', 10),
-  ('C0011', 'security_guard', 'Security Guard', 'सिक्योरिटी गार्ड', 11),
-  ('C0099', 'other', 'Other', 'अन्य', 99);
+INSERT INTO categories (id, slug, label_en, label_hi, icon, sort_order) VALUES
+  ('C0001', 'maid', 'Maid', 'कामवाली बाई', '🧹', 1),
+  ('C0002', 'cook', 'Cook', 'रसोइया', '🍳', 2),
+  ('C0003', 'driver', 'Driver', 'ड्राइवर', '🚗', 3),
+  ('C0004', 'nanny', 'Nanny', 'आया', '👶', 4),
+  ('C0005', 'personal_trainer', 'Personal trainer', 'पर्सनल ट्रेनर', '💪', 5),
+  ('C0006', 'eldercare', 'Elder care', 'बुज़ुर्गों की देखभाल', '👴', 6);
 ```
 
 ### cities
@@ -553,8 +656,7 @@ CREATE TABLE cities (
 INSERT INTO cities (id, name_en, name_hi, is_active, center_lat, center_lng) VALUES
   ('gurgaon', 'Gurgaon', 'गुरुग्राम', true, 28.4595, 77.0266),
   ('delhi', 'Delhi', 'दिल्ली', false, 28.6139, 77.2090),
-  ('noida', 'Noida', 'नोएडा', false, 28.5355, 77.3910),
-  ('greater_noida', 'Greater Noida', 'ग्रेटर नोएडा', false, 28.4744, 77.5040);
+  ('noida', 'Noida', 'नोएडा', false, 28.5355, 77.3910);
 ```
 
 ### users
@@ -568,8 +670,8 @@ CREATE TABLE users (
   locality TEXT,
   city TEXT REFERENCES cities(id),
   free_leads_remaining INTEGER DEFAULT 3,
-  wallet_balance INTEGER DEFAULT 0,          -- paise, Phase 2
-  last_active_mode TEXT CHECK (last_active_mode IN ('find_help', 'find_jobs')),
+  wallet_balance INTEGER DEFAULT 0,
+  last_active_mode TEXT CHECK (last_active_mode IN ('find_staff', 'find_jobs')),
   search_status TEXT DEFAULT 'actively_looking'
     CHECK (search_status IN ('actively_looking', 'not_looking')),
   created_at TIMESTAMPTZ DEFAULT now(),
@@ -581,15 +683,14 @@ CREATE TABLE users (
 ```sql
 CREATE TABLE worker_profiles (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  custom_id TEXT UNIQUE NOT NULL,             -- W000000001
+  custom_id TEXT UNIQUE NOT NULL,
   user_id UUID UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  categories TEXT[] NOT NULL DEFAULT '{}',    -- ['C0001','C0002']
+  categories TEXT[] NOT NULL DEFAULT '{}',
   bio TEXT,
   experience_years INTEGER DEFAULT 0,
-  salary_min INTEGER,                         -- monthly ₹
+  salary_min INTEGER,
   salary_max INTEGER,
-  available_days TEXT[] DEFAULT '{}',          -- ['mon','tue',...]
-  available_timings TEXT[] DEFAULT '{}',       -- ['morning','evening',...]
+  available_timings TEXT[] DEFAULT '{}',
   languages TEXT[] DEFAULT '{}',
   gender TEXT CHECK (gender IN ('male', 'female', 'other')),
   originally_from TEXT,
@@ -606,11 +707,13 @@ CREATE INDEX idx_wp_categories ON worker_profiles USING GIN (categories);
 CREATE INDEX idx_wp_city_active ON worker_profiles (city, is_active);
 ```
 
+Note: `available_days` column removed from worker_profiles — days field is no longer used.
+
 ### employer_profiles
 ```sql
 CREATE TABLE employer_profiles (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  custom_id TEXT UNIQUE NOT NULL,             -- E000000001
+  custom_id TEXT UNIQUE NOT NULL,
   user_id UUID UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   household_type TEXT CHECK (household_type IN ('apartment', 'independent_house', 'villa', 'other')),
   location GEOGRAPHY(Point, 4326),
@@ -628,17 +731,14 @@ CREATE INDEX idx_ep_location ON employer_profiles USING GIST (location);
 ```sql
 CREATE TABLE job_listings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  custom_id TEXT UNIQUE NOT NULL,              -- JID0000000001
+  custom_id TEXT UNIQUE NOT NULL,
   employer_id UUID NOT NULL REFERENCES employer_profiles(id) ON DELETE CASCADE,
   category TEXT NOT NULL REFERENCES categories(id),
   title TEXT,
   description TEXT,
   salary_min INTEGER,
   salary_max INTEGER,
-  schedule TEXT CHECK (schedule IN ('full_time', 'part_time', 'flexible')),
-  preferred_days TEXT[] DEFAULT '{}',
   preferred_timings TEXT[] DEFAULT '{}',
-  search_radius_km INTEGER DEFAULT 5,
   location GEOGRAPHY(Point, 4326),
   locality TEXT,
   city TEXT REFERENCES cities(id),
@@ -655,11 +755,12 @@ CREATE INDEX idx_jl_category ON job_listings (category, city, status);
 CREATE INDEX idx_jl_employer ON job_listings (employer_id);
 CREATE INDEX idx_jl_expires ON job_listings (expires_at) WHERE status = 'active';
 
--- Deduplication: one active JID per employer per category per locality
 CREATE UNIQUE INDEX idx_jl_dedup
   ON job_listings (employer_id, category, locality)
   WHERE status = 'active';
 ```
+
+Note: Removed `schedule`, `preferred_days`, `search_radius_km` columns — these fields are no longer used.
 
 ### lead_reveals
 ```sql
@@ -671,7 +772,7 @@ CREATE TABLE lead_reveals (
     CHECK (reveal_type IN ('employer_to_worker', 'worker_to_employer')),
   worker_profile_id UUID REFERENCES worker_profiles(id) ON DELETE SET NULL,
   job_listing_id UUID REFERENCES job_listings(id) ON DELETE SET NULL,
-  amount_paid INTEGER DEFAULT 0,              -- 0=free, 1000=₹10 in paise
+  amount_paid INTEGER DEFAULT 0,
   was_free_lead BOOLEAN DEFAULT true,
   whatsapp_sent BOOLEAN DEFAULT false,
   whatsapp_message_id TEXT,
@@ -681,7 +782,6 @@ CREATE TABLE lead_reveals (
 CREATE INDEX idx_lr_from ON lead_reveals (from_user_id);
 CREATE INDEX idx_lr_to ON lead_reveals (to_user_id);
 
--- Prevent duplicate reveals
 CREATE UNIQUE INDEX idx_lr_unique_worker
   ON lead_reveals (from_user_id, worker_profile_id)
   WHERE worker_profile_id IS NOT NULL;
@@ -720,10 +820,9 @@ CREATE TABLE recently_viewed (
 );
 
 CREATE INDEX idx_rv_user ON recently_viewed (user_id, viewed_at DESC);
--- Application logic enforces max 50 per user
 ```
 
-### Row Level Security
+### Row level security
 ```sql
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE worker_profiles ENABLE ROW LEVEL SECURITY;
@@ -733,53 +832,44 @@ ALTER TABLE lead_reveals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE favorites ENABLE ROW LEVEL SECURITY;
 ALTER TABLE recently_viewed ENABLE ROW LEVEL SECURITY;
 
--- Users
 CREATE POLICY "Read own" ON users FOR SELECT USING (auth.uid() = id);
 CREATE POLICY "Update own" ON users FOR UPDATE USING (auth.uid() = id);
 
--- Worker profiles
 CREATE POLICY "Owner all" ON worker_profiles FOR ALL USING (auth.uid() = user_id);
 CREATE POLICY "Read active" ON worker_profiles FOR SELECT USING (is_active = true);
 
--- Employer profiles
 CREATE POLICY "Owner all" ON employer_profiles FOR ALL USING (auth.uid() = user_id);
 CREATE POLICY "Read active" ON employer_profiles FOR SELECT USING (is_active = true);
 
--- Job listings
 CREATE POLICY "Owner all" ON job_listings FOR ALL
   USING (employer_id IN (SELECT id FROM employer_profiles WHERE user_id = auth.uid()));
 CREATE POLICY "Read active" ON job_listings FOR SELECT USING (status = 'active');
 
--- Lead reveals
 CREATE POLICY "Create own" ON lead_reveals FOR INSERT WITH CHECK (auth.uid() = from_user_id);
 CREATE POLICY "Read own" ON lead_reveals FOR SELECT
   USING (auth.uid() = from_user_id OR auth.uid() = to_user_id);
 
--- Favorites & Recently Viewed
 CREATE POLICY "Own" ON favorites FOR ALL USING (auth.uid() = user_id);
 CREATE POLICY "Own" ON recently_viewed FOR ALL USING (auth.uid() = user_id);
 
--- Reference tables (public read)
 CREATE POLICY "Public" ON categories FOR SELECT USING (true);
 CREATE POLICY "Public" ON cities FOR SELECT USING (true);
 ```
 
 ---
 
-## 9. JID Auto-Creation Logic
+## 12. JID auto-creation logic
 
 ```typescript
-// Server Action: employer search → auto-create/reuse JID → return workers
 async function employerSearch(params: {
-  category: string;          // 'C0002'
-  locality: string;          // 'DLF Phase 2'
-  location: Point;           // PostGIS point
-  radiusKm: number;          // 5
+  category: string;
+  locality: string;
+  location: Point;
   salaryMin?: number;
   salaryMax?: number;
   employerProfileId: string;
 }) {
-  // 1. Check for existing active JID (dedup)
+  // 1. Dedup check
   const existing = await supabase
     .from('job_listings')
     .select('*')
@@ -791,36 +881,25 @@ async function employerSearch(params: {
 
   let jid;
   if (existing.data) {
-    // Reuse — update changed params
     jid = existing.data;
-    await supabase
-      .from('job_listings')
-      .update({
-        salary_min: params.salaryMin ?? jid.salary_min,
-        salary_max: params.salaryMax ?? jid.salary_max,
-        search_radius_km: params.radiusKm,
-        updated_at: new Date(),
-      })
-      .eq('id', jid.id);
+    await supabase.from('job_listings').update({
+      salary_min: params.salaryMin ?? jid.salary_min,
+      salary_max: params.salaryMax ?? jid.salary_max,
+      updated_at: new Date(),
+    }).eq('id', jid.id);
   } else {
-    // Create new JID
     const customId = await supabase.rpc('next_custom_id', { p_type: 'job_listing' });
-    const { data } = await supabase
-      .from('job_listings')
-      .insert({
-        custom_id: customId,
-        employer_id: params.employerProfileId,
-        category: params.category,
-        locality: params.locality,
-        location: params.location,
-        search_radius_km: params.radiusKm,
-        salary_min: params.salaryMin,
-        salary_max: params.salaryMax,
-        city: 'gurgaon',
-        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-      })
-      .select()
-      .single();
+    const { data } = await supabase.from('job_listings').insert({
+      custom_id: customId,
+      employer_id: params.employerProfileId,
+      category: params.category,
+      locality: params.locality,
+      location: params.location,
+      salary_min: params.salaryMin,
+      salary_max: params.salaryMax,
+      city: 'gurgaon',
+      expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    }).select().single();
     jid = data;
   }
 
@@ -828,7 +907,7 @@ async function employerSearch(params: {
   const workers = await supabase.rpc('search_workers_nearby', {
     p_category: params.category,
     p_location: params.location,
-    p_radius_m: params.radiusKm * 1000,
+    p_radius_m: 10000, // 10km default
   });
 
   return { jid, workers: workers.data };
@@ -837,196 +916,137 @@ async function employerSearch(params: {
 
 ---
 
-## 10. Expiry System
+## 13. Expiry system
 
-**Daily cron** (Supabase Edge Function or pg_cron):
+Daily cron:
 ```sql
-UPDATE job_listings
-SET status = 'expired', updated_at = now()
+UPDATE job_listings SET status = 'expired', updated_at = now()
 WHERE status = 'active' AND expires_at < now();
 ```
 
-**3-day warning** (daily check):
-```sql
-SELECT * FROM job_listings
-WHERE status = 'active'
-  AND expires_at BETWEEN now() AND now() + INTERVAL '3 days'
-  AND NOT already_notified;  -- track via separate flag or table
-```
-→ Send WhatsApp reminder for each.
+WhatsApp reminder 3 days before expiry.
 
 ---
 
-## 11. WhatsApp Templates (Gupshup)
+## 14. WhatsApp templates
 
 ### OTP
 ```
-Your Kaamdha code is {OTP}. Valid 5 min. Don't share. — Kaamdha
+Your kaamdha code is {OTP}. Valid 5 min. Don't share. — kaamdha
 ```
 
-### Lead Reveal — To Requester
+### Lead connect — to requester
 ```
-✅ Contact from Kaamdha:
-👤 {name} ({custom_id})
-📞 {phone_number}
-💼 {category} · {detail}
+✅ Contact from kaamdha:
+👤 {name}
+📞 +91 {phone_number}
+💼 {category}
 📍 {locality}
-Connect directly. Good luck!
-— Kaamdha (kaamdha.com)
+— kaamdha (kaamdha.com)
 ```
 
-### Lead Reveal — To Revealed Party
+### Lead connect — to revealed party
 ```
-📢 Someone viewed your number on Kaamdha!
+📢 Someone viewed your number on kaamdha!
 👤 {viewer_name} from {viewer_locality} is interested.
-Keep your profile updated for more leads.
-— Kaamdha (kaamdha.com)
+— kaamdha (kaamdha.com)
 ```
 
-### JID Expiry Reminder (3 days before)
+### JID expiry reminder
 ```
-⏰ Your listing {JID} ({category}, {locality}) expires in 3 days.
-Renew now: kaamdha.com/account
-— Kaamdha
+⏰ Your listing ({category}, {locality}) expires in 3 days.
+Open kaamdha to renew: kaamdha.com/account
+— kaamdha
 ```
 
 ---
 
-## 12. Structured Data Values
-
-### Days
-`mon`, `tue`, `wed`, `thu`, `fri`, `sat`, `sun`
+## 15. Structured data values
 
 ### Timings
-| Value | Display (EN) | Display (HI) | Hours |
-|---|---|---|---|
-| `morning` | Morning | सुबह | 6am-12pm |
-| `afternoon` | Afternoon | दोपहर | 12pm-5pm |
-| `evening` | Evening | शाम | 5pm-10pm |
-| `12_hour` | 12-hour shift | 12 घंटे | — |
-| `24_hour` | 24-hour / Live-in | 24 घंटे / रहने वाला | — |
+`morning` (6am-12pm), `afternoon` (12pm-5pm), `evening` (5pm-10pm), `12_hour`, `24_hour`
 
-### Household Types
+### Household types
 `apartment`, `independent_house`, `villa`, `other`
 
-### JID Statuses
+### JID statuses
 `active`, `expired`, `deactivated`, `filled`
 
-### Search Status
-`actively_looking`, `not_looking`
-
 ---
 
-## 13. Design
+## 16. Design
 
-### Brand Colors
+### Brand
+- Logo: Full image file (placed top-left on all pages, links to home)
+- Brand name without logo: always lowercase "kaamdha"
+- No tagline anywhere
+
+### Colors
 | Name | Hex | Usage |
 |---|---|---|
-| Primary Teal | `#0D9488` | Buttons, links, active states |
-| Dark Teal | `#0F766E` | Hover, emphasis |
-| Orange | `#EA580C` | CTAs, pricing, badges |
-| Orange Light | `#FFF7ED` | Orange backgrounds |
+| Primary teal | `#0D9488` | Buttons, links, active states, Connect button |
+| Dark teal | `#0F766E` | Hover, emphasis |
+| Orange | `#EA580C` | Badges only (not buttons) |
 | Charcoal | `#1E293B` | Primary text |
-| Warm BG | `#FFFBF5` | Page backgrounds |
-| Teal Light | `#CCFBF1` | Tags, highlights |
+| Slate 100 | `#F1F5F9` | Page backgrounds, card backgrounds |
+| Teal light | `#CCFBF1` | Tags, pill active states |
 
 ### Fonts
-- **Outfit** — headings, logo, numbers
+- **Outfit** — headings, numbers
 - **DM Sans** — body text, UI elements
 
-### UX Rules
-- Mobile-first (360px width)
-- Minimum friction — fewest taps to reach a phone number
-- Hindi + English UI text
-- Simple language ("Reveal Number" not "Purchase Lead")
-- Optimize for slow 4G connections
-- Min 44px touch targets
-- Phone masking server-side ("981-XXX-XXXX")
-- WhatsApp-first notifications
-- Native share sheet (Web Share API + clipboard fallback)
-- Location auto-detect as default, manual entry as fallback
+### UX rules
+- Mobile-first (390px)
+- Sentence casing everywhere
+- No bottom nav bar
+- Logo = home button
+- 6 categories only
+- Phone format: `+91 981-XXX-XXXX` (no 📞 icon)
+- "Connect" button in teal (not orange "Reveal")
+- No IDs (JID/W/E) shown to end users
+- No report button
+- No days field anywhere
+- Share via custom bottom sheet modal
+- Location auto-detect default, manual fallback
 
 ---
 
-## 14. Phase 1 Scope
+## 17. Phase 1 scope
 
 ### ✅ Build:
-- Home page (2 equi-sized buttons: Find Staff / Find Jobs, logged in/out states)
-- Login (phone OTP via Gupshup, OTP screen only after Send OTP click)
-- Role selection at onboarding (Household Owner / Work Seeker)
-- Employer onboarding (search-based → lands on staff listings)
-- Worker onboarding (profile creation)
-- Search page (employer-only, auto-creates JID)
-- Staff listings page (worker cards for employers)
-- Detail pages (worker profile + JID job detail, with inline edit for owners)
-- Favorites (3 tabs employer: Jobs Created / Recently Contacted / Saved | 2 tabs worker: Recently Contacted / Saved)
-- Account page (edit profile, my job listings, language, favorites, help, logout)
-- Profile editor (worker + employer, with inline edit icon)
-- JID editor (edit, renew, deactivate from detail page or Favorites)
-- Phone reveal flow (modal → WhatsApp delivery → unmask on screen)
-- JID auto-creation from search
-- JID deduplication (same employer + category + locality)
-- JID 30-day auto-expiry with WhatsApp reminder
-- PostGIS location search (3/5/10km)
-- Location auto-detection (Geolocation API)
-- Custom ID system (E/W/C/JID prefixes — backend only, NOT displayed in UI)
-- "Coming soon" for inactive cities
-- Mobile-only view (max 420px, centered on desktop)
-- Friendly empty states for no search results
+- Home (logged out: Find staff / Find jobs with square tabs, hero image, "Made with ❤️ for Bharat" footer)
+- Home (logged in: employer with embedded search, worker with job cards)
+- Login + OTP (separate screens)
+- Onboarding (role selection + employer details + worker details)
+- Staff listings / search results (with search bar on top)
+- Detail pages (worker + job — with masked phone, share/edit icon in header)
+- Connect modal (before + after states)
+- Share modal (WhatsApp, Copy link, SMS, Email)
+- Favorites (3 tabs employer / 2 tabs worker)
+- Account (edit profile, my jobs, favorites, help, logout)
+- Edit employer profile (with greyed phone on top)
+- Edit worker profile (with greyed phone, no days, experience numeric)
+- Edit job listing (no schedule, no days, 12h/24h timings, no renew button)
+- JID auto-creation from search + deduplication
+- JID 30-day auto-expiry + WhatsApp reminder
+- PostGIS location search
+- Location auto-detection
+- Empty state for no search results
 
-### ❌ Don't Build (Phase 2+):
-- Actual ₹10 payments (Razorpay)
-- Wallet / top-up system
-- Ratings / reviews
+### ❌ Don't build (Phase 2+):
+- Bottom navigation bar
+- Role switching
+- Stats boxes (free leads, jobs created, etc.)
+- Payments (Razorpay)
+- Wallet
+- Ratings/reviews
 - Aadhaar verification
-- Admin panel (use Supabase dashboard)
-- Push notifications (WhatsApp only)
-- In-app chat / messaging
-- Notifications page
-- Native mobile app
-- Multi-language beyond EN + HI
-- **Role switching** (Employer ↔ Worker)
-- **Lead tracking stats** (Free leads, Leads used, Profile views)
-- **Report functionality** on detail pages
-- **Terms & Privacy** page
-- **Delete Account** option
-- **Profile status toggle** (actively looking / not looking)
-- **Share icon** on listing cards (share only available on detail pages)
-- **Separate job listings page for workers** (workers use home screen)
-
----
-
-## 15. Launch Plan
-
-**City:** Gurgaon (active). All others: "Coming soon to your area."
-
-**Seed Localities:** DLF Phase 1-4, Sohna Road, Golf Course Road, Sector 49-57, South City / Nirvana Country
-
-**Strategy:**
-1. Week 1-2: Seed 200-300 worker profiles (on-ground outreach)
-2. Week 3-4: Activate employers (society WhatsApp groups, Facebook)
-3. Week 5-8: Expand based on organic signup data
-
-**Key Metrics:**
-Signups (by role), profile completions, JIDs created, searches, lead reveals, favorites, shares, return visits, inactive city signups
-
----
-
-## 16. Dev Guidelines
-
-- **Supabase JS SDK** for all DB operations — no raw SQL in app code
-- **Server Components** by default, Client Components only for interactivity
-- **Server Actions** for mutations (form submissions, JID creation, lead reveals)
-- **PostGIS** — store locations as `POINT(lng lat)` — longitude first!
-- **Money in paise** — ₹10 = 1000 paise
-- **Supabase RLS** for authorization — never trust client-side checks
-- **TypeScript strict** — no `any` types
-- **Test on:** 360px, 390px, 768px, 1440px
-- **Next.js Image** component for all images
-- **Supabase Edge Functions** for Gupshup webhook handlers
-- **Web Share API** for sharing, clipboard fallback
-- **Phone masking server-side** — NEVER expose full phone numbers in API responses
-- **JID dedup** enforced via unique index + application-level check
-- **JID expiry** via daily cron (Edge Function or pg_cron)
-- **Recently Contacted** tab powered by lead_reveals table (profiles/jobs where phone was revealed)
-- **Location auto-detect** via Geolocation API, resolve to locality name, save to profile
+- Admin panel
+- Push notifications
+- In-app chat
+- Native app
+- Terms & privacy pages
+- Delete account
+- Profile status toggle
+- Language selector (in-app)
+- Distance/km selection in search

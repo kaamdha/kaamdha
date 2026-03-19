@@ -1,7 +1,77 @@
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { WorkerDetail } from "@/components/details/worker-detail";
 import { JobDetail } from "@/components/details/job-detail";
+import { JobPostingJsonLd } from "@/components/shared/json-ld";
+import { JOB_CATEGORIES } from "@/lib/constants";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const supabase = await createClient();
+  const { id } = await params;
+
+  const isJobListing = id.startsWith("JID");
+
+  if (isJobListing) {
+    const { data: jobRaw } = await supabase
+      .from("job_listings")
+      .select("title, category, locality")
+      .eq("custom_id", id)
+      .single();
+
+    const job = jobRaw as { title: string | null; category: string; locality: string | null } | null;
+    if (job) {
+      const catInfo = JOB_CATEGORIES.find((c) => c.id === job.category);
+      const title = job.title || `${catInfo?.labelEn ?? "Staff"} needed`;
+      const location = job.locality ?? "Gurgaon";
+      return {
+        title: `${title} in ${location}`,
+        description: `${title} job in ${location}. Connect directly on kaamdha — no middlemen.`,
+        openGraph: {
+          title: `${title} in ${location} | kaamdha`,
+          description: `${title} job in ${location}. Connect directly on kaamdha.`,
+        },
+      };
+    }
+  } else {
+    const { data: wpRaw } = await supabase
+      .from("worker_profiles")
+      .select("user_id, categories, locality")
+      .eq("id", id)
+      .single();
+
+    const wp = wpRaw as { user_id: string; categories: string[]; locality: string | null } | null;
+    if (wp) {
+      const { data: uRaw } = await supabase
+        .from("users")
+        .select("name")
+        .eq("id", wp.user_id)
+        .single();
+      const name = (uRaw as { name: string | null } | null)?.name ?? "Staff";
+      const skills = wp.categories
+        .map((c) => JOB_CATEGORIES.find((j) => j.id === c)?.labelEn)
+        .filter(Boolean)
+        .join(", ");
+      const location = wp.locality ?? "Gurgaon";
+      return {
+        title: `${name} — ${skills || "Staff"} in ${location}`,
+        description: `${name} is available as ${skills || "staff"} in ${location}. Connect on kaamdha.`,
+        openGraph: {
+          title: `${name} — ${skills || "Staff"} in ${location} | kaamdha`,
+          description: `${name} is available as ${skills || "staff"} in ${location}. Connect on kaamdha.`,
+        },
+      };
+    }
+  }
+
+  return {
+    title: "Details",
+  };
+}
 
 export default async function DetailsPage({
   params,
@@ -78,31 +148,44 @@ export default async function DetailsPage({
     }
 
     return (
-      <JobDetail
-        job={{
-          id: job.id as string,
-          customId: job.custom_id as string,
-          category: job.category as string,
-          title: job.title as string | null,
-          description: job.description as string | null,
-          salaryMin: job.salary_min as number | null,
-          salaryMax: job.salary_max as number | null,
-          schedule: job.schedule as string | null,
-          preferredDays: job.preferred_days as string[],
-          preferredTimings: job.preferred_timings as string[],
-          locality: job.locality as string | null,
-          status: job.status as string,
-          createdAt: job.created_at as string,
-          expiresAt: job.expires_at as string,
-        }}
-        employer={{
-          name: employerName,
-          householdType: ep?.household_type ?? null,
-          locality: ep?.locality ?? null,
-        }}
-        isOwner={isOwner}
-        isFavorited={isFavorited}
-      />
+      <>
+        <JobPostingJsonLd
+          title={(job.title as string | null) ?? ""}
+          description={job.description as string | null}
+          category={job.category as string}
+          locality={job.locality as string | null}
+          salaryMin={job.salary_min as number | null}
+          salaryMax={job.salary_max as number | null}
+          createdAt={job.created_at as string}
+          expiresAt={job.expires_at as string}
+          employerName={employerName}
+        />
+        <JobDetail
+          job={{
+            id: job.id as string,
+            customId: job.custom_id as string,
+            category: job.category as string,
+            title: job.title as string | null,
+            description: job.description as string | null,
+            salaryMin: job.salary_min as number | null,
+            salaryMax: job.salary_max as number | null,
+            schedule: job.schedule as string | null,
+            preferredDays: job.preferred_days as string[],
+            preferredTimings: job.preferred_timings as string[],
+            locality: job.locality as string | null,
+            status: job.status as string,
+            createdAt: job.created_at as string,
+            expiresAt: job.expires_at as string,
+          }}
+          employer={{
+            name: employerName,
+            householdType: ep?.household_type ?? null,
+            locality: ep?.locality ?? null,
+          }}
+          isOwner={isOwner}
+          isFavorited={isFavorited}
+        />
+      </>
     );
   }
 
@@ -185,6 +268,7 @@ export default async function DetailsPage({
         bio: wp.bio as string | null,
         locality: wp.locality as string | null,
         isActive: wp.is_active as boolean,
+        updatedAt: wp.updated_at as string | null,
       }}
       isOwner={isOwner}
       isRevealed={isRevealed}
