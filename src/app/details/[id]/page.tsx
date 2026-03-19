@@ -89,12 +89,10 @@ export default async function DetailsPage({
     redirect("/login");
   }
 
-  // Determine if this is a worker profile UUID or a JID custom_id
-  // UUIDs have dashes, JIDs start with "JID"
   const isJobListing = id.startsWith("JID");
 
   if (isJobListing) {
-    // Fetch job listing by custom_id
+    // Fetch job listing
     const { data: jobRaw } = await supabase
       .from("job_listings")
       .select("*")
@@ -106,15 +104,33 @@ export default async function DetailsPage({
       redirect("/");
     }
 
-    // Get employer info
-    const { data: epRaw } = await supabase
-      .from("employer_profiles")
-      .select("id, user_id, household_type, locality")
-      .eq("id", job.employer_id as string)
-      .single();
+    // Parallel: employer profile + recently_viewed + favorite check
+    const [epResult, _viewResult, favResult] = await Promise.all([
+      supabase
+        .from("employer_profiles")
+        .select("id, user_id, household_type, locality")
+        .eq("id", job.employer_id as string)
+        .single(),
+      supabase
+        .from("recently_viewed")
+        .insert({
+          user_id: authUser.id,
+          target_type: "job_listing",
+          job_listing_id: job.id as string,
+        } as Record<string, unknown> as never),
+      supabase
+        .from("favorites")
+        .select("id")
+        .eq("user_id", authUser.id)
+        .eq("job_listing_id", job.id as string)
+        .single(),
+    ]);
 
-    const ep = epRaw as { id: string; user_id: string; household_type: string | null; locality: string | null } | null;
+    const ep = epResult.data as { id: string; user_id: string; household_type: string | null; locality: string | null } | null;
+    const isOwner = ep?.user_id === authUser.id;
+    const isFavorited = !isOwner && !!favResult.data;
 
+    // Get employer name
     let employerName = "Employer";
     if (ep) {
       const { data: uRaw } = await supabase
@@ -123,28 +139,6 @@ export default async function DetailsPage({
         .eq("id", ep.user_id)
         .single();
       employerName = (uRaw as { name: string | null } | null)?.name ?? "Employer";
-    }
-
-    const isOwner = ep?.user_id === authUser.id;
-
-    // Track recently viewed + check favorite (if not owner)
-    let isFavorited = false;
-    if (!isOwner) {
-      await supabase
-        .from("recently_viewed")
-        .insert({
-          user_id: authUser.id,
-          target_type: "job_listing",
-          job_listing_id: job.id as string,
-        } as Record<string, unknown> as never);
-
-      const { data: favRaw } = await supabase
-        .from("favorites")
-        .select("id")
-        .eq("user_id", authUser.id)
-        .eq("job_listing_id", job.id as string)
-        .single();
-      isFavorited = !!favRaw;
     }
 
     return (
@@ -190,6 +184,7 @@ export default async function DetailsPage({
   }
 
   // Worker profile — id is a UUID
+  // Parallel: fetch worker profile + user info + favorite + reveal check
   const { data: wpRaw } = await supabase
     .from("worker_profiles")
     .select("*")
@@ -201,53 +196,50 @@ export default async function DetailsPage({
     redirect("/");
   }
 
-  // Get worker user info
-  const { data: wuRaw } = await supabase
-    .from("users")
-    .select("name, phone")
-    .eq("id", wp.user_id as string)
-    .single();
-
-  const workerUser = wuRaw as { name: string | null; phone: string } | null;
   const isOwner = (wp.user_id as string) === authUser.id;
 
-  // Track recently viewed + check favorite (if not owner)
-  let isFavoritedWorker = false;
-  if (!isOwner) {
-    await supabase
-      .from("recently_viewed")
-      .insert({
-        user_id: authUser.id,
-        target_type: "worker_profile",
-        worker_profile_id: wp.id as string,
-      } as Record<string, unknown> as never);
+  // Parallel: user info + recently viewed + favorite + reveal
+  const [wuResult, _viewResult2, favResult2, revealResult] = await Promise.all([
+    supabase
+      .from("users")
+      .select("name, phone")
+      .eq("id", wp.user_id as string)
+      .single(),
+    isOwner
+      ? Promise.resolve({ data: null })
+      : supabase
+          .from("recently_viewed")
+          .insert({
+            user_id: authUser.id,
+            target_type: "worker_profile",
+            worker_profile_id: wp.id as string,
+          } as Record<string, unknown> as never),
+    isOwner
+      ? Promise.resolve({ data: null })
+      : supabase
+          .from("favorites")
+          .select("id")
+          .eq("user_id", authUser.id)
+          .eq("worker_profile_id", wp.id as string)
+          .single(),
+    isOwner
+      ? Promise.resolve({ data: null })
+      : supabase
+          .from("lead_reveals")
+          .select("id")
+          .eq("from_user_id", authUser.id)
+          .eq("worker_profile_id", wp.id as string)
+          .single(),
+  ]);
 
-    const { data: favRaw } = await supabase
-      .from("favorites")
-      .select("id")
-      .eq("user_id", authUser.id)
-      .eq("worker_profile_id", wp.id as string)
-      .single();
-    isFavoritedWorker = !!favRaw;
-  }
+  const workerUser = wuResult.data as { name: string | null; phone: string } | null;
+  const isFavoritedWorker = !!favResult2.data;
+  const isRevealed = !!revealResult.data;
 
-  // Check if already revealed
-  let isRevealed = false;
   let revealedPhone: string | null = null;
-  if (!isOwner) {
-    const { data: revealRaw } = await supabase
-      .from("lead_reveals")
-      .select("id")
-      .eq("from_user_id", authUser.id)
-      .eq("worker_profile_id", wp.id as string)
-      .single();
-
-    if (revealRaw) {
-      isRevealed = true;
-      // Mask partially — show last 4 digits
-      const phone = workerUser?.phone ?? "";
-      revealedPhone = phone.slice(-10, -4).replace(/./g, "X") + phone.slice(-4);
-    }
+  if (isRevealed) {
+    const phone = workerUser?.phone ?? "";
+    revealedPhone = phone.slice(-10, -4).replace(/./g, "X") + phone.slice(-4);
   }
 
   return (
