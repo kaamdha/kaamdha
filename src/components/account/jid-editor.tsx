@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { JOB_CATEGORIES } from "@/lib/constants";
 import {
@@ -42,6 +42,8 @@ export function JidEditor({ job }: JidEditorProps) {
   const router = useRouter();
   const t = useTranslations("jidEdit");
   const locale = useLocale();
+  const [isSaving, startSaveTransition] = useTransition();
+  const [isDeactivating, startDeactivateTransition] = useTransition();
 
   const catInfo = JOB_CATEGORIES.find((c) => c.id === job.category);
   const catLabel = catInfo
@@ -64,16 +66,18 @@ export function JidEditor({ job }: JidEditorProps) {
     );
   }
 
-  async function handleSave() {
-    const formData = new FormData();
-    formData.set("job_id", job.id);
-    formData.set("title", title);
-    formData.set("description", description);
-    formData.set("salary_min", salaryMin);
-    formData.set("salary_max", salaryMax);
-    timings.forEach((t) => formData.append("preferred_timings", t));
+  function handleSave() {
+    startSaveTransition(async () => {
+      const formData = new FormData();
+      formData.set("job_id", job.id);
+      formData.set("title", title);
+      formData.set("description", description);
+      formData.set("salary_min", salaryMin);
+      formData.set("salary_max", salaryMax);
+      timings.forEach((t) => formData.append("preferred_timings", t));
 
-    await updateJobListing(formData);
+      await updateJobListing(formData);
+    });
   }
 
   return (
@@ -190,18 +194,22 @@ export function JidEditor({ job }: JidEditorProps) {
         {/* Save */}
         <button
           onClick={handleSave}
-          className="w-full rounded-[10px] bg-primary py-2.5 text-[13px] font-bold text-white"
+          disabled={isSaving}
+          className="flex w-full items-center justify-center gap-2 rounded-[10px] bg-primary py-2.5 text-[13px] font-bold text-white disabled:opacity-60"
         >
-          {t("saveChanges")}
+          {isSaving && <Loader2 className="size-4 animate-spin" />}
+          {isSaving ? "Saving..." : t("saveChanges")}
         </button>
 
         {/* Deactivate */}
         {job.status === "active" && (
           <button
-            onClick={() => deactivateJobListing(job.id)}
-            className="w-full rounded-[10px] border-[1.5px] border-red-200 bg-white py-2.5 text-[13px] font-bold text-red-500"
+            onClick={() => startDeactivateTransition(async () => { await deactivateJobListing(job.id); })}
+            disabled={isDeactivating}
+            className="flex w-full items-center justify-center gap-2 rounded-[10px] border-[1.5px] border-red-200 bg-white py-2.5 text-[13px] font-bold text-red-500 disabled:opacity-60"
           >
-            {t("deactivate")}
+            {isDeactivating && <Loader2 className="size-4 animate-spin text-red-500" />}
+            {isDeactivating ? "Deactivating..." : t("deactivate")}
           </button>
         )}
       </div>

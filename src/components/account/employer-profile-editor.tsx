@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { HOUSEHOLD_TYPES } from "@/lib/constants";
 import { LocationInput } from "@/components/shared/location-input";
@@ -26,6 +26,7 @@ export function EmployerProfileEditor({
   const router = useRouter();
   const t = useTranslations("profileEdit");
   const locale = useLocale();
+  const [isPending, startTransition] = useTransition();
 
   const nameParts = (user.name ?? "").split(" ");
   const [firstName, setFirstName] = useState(nameParts[0] ?? "");
@@ -42,17 +43,19 @@ export function EmployerProfileEditor({
     other: { en: "Other", hi: "अन्य" },
   };
 
-  async function handleSubmit() {
-    const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
-    const formData = new FormData();
-    formData.set("profile_id", profile?.id ?? "");
-    formData.set("name", fullName);
-    formData.set("locality", locality);
-    formData.set("household_type", householdType);
-    if (latitude) formData.set("latitude", latitude);
-    if (longitude) formData.set("longitude", longitude);
+  function handleSubmit() {
+    startTransition(async () => {
+      const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
+      const formData = new FormData();
+      formData.set("profile_id", profile?.id ?? "");
+      formData.set("name", fullName);
+      formData.set("locality", locality);
+      formData.set("household_type", householdType);
+      if (latitude) formData.set("latitude", latitude);
+      if (longitude) formData.set("longitude", longitude);
 
-    await updateEmployerProfile(formData);
+      await updateEmployerProfile(formData);
+    });
   }
 
   return (
@@ -138,9 +141,11 @@ export function EmployerProfileEditor({
         {/* Save button */}
         <button
           onClick={handleSubmit}
-          className="w-full rounded-[10px] bg-primary py-2.5 text-[13px] font-bold text-white"
+          disabled={isPending}
+          className="flex w-full items-center justify-center gap-2 rounded-[10px] bg-primary py-2.5 text-[13px] font-bold text-white disabled:opacity-60"
         >
-          {t("saveChanges")}
+          {isPending && <Loader2 className="size-4 animate-spin" />}
+          {isPending ? "Saving..." : t("saveChanges")}
         </button>
       </div>
     </div>
