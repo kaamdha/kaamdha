@@ -3,23 +3,35 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
-import { ArrowLeft, MapPin, Loader2 } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { JOB_CATEGORIES, DAYS_OF_WEEK } from "@/lib/constants";
-import { detectLocation, type LocationResult } from "@/lib/location";
+import { JOB_CATEGORIES } from "@/lib/constants";
+import { LocationInput } from "@/components/shared/location-input";
 import { updateWorkerProfile } from "@/app/account/profile/actions";
 import type { User } from "@/types/database";
+
+const HERO_CROPS: Record<string, string> = {
+  C0001: "0%",
+  C0002: "20%",
+  C0003: "48%",
+  C0006: "66%",
+  C0007: "84%",
+  C0008: "100%",
+};
 
 const TIMING_OPTIONS = [
   { value: "morning", labelEn: "Morning", labelHi: "सुबह" },
   { value: "afternoon", labelEn: "Afternoon", labelHi: "दोपहर" },
   { value: "evening", labelEn: "Evening", labelHi: "शाम" },
+  { value: "12_hour", labelEn: "12 hours", labelHi: "12 घंटे" },
+  { value: "24_hour", labelEn: "24 hours", labelHi: "24 घंटे" },
 ];
 
 interface WorkerProfileEditorProps {
   user: User;
   profile: {
     id: string;
+    gender: string | null;
     categories: string[];
     experienceYears: number;
     salaryMin: number | null;
@@ -38,15 +50,17 @@ export function WorkerProfileEditor({ user, profile }: WorkerProfileEditorProps)
   const t = useTranslations("profileEdit");
   const locale = useLocale();
 
-  const [name, setName] = useState(user.name ?? "");
+  const nameParts = (user.name ?? "").split(" ");
+  const [firstName, setFirstName] = useState(nameParts[0] ?? "");
+  const [lastName, setLastName] = useState(nameParts.slice(1).join(" "));
+  const [gender, setGender] = useState<string | null>(profile?.gender ?? null);
   const [locality, setLocality] = useState(profile?.locality ?? user.locality ?? "");
   const [categories, setCategories] = useState<string[]>(profile?.categories ?? []);
-  const [days, setDays] = useState<string[]>(profile?.availableDays ?? []);
+  const [experience, setExperience] = useState(profile?.experienceYears?.toString() ?? "");
   const [timings, setTimings] = useState<string[]>(profile?.availableTimings ?? []);
   const [salaryMin, setSalaryMin] = useState(profile?.salaryMin?.toString() ?? "");
   const [salaryMax, setSalaryMax] = useState(profile?.salaryMax?.toString() ?? "");
   const [bio, setBio] = useState(profile?.bio ?? "");
-  const [detectingLocation, setDetectingLocation] = useState(false);
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
 
@@ -56,126 +70,156 @@ export function WorkerProfileEditor({ user, profile }: WorkerProfileEditorProps)
     );
   }
 
-  function toggleDay(d: string) {
-    setDays((prev) =>
-      prev.includes(d) ? prev.filter((v) => v !== d) : [...prev, d]
-    );
-  }
-
   function toggleTiming(t: string) {
     setTimings((prev) =>
       prev.includes(t) ? prev.filter((v) => v !== t) : [...prev, t]
     );
   }
 
-  async function handleDetectLocation() {
-    setDetectingLocation(true);
-    try {
-      const result: LocationResult = await detectLocation();
-      if (result.locality) setLocality(result.locality);
-      if (result.latitude) setLatitude(result.latitude.toString());
-      if (result.longitude) setLongitude(result.longitude.toString());
-    } catch {
-      // Manual fallback
-    } finally {
-      setDetectingLocation(false);
-    }
-  }
-
   async function handleSubmit() {
+    const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
     const formData = new FormData();
     formData.set("profile_id", profile?.id ?? "");
-    formData.set("name", name);
+    formData.set("name", fullName);
+    if (gender) formData.set("gender", gender);
     formData.set("locality", locality);
     if (latitude) formData.set("latitude", latitude);
     if (longitude) formData.set("longitude", longitude);
     categories.forEach((c) => formData.append("categories", c));
-    days.forEach((d) => formData.append("available_days", d));
     timings.forEach((t) => formData.append("available_timings", t));
     formData.set("salary_min", salaryMin);
     formData.set("salary_max", salaryMax);
     formData.set("bio", bio);
-    formData.set("experience_years", "0");
+    formData.set("experience_years", experience);
 
     await updateWorkerProfile(formData);
   }
 
   return (
     <div className="flex flex-col pb-6">
-      {/* Header */}
-      <div className="flex items-center gap-3 px-4 pt-4">
-        <button onClick={() => router.back()} className="text-foreground">
-          <ArrowLeft className="size-5" />
+      {/* Back button */}
+      <div className="px-4 pt-4">
+        <button onClick={() => router.back()} className="flex items-center gap-1 text-foreground">
+          <ArrowLeft className="size-4" />
+          <span className="text-[13px] font-medium text-slate-500">Back</span>
         </button>
-        <h1 className="font-heading text-[16px] font-bold text-foreground">
-          {t("editProfile")}
-        </h1>
       </div>
 
       <div className="mt-4 space-y-4 px-4">
-        {/* Name */}
+        {/* Phone (read-only) */}
         <div>
-          <label className="text-[11px] font-semibold text-slate-500">
-            {t("name")}
-          </label>
-          <Input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="mt-1 bg-white text-[13px]"
-          />
+          <label className="text-xs font-semibold text-slate-500">{t("phoneNumber")}</label>
+          <Input value={`+91 ${user.phone.slice(-10)}`} disabled className="mt-1 bg-slate-50 text-[13px] text-slate-400" />
         </div>
 
-        {/* Location */}
+        {/* Name */}
         <div>
-          <label className="text-[11px] font-semibold text-slate-500">
-            {t("location")}
+          <label className="text-xs font-semibold text-slate-500">
+            Name
           </label>
           <div className="mt-1 flex gap-2">
             <Input
-              value={locality}
-              onChange={(e) => setLocality(e.target.value)}
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              placeholder="First name"
               className="flex-1 bg-white text-[13px]"
             />
-            <button
-              onClick={handleDetectLocation}
-              disabled={detectingLocation}
-              className="flex size-10 shrink-0 items-center justify-center rounded-lg border-[1.5px] border-slate-200 bg-teal-light"
-            >
-              {detectingLocation ? (
-                <Loader2 className="size-4 animate-spin text-primary" />
-              ) : (
-                <MapPin className="size-4 text-primary" />
-              )}
-            </button>
+            <Input
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              placeholder="Last name"
+              className="flex-1 bg-white text-[13px]"
+            />
           </div>
         </div>
 
-        {/* Categories */}
+        {/* Gender */}
         <div>
-          <label className="text-[11px] font-semibold text-slate-500">
-            {t("skills")}
-          </label>
-          <div className="mt-1.5 flex flex-wrap gap-1.5">
-            {JOB_CATEGORIES.map((cat) => (
+          <label className="text-xs font-semibold text-slate-500">Gender</label>
+          <div className="mt-1 flex gap-2">
+            {[
+              { value: "male", label: "Male" },
+              { value: "female", label: "Female" },
+            ].map((opt) => (
               <button
-                key={cat.id}
+                key={opt.value}
                 type="button"
-                onClick={() => toggleCategory(cat.id)}
-                className={`rounded-full border-[1.5px] px-2.5 py-1 text-[10px] font-semibold transition-all ${
-                  categories.includes(cat.id)
+                onClick={() => setGender(opt.value)}
+                className={`flex-1 rounded-lg border-[1.5px] py-2 text-[13px] font-semibold transition-all ${
+                  gender === opt.value
                     ? "border-primary bg-teal-light text-teal-dark"
-                    : "border-slate-200 bg-white text-slate-600"
+                    : "border-slate-200 text-slate-500"
                 }`}
               >
-                {cat.emoji} {locale === "hi" ? cat.labelHi : cat.labelEn}
+                {opt.label}
               </button>
             ))}
           </div>
         </div>
 
+        {/* Location */}
+        <div>
+          <label className="text-xs font-semibold text-slate-500">
+            {t("location")}
+          </label>
+          <div className="mt-1">
+            <LocationInput
+              value={locality}
+              onChange={setLocality}
+              onCoords={(lat, lng) => {
+                setLatitude(lat.toString());
+                setLongitude(lng.toString());
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Categories — hero image grid */}
+        <div>
+          <label className="text-xs font-semibold text-slate-500">
+            {t("skills")}
+          </label>
+          <div className="mt-1.5 grid grid-cols-3 gap-2">
+            {JOB_CATEGORIES.map((cat) => (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => toggleCategory(cat.id)}
+                className={`relative overflow-hidden rounded-[14px] transition-all duration-150 active:scale-[1.02] ${
+                  categories.includes(cat.id)
+                    ? "border-[2.5px] border-primary shadow-[0_0_0_1px_#0D9488,0_2px_8px_rgba(13,148,136,0.2)]"
+                    : "border-[1.5px] border-slate-200"
+                }`}
+                style={{ aspectRatio: "1 / 1" }}
+              >
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    backgroundImage: "url(/hero-staff.png)",
+                    backgroundSize: "600% auto",
+                    backgroundPosition: `${HERO_CROPS[cat.id] ?? "50%"} ${cat.id === "C0003" || cat.id === "C0007" ? "5%" : "15%"}`,
+                    backgroundRepeat: "no-repeat",
+                  }}
+                />
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/65 to-transparent px-2.5 pb-2 pt-6">
+                  <span className="text-[12px] font-bold text-white drop-shadow-sm">
+                    {locale === "hi" ? cat.labelHi : cat.labelEn}
+                  </span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Experience */}
+        <div>
+          <label className="text-xs font-semibold text-slate-500">{t("experience")}</label>
+          <Input type="number" value={experience} onChange={(e) => setExperience(e.target.value)} placeholder="e.g. 5" className="mt-1 bg-white text-[13px]" />
+        </div>
+
         {/* Salary range */}
         <div>
-          <label className="text-[11px] font-semibold text-slate-500">
+          <label className="text-xs font-semibold text-slate-500">
             {t("expectedSalary")}
           </label>
           <div className="mt-1 flex gap-2">
@@ -196,41 +240,18 @@ export function WorkerProfileEditor({ user, profile }: WorkerProfileEditorProps)
           </div>
         </div>
 
-        {/* Days */}
-        <div>
-          <label className="text-[11px] font-semibold text-slate-500">
-            {t("availableDays")}
-          </label>
-          <div className="mt-1.5 flex gap-1.5">
-            {DAYS_OF_WEEK.map((day) => (
-              <button
-                key={day.value}
-                type="button"
-                onClick={() => toggleDay(day.value)}
-                className={`flex size-9 items-center justify-center rounded-full border-[1.5px] text-[10px] font-bold transition-all ${
-                  days.includes(day.value)
-                    ? "border-primary bg-primary text-white"
-                    : "border-slate-200 bg-white text-slate-500"
-                }`}
-              >
-                {day.labelEn.charAt(0)}
-              </button>
-            ))}
-          </div>
-        </div>
-
         {/* Timings */}
         <div>
-          <label className="text-[11px] font-semibold text-slate-500">
+          <label className="text-xs font-semibold text-slate-500">
             {t("availableTimings")}
           </label>
-          <div className="mt-1.5 flex gap-1.5">
+          <div className="mt-1.5 flex flex-wrap gap-1.5">
             {TIMING_OPTIONS.map((opt) => (
               <button
                 key={opt.value}
                 type="button"
                 onClick={() => toggleTiming(opt.value)}
-                className={`rounded-full border-[1.5px] px-3 py-1 text-[10px] font-semibold transition-all ${
+                className={`rounded-full border-[1.5px] px-3 py-1 text-[11px] font-semibold transition-all ${
                   timings.includes(opt.value)
                     ? "border-primary bg-primary text-white"
                     : "border-slate-200 bg-white text-slate-500"
@@ -244,7 +265,7 @@ export function WorkerProfileEditor({ user, profile }: WorkerProfileEditorProps)
 
         {/* About */}
         <div>
-          <label className="text-[11px] font-semibold text-slate-500">
+          <label className="text-xs font-semibold text-slate-500">
             {t("about")}
           </label>
           <textarea

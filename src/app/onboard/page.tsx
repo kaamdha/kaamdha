@@ -14,7 +14,7 @@ export default async function OnboardPage() {
     redirect("/login");
   }
 
-  // If user already has a name, they've completed onboarding
+  // Check if user has completed onboarding (name + profile)
   const { data } = await supabase
     .from("users")
     .select()
@@ -22,7 +22,33 @@ export default async function OnboardPage() {
     .single<User>();
 
   if (data?.name) {
-    redirect("/");
+    // Also check if they have a profile — if not, they need to redo onboarding
+    const hasEmployer = data.last_active_mode === "find_help";
+    if (hasEmployer) {
+      const { data: ep } = await supabase
+        .from("employer_profiles")
+        .select("id")
+        .eq("user_id", user.id)
+        .single();
+      if (!ep) {
+        // Name set but profile missing — let them re-onboard
+      } else {
+        redirect("/");
+      }
+    } else if (data.last_active_mode === "find_jobs") {
+      const { data: wp } = await supabase
+        .from("worker_profiles")
+        .select("id")
+        .eq("user_id", user.id)
+        .single();
+      if (!wp) {
+        // Name set but profile missing — let them re-onboard
+      } else {
+        redirect("/");
+      }
+    } else {
+      // No mode set yet — show role selection
+    }
   }
 
   return (

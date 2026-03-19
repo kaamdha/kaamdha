@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
-import { ArrowLeft, MapPin, Loader2 } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { HOUSEHOLD_TYPES } from "@/lib/constants";
-import { detectLocation, type LocationResult } from "@/lib/location";
+import { LocationInput } from "@/components/shared/location-input";
 import { updateEmployerProfile } from "@/app/account/profile/actions";
 import type { User } from "@/types/database";
 
@@ -27,10 +27,11 @@ export function EmployerProfileEditor({
   const t = useTranslations("profileEdit");
   const locale = useLocale();
 
-  const [name, setName] = useState(user.name ?? "");
+  const nameParts = (user.name ?? "").split(" ");
+  const [firstName, setFirstName] = useState(nameParts[0] ?? "");
+  const [lastName, setLastName] = useState(nameParts.slice(1).join(" "));
   const [locality, setLocality] = useState(profile?.locality ?? user.locality ?? "");
   const [householdType, setHouseholdType] = useState(profile?.householdType ?? "");
-  const [detectingLocation, setDetectingLocation] = useState(false);
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
 
@@ -41,24 +42,11 @@ export function EmployerProfileEditor({
     other: { en: "Other", hi: "अन्य" },
   };
 
-  async function handleDetectLocation() {
-    setDetectingLocation(true);
-    try {
-      const result: LocationResult = await detectLocation();
-      if (result.locality) setLocality(result.locality);
-      if (result.latitude) setLatitude(result.latitude.toString());
-      if (result.longitude) setLongitude(result.longitude.toString());
-    } catch {
-      // Manual fallback
-    } finally {
-      setDetectingLocation(false);
-    }
-  }
-
   async function handleSubmit() {
+    const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
     const formData = new FormData();
     formData.set("profile_id", profile?.id ?? "");
-    formData.set("name", name);
+    formData.set("name", fullName);
     formData.set("locality", locality);
     formData.set("household_type", householdType);
     if (latitude) formData.set("latitude", latitude);
@@ -69,57 +57,62 @@ export function EmployerProfileEditor({
 
   return (
     <div className="flex flex-col pb-6">
-      {/* Header */}
-      <div className="flex items-center gap-3 px-4 pt-4">
-        <button onClick={() => router.back()} className="text-foreground">
-          <ArrowLeft className="size-5" />
+      {/* Back button */}
+      <div className="px-4 pt-4">
+        <button onClick={() => router.back()} className="flex items-center gap-1 text-foreground">
+          <ArrowLeft className="size-4" />
+          <span className="text-[13px] font-medium text-slate-500">Back</span>
         </button>
-        <h1 className="font-heading text-[16px] font-bold text-foreground">
-          {t("editProfile")}
-        </h1>
       </div>
 
       <div className="mt-4 space-y-4 px-4">
+        {/* Phone (read-only) */}
+        <div>
+          <label className="text-xs font-semibold text-slate-500">{t("phoneNumber")}</label>
+          <Input value={`+91 ${user.phone.slice(-10)}`} disabled className="mt-1 bg-slate-50 text-[13px] text-slate-400" />
+        </div>
+
         {/* Name */}
         <div>
-          <label className="text-[11px] font-semibold text-slate-500">
-            {t("name")}
+          <label className="text-xs font-semibold text-slate-500">
+            Name
           </label>
-          <Input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="mt-1 bg-white text-[13px]"
-          />
+          <div className="mt-1 flex gap-2">
+            <Input
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              placeholder="First name"
+              className="flex-1 bg-white text-[13px]"
+            />
+            <Input
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              placeholder="Last name"
+              className="flex-1 bg-white text-[13px]"
+            />
+          </div>
         </div>
 
         {/* Location */}
         <div>
-          <label className="text-[11px] font-semibold text-slate-500">
+          <label className="text-xs font-semibold text-slate-500">
             {t("location")}
           </label>
-          <div className="mt-1 flex gap-2">
-            <Input
+          <div className="mt-1">
+            <LocationInput
               value={locality}
-              onChange={(e) => setLocality(e.target.value)}
-              className="flex-1 bg-white text-[13px]"
+              onChange={setLocality}
+              onCoords={(lat, lng) => {
+                setLatitude(lat.toString());
+                setLongitude(lng.toString());
+              }}
             />
-            <button
-              onClick={handleDetectLocation}
-              disabled={detectingLocation}
-              className="flex size-10 shrink-0 items-center justify-center rounded-lg border-[1.5px] border-slate-200 bg-teal-light"
-            >
-              {detectingLocation ? (
-                <Loader2 className="size-4 animate-spin text-primary" />
-              ) : (
-                <MapPin className="size-4 text-primary" />
-              )}
-            </button>
           </div>
         </div>
 
         {/* Household type */}
         <div>
-          <label className="text-[11px] font-semibold text-slate-500">
+          <label className="text-xs font-semibold text-slate-500">
             {t("householdType")}
           </label>
           <div className="mt-1.5 flex flex-wrap gap-1.5">
@@ -128,7 +121,7 @@ export function EmployerProfileEditor({
                 key={type}
                 type="button"
                 onClick={() => setHouseholdType(type)}
-                className={`rounded-full border-[1.5px] px-3 py-1 text-[10px] font-semibold transition-all ${
+                className={`rounded-full border-[1.5px] px-3 py-1 text-[11px] font-semibold transition-all ${
                   householdType === type
                     ? "border-primary bg-teal-light text-teal-dark"
                     : "border-slate-200 bg-white text-slate-600"

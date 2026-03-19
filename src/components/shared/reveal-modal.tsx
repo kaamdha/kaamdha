@@ -52,7 +52,7 @@ export function RevealModal({
           <div className="text-center">
             <div className="mx-auto rounded-[12px] bg-green-50 px-4 py-4">
               <p className="font-mono text-[18px] font-bold text-green-700">
-                📞 {revealedPhone}
+                +91 {revealedPhone}
               </p>
             </div>
             <a
@@ -61,7 +61,7 @@ export function RevealModal({
             >
               {t("call")}
             </a>
-            <p className="mt-2 text-[11px] text-slate-500">
+            <p className="mt-2 text-xs text-slate-500">
               {t("sentToWhatsApp")}
             </p>
             <button
@@ -83,12 +83,12 @@ export function RevealModal({
               <s className="text-slate-400">₹10</s>{" "}
               <span className="font-bold text-green-600">FREE</span>
             </p>
-            <p className="mt-2 text-center text-[11px] text-slate-500">
+            <p className="mt-2 text-center text-xs text-slate-500">
               {t("whatsappNote")}
             </p>
 
             {error && (
-              <p className="mt-2 text-center text-[11px] text-red-500">{error}</p>
+              <p className="mt-2 text-center text-xs text-red-500">{error}</p>
             )}
 
             <button

@@ -41,7 +41,7 @@ export function RoleSelection() {
           <p className="font-heading text-[16px] font-bold text-foreground">
             {t("householdOwner")}
           </p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">
+          <p className="mt-0.5 text-xs text-muted-foreground">
             {t("householdOwnerDesc")}
           </p>
         </button>
@@ -59,7 +59,7 @@ export function RoleSelection() {
           <p className="font-heading text-[16px] font-bold text-foreground">
             {t("workSeeker")}
           </p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">
+          <p className="mt-0.5 text-xs text-muted-foreground">
             {t("workSeekerDesc")}
           </p>
         </button>

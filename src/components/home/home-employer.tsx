@@ -1,13 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
-import { MapPin, Loader2 } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { JOB_CATEGORIES, DISTANCE_OPTIONS } from "@/lib/constants";
-import { detectLocation, type LocationResult } from "@/lib/location";
+import { JOB_CATEGORIES } from "@/lib/constants";
+import { LocationInput } from "@/components/shared/location-input";
+import { EditIcon } from "@/components/shared/edit-icon";
 import type { User } from "@/types/database";
+
+// Crop positions for each worker from the hero image (background-position-x %)
+const HERO_CROPS: Record<string, string> = {
+  C0001: "0%",    // Maid - woman with mop (1st person)
+  C0002: "20%",   // Cook - woman with apron (2nd person)
+  C0003: "48%",   // Driver - man with cap & keys (3rd person)
+  C0006: "66%",   // Nanny - woman holding child (4th person)
+  C0007: "84%",   // Trainer - man with dumbbell (5th person)
+  C0008: "100%",  // Elder care - woman with stethoscope (6th person)
+};
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -16,9 +25,16 @@ function getGreeting(): string {
   return "Good evening";
 }
 
-function daysLeft(expiresAt: string): number {
-  const diff = new Date(expiresAt).getTime() - Date.now();
-  return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+function useGreeting() {
+  const [greeting, setGreeting] = useState("Welcome");
+  useEffect(() => {
+    setGreeting(getGreeting());
+  }, []);
+  return greeting;
+}
+
+function daysAgo(createdAt: string): number {
+  return Math.max(0, Math.floor((Date.now() - new Date(createdAt).getTime()) / (1000 * 60 * 60 * 24)));
 }
 
 interface HomeEmployerProps {
@@ -29,108 +45,106 @@ interface HomeEmployerProps {
 export function HomeEmployer({ user, recentJobs }: HomeEmployerProps) {
   const t = useTranslations("home");
   const locale = useLocale();
+  const greeting = useGreeting();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [locality, setLocality] = useState(user.locality ?? "");
-  const [distance, setDistance] = useState(5);
-  const [detectingLocation, setDetectingLocation] = useState(false);
+  const [editingLocation, setEditingLocation] = useState(false);
+  const locationWrapperRef = useRef<HTMLDivElement>(null);
 
-  async function handleDetectLocation() {
-    setDetectingLocation(true);
-    try {
-      const result: LocationResult = await detectLocation();
-      if (result.locality) setLocality(result.locality);
-    } catch {
-      // User can type manually
-    } finally {
-      setDetectingLocation(false);
+  // Close location editor on outside click
+  useEffect(() => {
+    if (!editingLocation) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (locationWrapperRef.current && !locationWrapperRef.current.contains(e.target as Node)) {
+        setEditingLocation(false);
+      }
     }
-  }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [editingLocation]);
 
   return (
     <div className="flex flex-col">
-      {/* Greeting */}
+      {/* Greeting + Name + Location */}
       <div className="px-4 pt-4">
-        <p className="text-[13px] text-slate-500">{getGreeting()},</p>
-        <p className="font-heading text-[18px] font-extrabold text-foreground">
-          {user.name} 👋
+        <p className="text-[13px] leading-tight text-slate-500">👋 {greeting}</p>
+        <p className="font-heading text-[26px] font-[800] leading-tight text-foreground">
+          {user.name}
         </p>
+        <div ref={locationWrapperRef} className="mt-1">
+          {editingLocation ? (
+            <LocationInput
+              value={locality}
+              onChange={(val) => {
+                setLocality(val);
+              }}
+              placeholder={t("locationPlaceholder")}
+              startEditing
+            />
+          ) : (
+            <button
+              onClick={() => setEditingLocation(true)}
+              className="flex items-center gap-1"
+            >
+              <span className="font-heading text-[13px] font-medium leading-none text-slate-500">
+                {locality || t("locationPlaceholder")}
+              </span>
+              <EditIcon className="size-3 shrink-0" />
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Search section */}
-      <div className="mx-4 mt-4 rounded-[14px] bg-slate-100 p-3.5">
-        {/* Category pills */}
-        <div className="flex flex-wrap gap-1.5">
-          {JOB_CATEGORIES.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => setSelectedCategory(cat.id)}
-              className={`rounded-full border-[1.5px] px-2.5 py-1 text-[10px] font-semibold transition-all ${
-                selectedCategory === cat.id
-                  ? "border-primary bg-teal-light text-teal-dark"
-                  : "border-slate-200 bg-white text-slate-600"
-              }`}
-            >
-              {cat.emoji} {locale === "hi" ? cat.labelHi : cat.labelEn}
-            </button>
-          ))}
-        </div>
-
-        {/* Location input */}
-        <div className="mt-3 flex gap-2">
-          <Input
-            value={locality}
-            onChange={(e) => setLocality(e.target.value)}
-            placeholder={t("locationPlaceholder")}
-            className="flex-1 bg-white text-[13px]"
-          />
+      {/* Category grid — 3x2 */}
+      <div className="mt-4 grid grid-cols-3 gap-2 px-4">
+        {JOB_CATEGORIES.map((cat) => (
           <button
-            onClick={handleDetectLocation}
-            disabled={detectingLocation}
-            className="flex size-10 shrink-0 items-center justify-center rounded-lg border-[1.5px] border-slate-200 bg-teal-light"
+            key={cat.id}
+            onClick={() => setSelectedCategory(cat.id)}
+            className={`relative overflow-hidden rounded-[14px] transition-all duration-150 active:scale-[1.02] ${
+              selectedCategory === cat.id
+                ? "border-[2.5px] border-primary shadow-[0_0_0_1px_#0D9488,0_2px_8px_rgba(13,148,136,0.2)]"
+                : "border-[1.5px] border-slate-200"
+            }`}
+            style={{ aspectRatio: "1 / 1" }}
           >
-            {detectingLocation ? (
-              <Loader2 className="size-4 animate-spin text-primary" />
-            ) : (
-              <MapPin className="size-4 text-primary" />
-            )}
+            <div
+              className="absolute inset-0"
+              style={{
+                backgroundImage: "url(/hero-staff.png)",
+                backgroundSize: "600% auto",
+                backgroundPosition: `${HERO_CROPS[cat.id] ?? "50%"} ${cat.id === "C0003" || cat.id === "C0007" ? "5%" : "15%"}`,
+                backgroundRepeat: "no-repeat",
+              }}
+            />
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/65 to-transparent px-2.5 pb-2 pt-6">
+              <span className="text-[12px] font-bold text-white drop-shadow-sm">
+                {locale === "hi" ? cat.labelHi : cat.labelEn}
+              </span>
+            </div>
           </button>
-        </div>
+        ))}
+      </div>
 
-        {/* Distance pills */}
-        <div className="mt-3 flex gap-1.5">
-          {DISTANCE_OPTIONS.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => setDistance(opt.value)}
-              className={`rounded-full border-[1.5px] px-3 py-1 text-[10px] font-semibold transition-all ${
-                distance === opt.value
-                  ? "border-primary bg-primary text-white"
-                  : "border-slate-200 bg-white text-slate-500"
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Search button */}
+      {/* Search button */}
+      <div className="px-4 pt-3.5">
         <Link
-          href={`/search?category=${selectedCategory ?? ""}&locality=${encodeURIComponent(locality)}&distance=${distance}`}
-          className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-[10px] bg-primary py-2.5 text-[13px] font-bold text-white"
+          href={`/search?category=${selectedCategory ?? ""}&locality=${encodeURIComponent(locality)}`}
+          className="flex h-12 w-full items-center justify-center rounded-[12px] bg-primary text-[14px] font-bold text-white"
         >
-          🔍 {t("searchStaff")}
+          Search staff
         </Link>
       </div>
 
       {/* Recent searches */}
       <div className="px-4 pt-5">
         <h3 className="font-heading text-[14px] font-bold text-foreground">
-          {t("recentSearches")}
+          Your recent searches
         </h3>
       </div>
 
       {recentJobs.length > 0 ? (
-        <div className="mt-2 space-y-2 px-4">
+        <div className="mt-2 flex flex-col gap-2 px-4 pb-6">
           {recentJobs.map((job) => {
             const categoryId = job.category as string;
             const catInfo = JOB_CATEGORIES.find((c) => c.id === categoryId);
@@ -139,53 +153,80 @@ export function HomeEmployer({ user, recentJobs }: HomeEmployerProps) {
                 ? catInfo.labelHi
                 : catInfo.labelEn
               : "";
-            const catEmoji = catInfo?.emoji ?? "📋";
             const status = job.status as string;
-            const remaining = daysLeft(job.expires_at as string);
+            const ago = daysAgo(job.created_at as string);
+            const isExpired = status !== "active";
+            const searchUrl = `/search?category=${categoryId}&locality=${encodeURIComponent((job.locality as string) ?? "")}`;
 
             return (
               <div
                 key={job.id as string}
-                className="rounded-[12px] border-[1.5px] border-slate-200 bg-white p-3"
+                className={`flex overflow-hidden rounded-[12px] border-[1.5px] border-slate-200 bg-white ${
+                  isExpired ? "opacity-50" : ""
+                }`}
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">{catEmoji}</span>
-                    <div>
+                {/* Left color strip */}
+                <div
+                  className={`w-1 shrink-0 ${
+                    isExpired ? "bg-amber-500" : "bg-primary"
+                  }`}
+                />
+
+                {/* Card content */}
+                <div className="flex flex-1 items-center gap-2.5 p-3">
+                  {/* Category thumbnail */}
+                  <div
+                    className="size-10 shrink-0 overflow-hidden rounded-full"
+                    style={{
+                      backgroundImage: "url(/hero-staff.png)",
+                      backgroundSize: "600% auto",
+                      backgroundPosition: `${HERO_CROPS[categoryId] ?? "50%"} ${categoryId === "C0003" || categoryId === "C0007" ? "5%" : "15%"}`,
+                      backgroundRepeat: "no-repeat",
+                    }}
+                  />
+
+                  {/* Center — info */}
+                  {isExpired ? (
+                    <div className="min-w-0 flex-1">
                       <p className="text-[13px] font-bold text-foreground">
                         {catLabel}
                       </p>
-                      <p className="text-[10px] text-slate-500">
+                      <p className="text-[11px] text-slate-500">
                         {job.locality as string}
                         {job.salary_min || job.salary_max
                           ? ` · ₹${((job.salary_min as number) / 1000).toFixed(0)}k-₹${((job.salary_max as number) / 1000).toFixed(0)}k`
                           : ""}
                       </p>
+                      <p className="mt-0.5 text-[10px] text-slate-400">
+                        {ago === 0 ? "Created today" : `Created ${ago} days ago`}
+                      </p>
                     </div>
-                  </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${
-                        status === "active"
-                          ? "bg-green-100 text-green-600"
-                          : status === "expired"
-                            ? "bg-amber-100 text-amber-600"
-                            : "bg-slate-100 text-slate-500"
-                      }`}
-                    >
-                      {status === "active" ? "Active" : status === "expired" ? "Expired" : status}
-                    </span>
-                    <Link
-                      href={`/details/${job.custom_id as string}`}
-                      className="text-[14px]"
-                    >
-                      ✏️
+                  ) : (
+                    <Link href={searchUrl} className="min-w-0 flex-1">
+                      <p className="text-[13px] font-bold text-foreground">
+                        {catLabel}
+                      </p>
+                      <p className="text-[11px] text-slate-500">
+                        {job.locality as string}
+                        {job.salary_min || job.salary_max
+                          ? ` · ₹${((job.salary_min as number) / 1000).toFixed(0)}k-₹${((job.salary_max as number) / 1000).toFixed(0)}k`
+                          : ""}
+                      </p>
+                      <p className="mt-0.5 text-[10px] text-slate-400">
+                        {ago === 0 ? "Created today" : `Created ${ago} days ago`}
+                      </p>
                     </Link>
-                  </div>
+                  )}
+
+                  {/* Right — edit */}
+                  <Link
+                    href={`/account/job/${job.custom_id as string}`}
+                    className="shrink-0 text-[14px]"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <EditIcon className="size-3.5 text-slate-400" />
+                  </Link>
                 </div>
-                <p className="mt-1.5 text-[10px] text-slate-400">
-                  {remaining} {t("daysLeft")}
-                </p>
               </div>
             );
           })}
@@ -195,23 +236,6 @@ export function HomeEmployer({ user, recentJobs }: HomeEmployerProps) {
           {t("noRecentSearches")}
         </p>
       )}
-
-      {/* Create job listing card */}
-      <Link
-        href="/search"
-        className="mx-4 mt-3 mb-6 flex items-center gap-3 rounded-[12px] border-[1.5px] border-slate-200 bg-white p-3"
-      >
-        <span className="text-lg">📋</span>
-        <div className="flex-1">
-          <p className="text-[13px] font-bold text-foreground">
-            {t("createJobListing")}
-          </p>
-          <p className="text-[10px] text-slate-500">
-            {t("createJobListingDesc")}
-          </p>
-        </div>
-        <span className="text-slate-400">→</span>
-      </Link>
     </div>
   );
 }

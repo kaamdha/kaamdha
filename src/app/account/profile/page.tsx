@@ -68,6 +68,7 @@ export default async function ProfileEditorPage() {
         wp
           ? {
               id: wp.id as string,
+              gender: wp.gender as string | null,
               categories: wp.categories as string[],
               experienceYears: wp.experience_years as number,
               salaryMin: wp.salary_min as number | null,

@@ -1,7 +1,14 @@
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import type { User } from "@/types/database";
 import { AccountMenu } from "@/components/account/account-menu";
+
+export const metadata: Metadata = {
+  title: "Account",
+  description: "Manage your kaamdha account, profile, and job listings.",
+  robots: { index: false, follow: false },
+};
 
 export default async function AccountPage() {
   const supabase = await createClient();

@@ -34,8 +34,10 @@ export async function saveEmployerOnboarding(formData: FormData) {
 
   const location = buildLocationPoint(lat, lng);
 
-  // Update user record — cast to bypass PostGIS `unknown` type
+  // Upsert user record — handles case where trigger hasn't fired yet
   const userFields = {
+    id: user.id,
+    phone: user.phone ?? "",
     name,
     locality,
     city: "gurgaon" as const,
@@ -46,10 +48,10 @@ export async function saveEmployerOnboarding(formData: FormData) {
 
   const { error: userError } = await supabase
     .from("users")
-    .update(userFields as Record<string, unknown> as never)
-    .eq("id", user.id);
+    .upsert(userFields as Record<string, unknown> as never, { onConflict: "id" });
 
   if (userError) {
+    console.error("User upsert error:", userError);
     return { error: "Could not save profile. Please try again." };
   }
 
@@ -61,8 +63,11 @@ export async function saveEmployerOnboarding(formData: FormData) {
   );
 
   if (idError) {
+    console.error("RPC next_custom_id error:", idError);
     return { error: "Could not create profile. Please try again." };
   }
+
+  console.log("Generated custom ID:", customId);
 
   const profileFields = {
     custom_id: customId as string,
@@ -77,6 +82,7 @@ export async function saveEmployerOnboarding(formData: FormData) {
     .insert(profileFields as Record<string, unknown> as never);
 
   if (profileError) {
+    console.error("Employer profile insert error:", profileError);
     if (!profileError.message.includes("duplicate")) {
       return { error: "Could not create profile. Please try again." };
     }
@@ -122,8 +128,10 @@ export async function saveWorkerOnboarding(formData: FormData) {
 
   const location = buildLocationPoint(lat, lng);
 
-  // Update user record
+  // Upsert user record — handles case where trigger hasn't fired yet
   const userFields = {
+    id: user.id,
+    phone: user.phone ?? "",
     name,
     locality,
     city: "gurgaon" as const,
@@ -134,10 +142,10 @@ export async function saveWorkerOnboarding(formData: FormData) {
 
   const { error: userError } = await supabase
     .from("users")
-    .update(userFields as Record<string, unknown> as never)
-    .eq("id", user.id);
+    .upsert(userFields as Record<string, unknown> as never, { onConflict: "id" });
 
   if (userError) {
+    console.error("User upsert error:", userError);
     return { error: "Could not save profile. Please try again." };
   }
 

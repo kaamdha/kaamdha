@@ -1,6 +1,10 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import {
+  sendLeadConnectMessage,
+  sendLeadNotifyMessage,
+} from "@/lib/gupshup";
 
 export interface RevealResult {
   success: boolean;
@@ -50,14 +54,18 @@ export async function revealWorkerPhone(
     return { success: true, phone: formatPhone(phone) };
   }
 
-  // Get worker profile + user
+  // Get worker profile + user (fetch extra fields for WhatsApp message)
   const { data: wpRaw } = await supabase
     .from("worker_profiles")
-    .select("user_id")
+    .select("user_id, categories, locality")
     .eq("id", workerProfileId)
     .single();
 
-  const wp = wpRaw as { user_id: string } | null;
+  const wp = wpRaw as {
+    user_id: string;
+    categories: string[];
+    locality: string | null;
+  } | null;
   if (!wp) return { success: false, error: "Worker not found" };
 
   // Decrement free leads (Phase 1: always free, counter is informational)
@@ -66,8 +74,7 @@ export async function revealWorkerPhone(
     .update({ free_leads_remaining: Math.max(0, -1) } as Record<string, unknown> as never)
     .eq("id", user.id);
 
-  // Actually use an RPC or direct update for decrement
-  // For simplicity, just record the reveal
+  // Record the reveal
   const revealFields = {
     from_user_id: user.id,
     to_user_id: wp.user_id,
@@ -77,15 +84,17 @@ export async function revealWorkerPhone(
     was_free_lead: true,
   };
 
-  const { error: revealError } = await supabase
+  const { data: revealData, error: revealError } = await supabase
     .from("lead_reveals")
-    .insert(revealFields as Record<string, unknown> as never);
+    .insert(revealFields as Record<string, unknown> as never)
+    .select("id")
+    .single();
 
   if (revealError) {
     return { success: false, error: "Could not reveal. Please try again." };
   }
 
-  // Fetch phone
+  // Fetch revealed worker's phone
   const { data: uRaw } = await supabase
     .from("users")
     .select("phone")
@@ -93,6 +102,54 @@ export async function revealWorkerPhone(
     .single();
 
   const phone = (uRaw as { phone: string } | null)?.phone ?? "";
+  const revealId = (revealData as { id: string } | null)?.id;
+
+  // Send WhatsApp/SMS notifications (non-blocking)
+  try {
+    const [requesterData, workerData, categoryData] = await Promise.all([
+      supabase.from("users").select("phone, name, locality").eq("id", user.id).single(),
+      supabase.from("users").select("phone, name").eq("id", wp.user_id).single(),
+      wp.categories?.length
+        ? supabase.from("categories").select("label_en").eq("id", wp.categories[0] as string).single()
+        : Promise.resolve({ data: null }),
+    ]);
+
+    const requester = requesterData.data as { phone: string; name: string | null; locality: string | null } | null;
+    const worker = workerData.data as { phone: string; name: string | null } | null;
+    const categoryLabel = (categoryData.data as { label_en: string } | null)?.label_en ?? "Staff";
+
+    if (requester && worker) {
+      const [connectResult] = await Promise.all([
+        sendLeadConnectMessage({
+          recipientPhone: requester.phone,
+          name: worker.name ?? "Staff",
+          phone,
+          category: categoryLabel,
+          locality: wp.locality ?? "your area",
+        }),
+        sendLeadNotifyMessage({
+          recipientPhone: worker.phone,
+          viewerName: requester.name ?? "Someone",
+          viewerLocality: requester.locality ?? "your area",
+        }),
+      ]);
+
+      // Update lead_reveals with WhatsApp/SMS status
+      if (revealId && connectResult.success) {
+        await supabase
+          .from("lead_reveals")
+          .update({
+            whatsapp_sent: true,
+            whatsapp_message_id: connectResult.messageId ?? null,
+          } as Record<string, unknown> as never)
+          .eq("id", revealId);
+      }
+    }
+  } catch (err) {
+    // WhatsApp/SMS failure must never block the reveal
+    console.error("[reveal] WhatsApp send error (worker reveal):", err);
+  }
+
   return { success: true, phone: formatPhone(phone) };
 }
 
@@ -147,14 +204,18 @@ export async function revealEmployerPhone(
     return { success: true, phone: formatPhone(phone) };
   }
 
-  // Get job listing → employer → user
+  // Get job listing → employer → user (fetch extra fields for WhatsApp)
   const { data: jlRaw } = await supabase
     .from("job_listings")
-    .select("employer_id")
+    .select("employer_id, category, locality")
     .eq("id", jobListingId)
     .single();
 
-  const jl = jlRaw as { employer_id: string } | null;
+  const jl = jlRaw as {
+    employer_id: string;
+    category: string;
+    locality: string | null;
+  } | null;
   if (!jl) return { success: false, error: "Job not found" };
 
   const { data: epRaw } = await supabase
@@ -176,15 +237,17 @@ export async function revealEmployerPhone(
     was_free_lead: true,
   };
 
-  const { error: revealError } = await supabase
+  const { data: revealData, error: revealError } = await supabase
     .from("lead_reveals")
-    .insert(revealFields as Record<string, unknown> as never);
+    .insert(revealFields as Record<string, unknown> as never)
+    .select("id")
+    .single();
 
   if (revealError) {
     return { success: false, error: "Could not reveal. Please try again." };
   }
 
-  // Fetch phone
+  // Fetch employer's phone
   const { data: uRaw } = await supabase
     .from("users")
     .select("phone")
@@ -192,6 +255,52 @@ export async function revealEmployerPhone(
     .single();
 
   const phone = (uRaw as { phone: string } | null)?.phone ?? "";
+  const revealId = (revealData as { id: string } | null)?.id;
+
+  // Send WhatsApp/SMS notifications (non-blocking)
+  try {
+    const [requesterData, employerData, categoryData] = await Promise.all([
+      supabase.from("users").select("phone, name, locality").eq("id", user.id).single(),
+      supabase.from("users").select("phone, name").eq("id", ep.user_id).single(),
+      supabase.from("categories").select("label_en").eq("id", jl.category).single(),
+    ]);
+
+    const requester = requesterData.data as { phone: string; name: string | null; locality: string | null } | null;
+    const employer = employerData.data as { phone: string; name: string | null } | null;
+    const categoryLabel = (categoryData.data as { label_en: string } | null)?.label_en ?? "Staff";
+
+    if (requester && employer) {
+      const [connectResult] = await Promise.all([
+        sendLeadConnectMessage({
+          recipientPhone: requester.phone,
+          name: employer.name ?? "Employer",
+          phone,
+          category: categoryLabel,
+          locality: jl.locality ?? "your area",
+        }),
+        sendLeadNotifyMessage({
+          recipientPhone: employer.phone,
+          viewerName: requester.name ?? "Someone",
+          viewerLocality: requester.locality ?? "your area",
+        }),
+      ]);
+
+      // Update lead_reveals with WhatsApp/SMS status
+      if (revealId && connectResult.success) {
+        await supabase
+          .from("lead_reveals")
+          .update({
+            whatsapp_sent: true,
+            whatsapp_message_id: connectResult.messageId ?? null,
+          } as Record<string, unknown> as never)
+          .eq("id", revealId);
+      }
+    }
+  } catch (err) {
+    // WhatsApp/SMS failure must never block the reveal
+    console.error("[reveal] WhatsApp send error (employer reveal):", err);
+  }
+
   return { success: true, phone: formatPhone(phone) };
 }
 

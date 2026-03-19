@@ -142,7 +142,7 @@ export function OtpStep({
       <button
         onClick={onBack}
         disabled={loading}
-        className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+        className="flex items-center gap-1.5 text-base text-muted-foreground transition-colors hover:text-foreground"
       >
         <ArrowLeft className="size-4" />
         {t("changeNumber")}
