@@ -92,6 +92,9 @@ export function HomeLanding() {
         >
           {t("loginCta")}
         </Link>
+        <p className="mt-2 text-center text-[12px] text-slate-500">
+          No agents. Direct connects. Just <s>₹10</s> Free per lead
+        </p>
       </div>
 
       {/* Footer */}
