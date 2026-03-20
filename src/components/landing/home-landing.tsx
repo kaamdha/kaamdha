@@ -19,8 +19,8 @@ export function HomeLanding() {
         ]
       : [
           { title: t("findJobsStep1Title"), desc: t("findJobsStep1Desc") },
-          { title: "Find jobs", desc: "Find households offering jobs near you" },
-          { title: "Get contact", desc: "Connect directly via WhatsApp" },
+          { title: t("findJobsStep2Title"), desc: t("findJobsStep2Desc") },
+          { title: t("findJobsStep3Title"), desc: t("findJobsStep3Desc") },
         ];
 
   return (
@@ -53,8 +53,8 @@ export function HomeLanding() {
       <div className="px-4 pt-6 text-center">
         <h2 className="font-heading text-[22px] font-extrabold leading-tight text-foreground">
           {mode === "find_help"
-            ? "How kaamdha works for household owners"
-            : "How kaamdha works for job seekers"}
+            ? t("findHelpTitle")
+            : t("findJobsTitle")}
         </h2>
       </div>
 
@@ -93,14 +93,14 @@ export function HomeLanding() {
           {t("loginCta")}
         </Link>
         <p className="mt-2 text-center text-[12px] text-slate-500">
-          No agents. Direct connects. Just <s>₹10</s> Free per lead
+          {t("valueSubtext", { price: "₹10" })}
         </p>
       </div>
 
       {/* Footer */}
       <div className="mt-5 bg-slate-100 py-12 pl-6 text-left">
         <p className="font-heading text-[53px] font-extrabold leading-tight text-slate-300">
-          Made with ❤️<br />for Bharat
+          {t("madeWithLove")}
         </p>
         <p className="mt-4 text-[11px] text-slate-400">
           © 2026 kaamdha. All rights reserved.

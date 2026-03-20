@@ -9,18 +9,15 @@ import { createClient } from "@/lib/supabase/client";
 import { events, resetUser } from "@/lib/posthog";
 import type { User } from "@/types/database";
 
-function getGreeting(): string {
-  const hour = new Date().getHours();
-  if (hour < 12) return "Good morning";
-  if (hour < 17) return "Good afternoon";
-  return "Good evening";
-}
-
 function useGreeting() {
-  const [greeting, setGreeting] = useState("Welcome");
+  const tc = useTranslations("common");
+  const [greeting, setGreeting] = useState(tc("welcome"));
   useEffect(() => {
-    setGreeting(getGreeting());
-  }, []);
+    const hour = new Date().getHours();
+    if (hour < 12) setGreeting(tc("goodMorning"));
+    else if (hour < 17) setGreeting(tc("goodAfternoon"));
+    else setGreeting(tc("goodEvening"));
+  }, [tc]);
   return greeting;
 }
 
@@ -31,6 +28,7 @@ interface AccountMenuProps {
 
 export function AccountMenu({ user, activeJobCount }: AccountMenuProps) {
   const t = useTranslations("account");
+  const tc = useTranslations("common");
   const router = useRouter();
   const greeting = useGreeting();
   const isEmployer = user.last_active_mode === "find_help";
@@ -50,7 +48,7 @@ export function AccountMenu({ user, activeJobCount }: AccountMenuProps) {
       <div className="px-4 pt-4">
         <button onClick={() => router.back()} className="flex items-center gap-1 text-foreground">
           <ArrowLeft className="size-4" />
-          <span className="text-[13px] font-medium text-slate-500">Back</span>
+          <span className="text-[13px] font-medium text-slate-500">{tc("back")}</span>
         </button>
       </div>
 

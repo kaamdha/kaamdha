@@ -41,6 +41,7 @@ interface JidEditorProps {
 export function JidEditor({ job }: JidEditorProps) {
   const router = useRouter();
   const t = useTranslations("jidEdit");
+  const tc = useTranslations("common");
   const locale = useLocale();
   const [isSaving, startSaveTransition] = useTransition();
   const [isDeactivating, startDeactivateTransition] = useTransition();
@@ -58,7 +59,7 @@ export function JidEditor({ job }: JidEditorProps) {
   const [timings, setTimings] = useState<string[]>(job.preferredTimings);
 
   const daysAgo = Math.max(0, Math.floor((Date.now() - new Date(job.createdAt ?? job.expiresAt).getTime()) / (1000 * 60 * 60 * 24)));
-  const createdText = daysAgo === 0 ? "Created today" : `Created ${daysAgo} days ago`;
+  const createdText = daysAgo === 0 ? tc("createdToday") : tc("createdDaysAgo", { days: daysAgo });
 
   function toggleTiming(t: string) {
     setTimings((prev) =>
@@ -86,7 +87,7 @@ export function JidEditor({ job }: JidEditorProps) {
       <div className="px-4 pt-4">
         <button onClick={() => router.back()} className="flex items-center gap-1 text-foreground">
           <ArrowLeft className="size-4" />
-          <span className="text-[13px] font-medium text-slate-500">Back</span>
+          <span className="text-[13px] font-medium text-slate-500">{tc("back")}</span>
         </button>
       </div>
 
@@ -126,7 +127,7 @@ export function JidEditor({ job }: JidEditorProps) {
           <Input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder={`e.g. ${catLabel} for family of 4`}
+            placeholder={t("jobTitlePlaceholder", { category: catLabel })}
             className="mt-1 bg-white text-[13px]"
           />
         </div>
@@ -155,14 +156,14 @@ export function JidEditor({ job }: JidEditorProps) {
               type="number"
               value={salaryMin}
               onChange={(e) => setSalaryMin(e.target.value)}
-              placeholder="Min ₹"
+              placeholder={tc("minSalary")}
               className="flex-1 bg-white text-[13px]"
             />
             <Input
               type="number"
               value={salaryMax}
               onChange={(e) => setSalaryMax(e.target.value)}
-              placeholder="Max ₹"
+              placeholder={tc("maxSalary")}
               className="flex-1 bg-white text-[13px]"
             />
           </div>
@@ -198,7 +199,7 @@ export function JidEditor({ job }: JidEditorProps) {
           className="flex w-full items-center justify-center gap-2 rounded-[10px] bg-primary py-2.5 text-[13px] font-bold text-white disabled:opacity-60"
         >
           {isSaving && <Loader2 className="size-4 animate-spin" />}
-          {isSaving ? "Saving..." : t("saveChanges")}
+          {isSaving ? tc("saving") : t("saveChanges")}
         </button>
 
         {/* Deactivate */}
@@ -209,7 +210,7 @@ export function JidEditor({ job }: JidEditorProps) {
             className="flex w-full items-center justify-center gap-2 rounded-[10px] border-[1.5px] border-red-200 bg-white py-2.5 text-[13px] font-bold text-red-500 disabled:opacity-60"
           >
             {isDeactivating && <Loader2 className="size-4 animate-spin text-red-500" />}
-            {isDeactivating ? "Deactivating..." : t("deactivate")}
+            {isDeactivating ? tc("deactivating") : t("deactivate")}
           </button>
         )}
       </div>

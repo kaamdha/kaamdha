@@ -19,6 +19,7 @@ const TIMINGS = [
 
 export function EmployerOnboard() {
   const t = useTranslations("onboard");
+  const tc = useTranslations("common");
   const locale = useLocale();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -83,20 +84,20 @@ export function EmployerOnboard() {
         {/* Name */}
         <div>
           <label className="mb-1 block text-xs font-semibold text-slate-500">
-            Name *
+            {tc("name")} *
           </label>
           <div className="flex gap-2">
             <Input
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
-              placeholder="First name"
+              placeholder={tc("firstName")}
               className="flex-1"
               autoFocus
             />
             <Input
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
-              placeholder="Last name"
+              placeholder={tc("lastName")}
               className="flex-1"
             />
           </div>
@@ -150,24 +151,24 @@ export function EmployerOnboard() {
         {/* Job title (optional) */}
         <div>
           <label className="mb-1 block text-xs font-semibold text-slate-500">
-            Job title (optional)
+            {t("jobTitleLabel")}
           </label>
           <Input
             value={jobTitle}
             onChange={(e) => setJobTitle(e.target.value)}
-            placeholder="e.g. Maid for family of 4"
+            placeholder={t("jobTitlePlaceholder")}
           />
         </div>
 
         {/* Requirements (optional) */}
         <div>
           <label className="mb-1 block text-xs font-semibold text-slate-500">
-            Requirements (optional)
+            {t("requirementsLabel")}
           </label>
           <textarea
             value={requirements}
             onChange={(e) => setRequirements(e.target.value)}
-            placeholder="Any specific requirements..."
+            placeholder={t("requirementsPlaceholder")}
             className="w-full rounded-lg border-[1.5px] border-slate-200 px-3 py-2 text-[13px] placeholder:text-slate-400 focus:border-primary focus:outline-none"
             rows={3}
           />
@@ -176,22 +177,22 @@ export function EmployerOnboard() {
         {/* Salary range (optional) */}
         <div>
           <label className="mb-1 block text-xs font-semibold text-slate-500">
-            Salary range (optional)
+            {t("salaryRangeLabel")}
           </label>
           <div className="flex items-center gap-2">
             <Input
               type="number"
               value={salaryMin}
               onChange={(e) => setSalaryMin(e.target.value)}
-              placeholder="Min ₹"
+              placeholder={tc("minSalary")}
               className="flex-1"
             />
-            <span className="text-xs text-slate-400">to</span>
+            <span className="text-xs text-slate-400">{tc("to")}</span>
             <Input
               type="number"
               value={salaryMax}
               onChange={(e) => setSalaryMax(e.target.value)}
-              placeholder="Max ₹"
+              placeholder={tc("maxSalary")}
               className="flex-1"
             />
           </div>
@@ -200,7 +201,7 @@ export function EmployerOnboard() {
         {/* Preferred timings (optional) */}
         <div>
           <label className="mb-1 block text-xs font-semibold text-slate-500">
-            Preferred timings (optional)
+            {t("preferredTimingsLabel")}
           </label>
           <div className="flex flex-wrap gap-1.5">
             {TIMINGS.map((timing) => (

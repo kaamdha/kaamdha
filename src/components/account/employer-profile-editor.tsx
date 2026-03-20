@@ -26,6 +26,7 @@ export function EmployerProfileEditor({
 }: EmployerProfileEditorProps) {
   const router = useRouter();
   const t = useTranslations("profileEdit");
+  const tc = useTranslations("common");
   const locale = useLocale();
   const [isPending, startTransition] = useTransition();
 
@@ -66,7 +67,7 @@ export function EmployerProfileEditor({
       <div className="px-4 pt-4">
         <button onClick={() => router.back()} className="flex items-center gap-1 text-foreground">
           <ArrowLeft className="size-4" />
-          <span className="text-[13px] font-medium text-slate-500">Back</span>
+          <span className="text-[13px] font-medium text-slate-500">{tc("back")}</span>
         </button>
       </div>
 
@@ -80,19 +81,19 @@ export function EmployerProfileEditor({
         {/* Name */}
         <div>
           <label className="text-xs font-semibold text-slate-500">
-            Name
+            {tc("name")}
           </label>
           <div className="mt-1 flex gap-2">
             <Input
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
-              placeholder="First name"
+              placeholder={tc("firstName")}
               className="flex-1 bg-white text-[13px]"
             />
             <Input
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
-              placeholder="Last name"
+              placeholder={tc("lastName")}
               className="flex-1 bg-white text-[13px]"
             />
           </div>
@@ -147,7 +148,7 @@ export function EmployerProfileEditor({
           className="flex w-full items-center justify-center gap-2 rounded-[10px] bg-primary py-2.5 text-[13px] font-bold text-white disabled:opacity-60"
         >
           {isPending && <Loader2 className="size-4 animate-spin" />}
-          {isPending ? "Saving..." : t("saveChanges")}
+          {isPending ? tc("saving") : t("saveChanges")}
         </button>
       </div>
     </div>

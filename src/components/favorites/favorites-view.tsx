@@ -28,6 +28,7 @@ export function FavoritesView({
 }: FavoritesViewProps) {
   const router = useRouter();
   const t = useTranslations("favorites");
+  const tc = useTranslations("common");
   const locale = useLocale();
 
   const [employerTab, setEmployerTab] = useState<EmployerTab>("jobs_created");
@@ -70,7 +71,7 @@ export function FavoritesView({
         <div className="px-4 pt-4">
           <button onClick={() => router.back()} className="flex items-center gap-1 text-foreground">
             <ArrowLeft className="size-4" />
-            <span className="text-[13px] font-medium text-slate-500">Back</span>
+            <span className="text-[13px] font-medium text-slate-500">{tc("back")}</span>
           </button>
         </div>
 
@@ -165,7 +166,7 @@ export function FavoritesView({
                           </div>
                         </div>
                         <p className="mt-1.5 text-[11px] text-slate-400">
-                          {ago === 0 ? "Created today" : `Created ${ago} days ago`}
+                          {ago === 0 ? tc("createdToday") : tc("createdDaysAgo", { days: ago })}
                         </p>
                       </div>
                     );
@@ -317,6 +318,7 @@ export function FavoritesView({
 
 function JobCard({ job, locale, isFavorited }: { job: Record<string, unknown>; locale: string; isFavorited: boolean }) {
   const router = useRouter();
+  const tc = useTranslations("common");
   const categoryId = job.category as string;
   const catInfo = JOB_CATEGORIES.find((c) => c.id === categoryId);
   const catLabel = catInfo
@@ -350,7 +352,7 @@ function JobCard({ job, locale, isFavorited }: { job: Record<string, unknown>; l
 
       <div>
         <p className="text-[13px] font-bold text-foreground">
-          {(job.title as string) || catLabel + " needed"}
+          {(job.title as string) || tc("needed", { category: catLabel })}
         </p>
         <p className="text-[11px] text-slate-500">
           {jobLocality}{jobLocality ? " · --" : ""}
@@ -368,7 +370,7 @@ function JobCard({ job, locale, isFavorited }: { job: Record<string, unknown>; l
           +91 981-XXX-XXXX
         </span>
         <span className="rounded-md bg-primary px-2.5 py-1 text-[11px] font-bold text-white">
-          Connect
+          {tc("connect")}
         </span>
       </div>
     </div>

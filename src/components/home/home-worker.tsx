@@ -10,18 +10,15 @@ import { RevealModal } from "@/components/shared/reveal-modal";
 import { revealEmployerPhone } from "@/app/actions/reveal";
 import type { User } from "@/types/database";
 
-function getGreeting(): string {
-  const hour = new Date().getHours();
-  if (hour < 12) return "Good morning";
-  if (hour < 17) return "Good afternoon";
-  return "Good evening";
-}
-
 function useGreeting() {
-  const [greeting, setGreeting] = useState("Welcome");
+  const tc = useTranslations("common");
+  const [greeting, setGreeting] = useState(tc("welcome"));
   useEffect(() => {
-    setGreeting(getGreeting());
-  }, []);
+    const hour = new Date().getHours();
+    if (hour < 12) setGreeting(tc("goodMorning"));
+    else if (hour < 17) setGreeting(tc("goodAfternoon"));
+    else setGreeting(tc("goodEvening"));
+  }, [tc]);
   return greeting;
 }
 
@@ -34,6 +31,7 @@ interface HomeWorkerProps {
 
 export function HomeWorker({ user, jobs, workerCategories = [], favoritedJobIds = [] }: HomeWorkerProps) {
   const t = useTranslations("home");
+  const tc = useTranslations("common");
   const locale = useLocale();
   const greeting = useGreeting();
 
@@ -70,7 +68,7 @@ export function HomeWorker({ user, jobs, workerCategories = [], favoritedJobIds 
       {/* Jobs near you */}
       <div className="px-4 pt-5">
         <h3 className="font-heading text-[14px] font-bold text-foreground">
-          {categoryLabels ? `${categoryLabels} jobs near you` : t("jobsNearYou")}
+          {categoryLabels ? t("categoryJobsNearYou", { categories: categoryLabels }) : t("jobsNearYou")}
         </h3>
       </div>
 
@@ -83,7 +81,7 @@ export function HomeWorker({ user, jobs, workerCategories = [], favoritedJobIds 
       ) : (
         <div className="mx-4 mt-6 rounded-[14px] bg-slate-50 px-6 py-8 text-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/icons/no-results.png" alt="No jobs found nearby" className="mx-auto size-16" />
+          <img src="/icons/no-results.png" alt="" className="mx-auto size-16" />
           <h3 className="mt-3 font-heading text-[16px] font-bold text-foreground">
             {t("noJobsTitle")}
           </h3>
@@ -98,6 +96,7 @@ export function HomeWorker({ user, jobs, workerCategories = [], favoritedJobIds 
 
 function JobCard({ job, locale, isFavorited = false }: { job: Record<string, unknown>; locale: string; isFavorited?: boolean }) {
   const router = useRouter();
+  const tc = useTranslations("common");
   const [showReveal, setShowReveal] = useState(false);
   const [revealedPhone, setRevealedPhone] = useState<string | null>(null);
 
@@ -137,7 +136,7 @@ function JobCard({ job, locale, isFavorited = false }: { job: Record<string, unk
         {/* Content */}
         <div>
           <p className="text-[13px] font-bold text-foreground">
-            {(job.title as string) || catLabel + " needed"}
+            {(job.title as string) || tc("needed", { category: catLabel })}
           </p>
           <p className="text-[11px] text-slate-500">
             {jobLocality}{jobLocality && (job.distance_km as number | null) != null ? ` · ${job.distance_km} km` : ""}
@@ -172,7 +171,7 @@ function JobCard({ job, locale, isFavorited = false }: { job: Record<string, unk
             </span>
           )}
           <span className="rounded-md bg-primary px-2.5 py-1 text-[11px] font-bold text-white">
-            Connect
+            {tc("connect")}
           </span>
         </div>
       </div>

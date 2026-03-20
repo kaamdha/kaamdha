@@ -27,6 +27,7 @@
     "free": "मुफ़्त",
     "firstName": "पहला नाम",
     "lastName": "अंतिम नाम",
+    "name": "नाम",
     "male": "पुरुष",
     "female": "महिला",
     "morning": "सुबह",
@@ -35,7 +36,24 @@
     "twelveHours": "12 घंटे",
     "twentyFourHours": "24 घंटे",
     "min": "न्यूनतम",
-    "max": "अधिकतम"
+    "max": "अधिकतम",
+    "to": "से",
+    "saving": "सहेज रहे हैं...",
+    "deactivating": "निष्क्रिय कर रहे हैं...",
+    "goodMorning": "सुप्रभात",
+    "goodAfternoon": "नमस्कार",
+    "goodEvening": "शुभ संध्या",
+    "welcome": "स्वागत है",
+    "createdToday": "आज बनाया गया",
+    "createdDaysAgo": "{days} दिन पहले बनाया गया",
+    "yrExperience": "{years} साल अनुभव",
+    "needed": "{category} चाहिए",
+    "minSalary": "न्यूनतम ₹",
+    "maxSalary": "अधिकतम ₹",
+    "result": "परिणाम",
+    "results": "परिणाम",
+    "gender": "लिंग",
+    "connectFree": "कनेक्ट करें · मुफ़्त"
   },
   "landing": {
     "findStaff": "स्टाफ खोजें",
@@ -58,7 +76,8 @@
     "madeWithLove": "भारत के लिए ❤️ से बनाया गया",
     "findHelpGridTitle": "श्रेणी से खोजें",
     "findJobsGridTitle": "श्रेणी में रजिस्टर करें",
-    "registerSubtext": "कोई एजेंट नहीं, सीधा संपर्क।"
+    "registerSubtext": "कोई एजेंट नहीं, सीधा संपर्क।",
+    "valueSubtext": "कोई एजेंट नहीं। सीधा कनेक्ट। बस {price} मुफ़्त प्रति लीड"
   },
   "auth": {
     "loginTitle": "कामधा में लॉगिन करें",
@@ -89,6 +108,7 @@
     "createdToday": "आज बनाया गया",
     "createdDaysAgo": "{days} दिन पहले बनाया गया",
     "jobsNearYou": "आपके पास की नौकरियां",
+    "categoryJobsNearYou": "आपके पास {categories} की नौकरियां",
     "noJobsTitle": "पास में कोई नौकरी नहीं मिली",
     "noJobsDesc": "हम आपके पास बेहतरीन अवसर खोजने की कोशिश कर रहे हैं — जल्द वापस आएं!",
     "daysLeft": "दिन बाकी",
@@ -135,7 +155,9 @@
     "results": "परिणाम",
     "noResultsTitle": "माफ़ कीजिए, आसपास कोई स्टाफ नहीं मिला",
     "noResultsDesc": "हम आपके इलाक़े में और स्टाफ लाने की पूरी कोशिश कर रहे हैं। कुछ दिनों में दोबारा देखें — हर रोज़ नई प्रोफ़ाइल जुड़ती हैं!",
-    "noResultsHint": "सुझाव: पास की कोई और लोकैलिटी या दूसरी श्रेणी आज़माएं"
+    "noResultsHint": "सुझाव: पास की कोई और लोकैलिटी या दूसरी श्रेणी आज़माएं",
+    "resultCount": "{count} परिणाम",
+    "resultIn": "{locality} में"
   },
   "detail": {
     "staffProfile": "स्टाफ प्रोफ़ाइल",
@@ -208,19 +230,25 @@
     "findStaffBtn": "स्टाफ खोजें",
     "findStaffHint": "आपको मिलते-जुलते स्टाफ की सूची दिखाई जाएगी",
     "createProfile": "प्रोफ़ाइल बनाएं",
+    "createProfileHint": "हम आपके लिए सही नौकरी ढूंढेंगे",
     "daysLabel": "उपलब्ध दिन",
     "distanceLabel": "दूरी",
     "jobTitleLabel": "नौकरी शीर्षक (वैकल्पिक)",
+    "jobTitlePlaceholder": "जैसे 4 लोगों के परिवार के लिए कामवाली",
     "requirementsLabel": "आवश्यकताएं (वैकल्पिक)",
+    "requirementsPlaceholder": "कोई विशेष आवश्यकता...",
     "salaryRangeLabel": "वेतन सीमा (वैकल्पिक)",
     "preferredTimingsLabel": "पसंदीदा समय (वैकल्पिक)",
     "experienceLabel2": "अनुभव (साल)",
+    "experiencePlaceholder": "जैसे 5",
     "salaryLabel2": "अपेक्षित वेतन (₹/माह)",
-    "aboutLabel": "परिचय"
+    "aboutLabel": "परिचय (वैकल्पिक)",
+    "aboutPlaceholder": "नियोक्ताओं को अपने बारे में बताएं..."
   },
   "jidEdit": {
     "editJob": "नौकरी सूची संपादित करें",
     "jobTitle": "नौकरी शीर्षक",
+    "jobTitlePlaceholder": "जैसे 4 लोगों के परिवार के लिए {category}",
     "requirements": "आवश्यकताएं",
     "requirementsPlaceholder": "बताएं आप क्या खोज रहे हैं...",
     "salaryRange": "वेतन सीमा (₹/माह)",
@@ -267,7 +295,8 @@
     "noContacted": "अभी तक कोई नंबर नहीं देखा।",
     "noSaved": "अभी कोई सहेजा नहीं।",
     "contactRevealed": "संपर्क देखा गया",
-    "savedItem": "सहेजा गया"
+    "savedItem": "सहेजा गया",
+    "upTo": "तक"
   },
   "profileEdit": {
     "editProfile": "प्रोफ़ाइल संपादित करें",

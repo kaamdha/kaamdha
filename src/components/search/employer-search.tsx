@@ -33,6 +33,7 @@ export function EmployerSearch({
   const [hasSearched, setHasSearched] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const searchTriggered = useRef(false);
+  const tc = useTranslations("common");
 
   // Get category label for header
   const catInfo = selectedCategory
@@ -74,7 +75,7 @@ export function EmployerSearch({
       <div className="px-4 pt-4">
         <button onClick={() => router.back()} className="flex items-center gap-1 text-foreground">
           <ArrowLeft className="size-4" />
-          <span className="text-[13px] font-medium text-slate-500">Back</span>
+          <span className="text-[13px] font-medium text-slate-500">{tc("back")}</span>
         </button>
       </div>
 
@@ -82,7 +83,7 @@ export function EmployerSearch({
       {hasSearched && !isPending && workers.length > 0 && (
         <div className="px-4 pt-2">
           <p className="text-[12px] text-slate-400">
-            {workers.length} {workers.length === 1 ? "result" : "results"}{locality ? ` in ${locality}` : ""}
+            {workers.length} {workers.length === 1 ? tc("result") : tc("results")}{locality ? ` ${locality}` : ""}
           </p>
         </div>
       )}
