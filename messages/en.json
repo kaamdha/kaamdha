@@ -27,6 +27,7 @@
     "free": "FREE",
     "firstName": "First name",
     "lastName": "Last name",
+    "name": "Name",
     "male": "Male",
     "female": "Female",
     "morning": "Morning",
@@ -35,7 +36,24 @@
     "twelveHours": "12 hours",
     "twentyFourHours": "24 hours",
     "min": "Min",
-    "max": "Max"
+    "max": "Max",
+    "to": "to",
+    "saving": "Saving...",
+    "deactivating": "Deactivating...",
+    "goodMorning": "Good morning",
+    "goodAfternoon": "Good afternoon",
+    "goodEvening": "Good evening",
+    "welcome": "Welcome",
+    "createdToday": "Created today",
+    "createdDaysAgo": "Created {days} days ago",
+    "yrExperience": "{years} yr experience",
+    "needed": "{category} needed",
+    "minSalary": "Min ₹",
+    "maxSalary": "Max ₹",
+    "result": "result",
+    "results": "results",
+    "gender": "Gender",
+    "connectFree": "Connect · FREE"
   },
   "landing": {
     "findStaff": "Find staff",
@@ -58,7 +76,8 @@
     "madeWithLove": "Made with ❤️ for Bharat",
     "findHelpGridTitle": "Search by category",
     "findJobsGridTitle": "Register in a category",
-    "registerSubtext": "No agents, direct contact."
+    "registerSubtext": "No agents, direct contact.",
+    "valueSubtext": "No agents. Direct connects. Just {price} Free per lead"
   },
   "auth": {
     "loginTitle": "Login to Kaamdha",
@@ -89,6 +108,7 @@
     "createdToday": "Created today",
     "createdDaysAgo": "Created {days} days ago",
     "jobsNearYou": "Jobs near you",
+    "categoryJobsNearYou": "{categories} jobs near you",
     "noJobsTitle": "No jobs found nearby",
     "noJobsDesc": "We're working hard to find great opportunities near you — check back soon!",
     "daysLeft": "days left",
@@ -135,7 +155,9 @@
     "results": "Results",
     "noResultsTitle": "Sorry, no staff found nearby",
     "noResultsDesc": "We're working hard to bring more staff to your area. Please check back in a few days — new profiles are added every day!",
-    "noResultsHint": "Tip: Try a nearby locality or a different category"
+    "noResultsHint": "Tip: Try a nearby locality or a different category",
+    "resultCount": "{count} {count, plural, one {result} other {results}}",
+    "resultIn": "in {locality}"
   },
   "detail": {
     "staffProfile": "Staff profile",
@@ -208,19 +230,25 @@
     "findStaffBtn": "Find staff",
     "findStaffHint": "You'll be taken to matching staff listings",
     "createProfile": "Create profile",
+    "createProfileHint": "We will find the right jobs for you",
     "daysLabel": "Available days",
     "distanceLabel": "Distance",
     "jobTitleLabel": "Job title (optional)",
+    "jobTitlePlaceholder": "e.g. Maid for family of 4",
     "requirementsLabel": "Requirements (optional)",
+    "requirementsPlaceholder": "Any specific requirements...",
     "salaryRangeLabel": "Salary range (optional)",
     "preferredTimingsLabel": "Preferred timings (optional)",
     "experienceLabel2": "Experience (years)",
+    "experiencePlaceholder": "e.g. 5",
     "salaryLabel2": "Expected salary (₹/month)",
-    "aboutLabel": "About"
+    "aboutLabel": "About (optional)",
+    "aboutPlaceholder": "Tell employers about yourself..."
   },
   "jidEdit": {
     "editJob": "Edit job listing",
     "jobTitle": "Job title",
+    "jobTitlePlaceholder": "e.g. {category} for family of 4",
     "requirements": "Requirements",
     "requirementsPlaceholder": "Describe what you're looking for...",
     "salaryRange": "Salary range (₹/month)",
@@ -267,7 +295,8 @@
     "noContacted": "No contacts revealed yet.",
     "noSaved": "No saved items yet.",
     "contactRevealed": "Contact revealed",
-    "savedItem": "Saved item"
+    "savedItem": "Saved item",
+    "upTo": "up to"
   },
   "profileEdit": {
     "editProfile": "Edit profile",

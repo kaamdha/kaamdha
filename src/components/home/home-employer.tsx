@@ -18,18 +18,15 @@ const HERO_CROPS: Record<string, string> = {
   C0008: "100%",  // Elder care - woman with stethoscope (6th person)
 };
 
-function getGreeting(): string {
-  const hour = new Date().getHours();
-  if (hour < 12) return "Good morning";
-  if (hour < 17) return "Good afternoon";
-  return "Good evening";
-}
-
 function useGreeting() {
-  const [greeting, setGreeting] = useState("Welcome");
+  const tc = useTranslations("common");
+  const [greeting, setGreeting] = useState(tc("welcome"));
   useEffect(() => {
-    setGreeting(getGreeting());
-  }, []);
+    const hour = new Date().getHours();
+    if (hour < 12) setGreeting(tc("goodMorning"));
+    else if (hour < 17) setGreeting(tc("goodAfternoon"));
+    else setGreeting(tc("goodEvening"));
+  }, [tc]);
   return greeting;
 }
 
@@ -44,6 +41,7 @@ interface HomeEmployerProps {
 
 export function HomeEmployer({ user, recentJobs }: HomeEmployerProps) {
   const t = useTranslations("home");
+  const tc = useTranslations("common");
   const locale = useLocale();
   const greeting = useGreeting();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -132,14 +130,14 @@ export function HomeEmployer({ user, recentJobs }: HomeEmployerProps) {
           href={`/search?category=${selectedCategory ?? ""}&locality=${encodeURIComponent(locality)}`}
           className="flex h-12 w-full items-center justify-center rounded-[12px] bg-primary text-[14px] font-bold text-white"
         >
-          Search staff
+          {t("searchStaff")}
         </Link>
       </div>
 
       {/* Recent searches */}
       <div className="px-4 pt-5">
         <h3 className="font-heading text-[14px] font-bold text-foreground">
-          Your recent searches
+          {t("recentSearches")}
         </h3>
       </div>
 
@@ -157,6 +155,7 @@ export function HomeEmployer({ user, recentJobs }: HomeEmployerProps) {
             const ago = daysAgo(job.created_at as string);
             const isExpired = status !== "active";
             const searchUrl = `/search?category=${categoryId}&locality=${encodeURIComponent((job.locality as string) ?? "")}`;
+            const createdText = ago === 0 ? tc("createdToday") : tc("createdDaysAgo", { days: ago });
 
             return (
               <div
@@ -198,7 +197,7 @@ export function HomeEmployer({ user, recentJobs }: HomeEmployerProps) {
                           : ""}
                       </p>
                       <p className="mt-0.5 text-[10px] text-slate-400">
-                        {ago === 0 ? "Created today" : `Created ${ago} days ago`}
+                        {createdText}
                       </p>
                     </div>
                   ) : (
@@ -213,7 +212,7 @@ export function HomeEmployer({ user, recentJobs }: HomeEmployerProps) {
                           : ""}
                       </p>
                       <p className="mt-0.5 text-[10px] text-slate-400">
-                        {ago === 0 ? "Created today" : `Created ${ago} days ago`}
+                        {createdText}
                       </p>
                     </Link>
                   )}

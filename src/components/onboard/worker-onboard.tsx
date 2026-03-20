@@ -19,6 +19,7 @@ const TIMINGS = [
 
 export function WorkerOnboard() {
   const t = useTranslations("onboard");
+  const tc = useTranslations("common");
   const locale = useLocale();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -95,20 +96,20 @@ export function WorkerOnboard() {
         {/* Name */}
         <div>
           <label className="mb-1 block text-xs font-semibold text-slate-500">
-            Name *
+            {tc("name")} *
           </label>
           <div className="flex gap-2">
             <Input
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
-              placeholder="First name"
+              placeholder={tc("firstName")}
               className="flex-1"
               autoFocus
             />
             <Input
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
-              placeholder="Last name"
+              placeholder={tc("lastName")}
               className="flex-1"
             />
           </div>
@@ -117,12 +118,12 @@ export function WorkerOnboard() {
         {/* Gender */}
         <div>
           <label className="mb-1 block text-xs font-semibold text-slate-500">
-            Gender
+            {tc("gender")}
           </label>
           <div className="flex gap-2">
             {[
-              { value: "male", label: "Male" },
-              { value: "female", label: "Female" },
+              { value: "male", label: tc("male") },
+              { value: "female", label: tc("female") },
             ].map((opt) => (
               <button
                 key={opt.value}
@@ -188,35 +189,35 @@ export function WorkerOnboard() {
         {/* Experience */}
         <div>
           <label className="mb-1 block text-xs font-semibold text-slate-500">
-            Experience (years)
+            {t("experienceLabel2")}
           </label>
           <Input
             type="number"
             value={experience}
             onChange={(e) => setExperience(e.target.value)}
-            placeholder="e.g. 5"
+            placeholder={t("experiencePlaceholder")}
           />
         </div>
 
         {/* Salary range */}
         <div>
           <label className="mb-1 block text-xs font-semibold text-slate-500">
-            Salary range (₹/month)
+            {t("salaryLabel2")}
           </label>
           <div className="flex items-center gap-2">
             <Input
               type="number"
               value={salaryMin}
               onChange={(e) => setSalaryMin(e.target.value)}
-              placeholder="Min ₹"
+              placeholder={tc("minSalary")}
               className="flex-1"
             />
-            <span className="text-xs text-slate-400">to</span>
+            <span className="text-xs text-slate-400">{tc("to")}</span>
             <Input
               type="number"
               value={salaryMax}
               onChange={(e) => setSalaryMax(e.target.value)}
-              placeholder="Max ₹"
+              placeholder={tc("maxSalary")}
               className="flex-1"
             />
           </div>
@@ -250,12 +251,12 @@ export function WorkerOnboard() {
         {/* About */}
         <div>
           <label className="mb-1 block text-xs font-semibold text-slate-500">
-            About (optional)
+            {t("aboutLabel")}
           </label>
           <textarea
             value={bio}
             onChange={(e) => setBio(e.target.value)}
-            placeholder="Tell employers about yourself..."
+            placeholder={t("aboutPlaceholder")}
             className="w-full rounded-lg border-[1.5px] border-slate-200 px-3 py-2 text-[13px] placeholder:text-slate-400 focus:border-primary focus:outline-none"
             rows={3}
           />

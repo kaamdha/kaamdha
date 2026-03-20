@@ -3,6 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { RevealModal } from "@/components/shared/reveal-modal";
 import { revealWorkerPhone } from "@/app/actions/reveal";
 
@@ -33,6 +34,7 @@ export function WorkerCard({
   distanceKm,
 }: WorkerCardProps) {
   const router = useRouter();
+  const tc = useTranslations("common");
   const avatarSrc = gender === "female" ? "/icons/avatar-female.png" : "/icons/avatar-male.png";
   const [showReveal, setShowReveal] = useState(false);
   const [revealedPhone, setRevealedPhone] = useState<string | null>(null);
@@ -78,7 +80,7 @@ export function WorkerCard({
 
             {/* Experience */}
             {experienceYears > 0 && (
-              <p className="text-[11px] text-slate-500">{experienceYears} yr experience</p>
+              <p className="text-[11px] text-slate-500">{tc("yrExperience", { years: experienceYears })}</p>
             )}
 
             {/* Salary */}
@@ -115,7 +117,7 @@ export function WorkerCard({
             </span>
           )}
           <span className="rounded-md bg-primary px-2.5 py-1 text-[11px] font-bold text-white">
-            Connect
+            {tc("connect")}
           </span>
         </div>
       </div>

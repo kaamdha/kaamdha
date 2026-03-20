@@ -42,6 +42,7 @@ interface JobDetailProps {
 export function JobDetail({ job, employer, isOwner, isFavorited: initialFavorited }: JobDetailProps) {
   const router = useRouter();
   const t = useTranslations("detail");
+  const tc = useTranslations("common");
   const tShare = useTranslations("share");
   const locale = useLocale();
   const [showRevealModal, setShowRevealModal] = useState(false);
@@ -57,7 +58,7 @@ export function JobDetail({ job, employer, isOwner, isFavorited: initialFavorite
     : "";
   const catEmoji = catInfo?.emoji ?? "📋";
 
-  const title = job.title || `${catLabel} Needed`;
+  const title = job.title || tc("needed", { category: catLabel });
 
   const salaryText =
     job.salaryMin || job.salaryMax
@@ -89,7 +90,7 @@ export function JobDetail({ job, employer, isOwner, isFavorited: initialFavorite
       <div className="px-4 pt-4">
         <button onClick={() => router.back()} className="flex items-center gap-1 text-foreground">
           <ArrowLeft className="size-4" />
-          <span className="text-[13px] font-medium text-slate-500">Back</span>
+          <span className="text-[13px] font-medium text-slate-500">{tc("back")}</span>
         </button>
       </div>
 
@@ -185,7 +186,7 @@ export function JobDetail({ job, employer, isOwner, isFavorited: initialFavorite
                 onClick={() => setShowRevealModal(true)}
                 className="flex flex-1 items-center justify-center gap-1.5 rounded-[10px] bg-primary py-2.5 text-[13px] font-bold text-white"
               >
-                Connect · <s className="text-white/70">₹10</s> FREE
+                {tc("connectFree")}
               </button>
             )}
           </div>
