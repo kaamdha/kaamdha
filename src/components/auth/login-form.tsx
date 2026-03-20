@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { checkUserRole } from "@/app/login/actions";
+import { events, identifyUser } from "@/lib/posthog";
 import { PhoneStep } from "./phone-step";
 import { OtpStep } from "./otp-step";
 
@@ -57,6 +58,7 @@ export function LoginForm() {
         return;
       }
 
+      events.otpRequested();
       setStep("otp");
     } catch {
       setError(t("otpSendError"));
@@ -83,7 +85,15 @@ export function LoginForm() {
           return;
         }
 
+        events.otpVerified();
         const redirectTo = await checkUserRole();
+        // Identify user in PostHog after successful login
+        const supabase2 = createClient();
+        const { data: { user: loggedInUser } } = await supabase2.auth.getUser();
+        if (loggedInUser) {
+          identifyUser(loggedInUser.id, { phone: fullPhone });
+        }
+        events.loginCompleted();
         router.push(redirectTo);
       } catch {
         setError(t("otpVerifyError"));

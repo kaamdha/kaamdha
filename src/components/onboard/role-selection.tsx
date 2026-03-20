@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { events } from "@/lib/posthog";
 
 type Role = "employer" | "worker" | null;
 
@@ -12,6 +13,7 @@ export function RoleSelection() {
   const [selected, setSelected] = useState<Role>(null);
 
   function handleContinue() {
+    if (selected) events.roleSelected(selected);
     if (selected === "employer") router.push("/onboard/employer");
     if (selected === "worker") router.push("/onboard/worker");
   }

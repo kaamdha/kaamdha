@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { events } from "@/lib/posthog";
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -28,7 +29,10 @@ export function ShareModal({
   const encodedUrl = encodeURIComponent(shareUrl);
   const encodedSubject = encodeURIComponent(`Check out ${shareName} on kaamdha`);
 
+  const targetType = shareUrl.includes("JID") ? "job" : "worker";
+
   function handleCopyLink() {
+    events.shareTapped({ channel: "copy_link", targetType, targetId: shareUrl });
     navigator.clipboard.writeText(shareUrl).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
@@ -64,6 +68,7 @@ export function ShareModal({
             href={`https://wa.me/?text=${encodedText}`}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => events.shareTapped({ channel: "whatsapp", targetType, targetId: shareUrl })}
             className="flex flex-col items-center gap-1.5"
           >
             <div className="flex size-12 items-center justify-center rounded-full bg-green-500">
@@ -95,6 +100,7 @@ export function ShareModal({
           {/* SMS */}
           <a
             href={`sms:?body=${encodedText}`}
+            onClick={() => events.shareTapped({ channel: "sms", targetType, targetId: shareUrl })}
             className="flex flex-col items-center gap-1.5"
           >
             <div className="flex size-12 items-center justify-center rounded-full bg-blue-500">
@@ -110,6 +116,7 @@ export function ShareModal({
           {/* Email */}
           <a
             href={`mailto:?subject=${encodedSubject}&body=${encodedUrl}`}
+            onClick={() => events.shareTapped({ channel: "email", targetType, targetId: shareUrl })}
             className="flex flex-col items-center gap-1.5"
           >
             <div className="flex size-12 items-center justify-center rounded-full bg-orange-500">

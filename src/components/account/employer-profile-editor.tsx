@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { HOUSEHOLD_TYPES } from "@/lib/constants";
 import { LocationInput } from "@/components/shared/location-input";
 import { updateEmployerProfile } from "@/app/account/profile/actions";
+import { events } from "@/lib/posthog";
 import type { User } from "@/types/database";
 
 interface EmployerProfileEditorProps {
@@ -55,6 +56,7 @@ export function EmployerProfileEditor({
       if (longitude) formData.set("longitude", longitude);
 
       await updateEmployerProfile(formData);
+      events.profileEdited("employer");
     });
   }
 

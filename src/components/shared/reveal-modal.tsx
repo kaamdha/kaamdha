@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
+import { events } from "@/lib/posthog";
 
 interface RevealModalProps {
   isOpen: boolean;
@@ -27,10 +28,12 @@ export function RevealModal({
   if (!isOpen) return null;
 
   function handleReveal() {
+    events.connectTapped({ targetType: type, targetId: name });
     startTransition(async () => {
       const result = await onReveal();
       if (result.success && result.phone) {
         setRevealedPhone(result.phone);
+        events.connectCompleted({ targetType: type, targetId: name });
       } else {
         setError(result.error ?? "Something went wrong");
       }
@@ -57,6 +60,7 @@ export function RevealModal({
             </div>
             <a
               href={`tel:+91${revealedPhone.replace(/-/g, "")}`}
+              onClick={() => events.callTapped({ targetType: type, targetId: name })}
               className="mt-3 flex w-full items-center justify-center rounded-[10px] bg-green-600 py-2.5 text-[13px] font-bold text-white"
             >
               {t("call")}

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { events, resetUser } from "@/lib/posthog";
 import type { User } from "@/types/database";
 
 function getGreeting(): string {
@@ -35,6 +36,8 @@ export function AccountMenu({ user, activeJobCount }: AccountMenuProps) {
   const isEmployer = user.last_active_mode === "find_help";
 
   async function handleLogout() {
+    events.logout();
+    resetUser();
     const supabase = createClient();
     await supabase.auth.signOut();
     router.push("/");
