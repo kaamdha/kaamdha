@@ -77,7 +77,8 @@
     "findHelpGridTitle": "श्रेणी से खोजें",
     "findJobsGridTitle": "श्रेणी में रजिस्टर करें",
     "registerSubtext": "कोई एजेंट नहीं, सीधा संपर्क।",
-    "valueSubtext": "कोई एजेंट नहीं। सीधा कनेक्ट। बस {price} मुफ़्त प्रति लीड"
+    "noAgents": "कोई एजेंट नहीं। सीधा कनेक्ट। बस",
+    "freePerLead": "मुफ़्त प्रति लीड"
   },
   "auth": {
     "loginTitle": "कामधा में लॉगिन करें",
