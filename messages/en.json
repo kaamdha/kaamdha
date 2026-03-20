@@ -77,7 +77,8 @@
     "findHelpGridTitle": "Search by category",
     "findJobsGridTitle": "Register in a category",
     "registerSubtext": "No agents, direct contact.",
-    "valueSubtext": "No agents. Direct connects. Just {price} Free per lead"
+    "noAgents": "No agents. Direct connects. Just",
+    "freePerLead": "Free per lead"
   },
   "auth": {
     "loginTitle": "Login to Kaamdha",
