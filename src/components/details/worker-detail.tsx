@@ -11,6 +11,7 @@ import { EditIcon } from "@/components/shared/edit-icon";
 import { ShareIcon } from "@/components/shared/share-icon";
 import { revealWorkerPhone } from "@/app/actions/reveal";
 import { toggleFavorite } from "@/app/actions/favorite";
+import { events } from "@/lib/posthog";
 
 /* eslint-disable @next/next/no-img-element */
 
@@ -198,6 +199,11 @@ export function WorkerDetail({
               onClick={async () => {
                 const result = await toggleFavorite("worker_profile", worker.id);
                 setIsFavorited(result.isFavorited);
+                if (result.isFavorited) {
+                  events.favoriteAdded({ targetType: "worker_profile", targetId: worker.id });
+                } else {
+                  events.favoriteRemoved({ targetType: "worker_profile", targetId: worker.id });
+                }
               }}
               className={`flex size-11 items-center justify-center rounded-lg border-[1.5px] ${
                 isFavorited ? "border-primary bg-teal-50" : "border-slate-200"

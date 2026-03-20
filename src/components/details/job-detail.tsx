@@ -11,6 +11,7 @@ import { EditIcon } from "@/components/shared/edit-icon";
 import { ShareIcon } from "@/components/shared/share-icon";
 import { revealEmployerPhone } from "@/app/actions/reveal";
 import { toggleFavorite } from "@/app/actions/favorite";
+import { events } from "@/lib/posthog";
 
 interface JobDetailProps {
   job: {
@@ -157,6 +158,11 @@ export function JobDetail({ job, employer, isOwner, isFavorited: initialFavorite
               onClick={async () => {
                 const result = await toggleFavorite("job_listing", job.id);
                 setIsFavorited(result.isFavorited);
+                if (result.isFavorited) {
+                  events.favoriteAdded({ targetType: "job_listing", targetId: job.id });
+                } else {
+                  events.favoriteRemoved({ targetType: "job_listing", targetId: job.id });
+                }
               }}
               className={`flex size-11 items-center justify-center rounded-lg border-[1.5px] ${
                 isFavorited ? "border-primary bg-teal-50" : "border-slate-200"

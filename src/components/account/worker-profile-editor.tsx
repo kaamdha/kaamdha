@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { JOB_CATEGORIES } from "@/lib/constants";
 import { LocationInput } from "@/components/shared/location-input";
 import { updateWorkerProfile } from "@/app/account/profile/actions";
+import { events } from "@/lib/posthog";
 import type { User } from "@/types/database";
 
 const HERO_CROPS: Record<string, string> = {
@@ -95,6 +96,7 @@ export function WorkerProfileEditor({ user, profile }: WorkerProfileEditorProps)
       formData.set("experience_years", experience);
 
       await updateWorkerProfile(formData);
+      events.profileEdited("worker");
     });
   }
 

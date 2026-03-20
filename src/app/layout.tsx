@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { Header } from "@/components/layout/header";
 import { OrganizationJsonLd } from "@/components/shared/json-ld";
+import { PostHogProvider } from "@/components/providers/posthog-provider";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -61,12 +62,14 @@ export default async function RootLayout({
         <OrganizationJsonLd />
       </head>
       <body className={`${dmSans.variable} ${outfit.variable} font-sans antialiased bg-slate-100`}>
-        <NextIntlClientProvider messages={messages}>
-          <div className="mx-auto flex min-h-screen w-full max-w-[420px] flex-col bg-background shadow-xl sm:my-0 sm:min-h-screen">
-            <Header />
-            <main role="main" className="flex-1">{children}</main>
-          </div>
-        </NextIntlClientProvider>
+        <PostHogProvider>
+          <NextIntlClientProvider messages={messages}>
+            <div className="mx-auto flex min-h-screen w-full max-w-[420px] flex-col bg-background shadow-xl sm:my-0 sm:min-h-screen">
+              <Header />
+              <main role="main" className="flex-1">{children}</main>
+            </div>
+          </NextIntlClientProvider>
+        </PostHogProvider>
       </body>
     </html>
   );

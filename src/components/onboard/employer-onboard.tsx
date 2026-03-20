@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { saveEmployerOnboarding } from "@/app/onboard/actions";
 import { JOB_CATEGORIES } from "@/lib/constants";
 import { LocationInput } from "@/components/shared/location-input";
+import { events } from "@/lib/posthog";
 
 const TIMINGS = [
   { value: "morning", labelEn: "Morning", labelHi: "सुबह" },
@@ -59,7 +60,11 @@ export function EmployerOnboard() {
 
     startTransition(async () => {
       const result = await saveEmployerOnboarding(formData);
-      if (result?.error) setError(result.error);
+      if (result?.error) {
+        setError(result.error);
+      } else {
+        events.onboardCompleted("employer");
+      }
     });
   }
 

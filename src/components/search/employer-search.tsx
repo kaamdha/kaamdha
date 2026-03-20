@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { JOB_CATEGORIES } from "@/lib/constants";
+import { events } from "@/lib/posthog";
 import { employerSearch, type WorkerResult } from "@/app/search/actions";
 import { WorkerCard } from "@/components/shared/worker-card";
 
@@ -51,6 +52,7 @@ export function EmployerSearch({
     formData.set("category", selectedCategory);
     formData.set("locality", locality);
 
+    events.searchPerformed({ category: selectedCategory, locality });
     startTransition(async () => {
       const result = await employerSearch(formData);
       if (result.error) {
@@ -61,6 +63,7 @@ export function EmployerSearch({
       setHasSearched(true);
       if (result.jidCustomId && !result.jidReused) {
         setJidNotice(t("jidCreated"));
+        events.jobListingCreated({ category: selectedCategory, locality });
       }
     });
   }, [selectedCategory, locality, startTransition, t]);
