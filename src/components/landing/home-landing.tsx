@@ -95,8 +95,13 @@ export function HomeLanding() {
       </div>
 
       {/* Footer */}
-      <div className="mt-5 bg-slate-100 py-12 pl-6 text-left font-heading text-[53px] font-extrabold leading-tight text-slate-300">
-        Made with ❤️<br />for Bharat
+      <div className="mt-5 bg-slate-100 py-12 pl-6 text-left">
+        <p className="font-heading text-[53px] font-extrabold leading-tight text-slate-300">
+          Made with ❤️<br />for Bharat
+        </p>
+        <p className="mt-4 text-[11px] text-slate-400">
+          © 2026 kaamdha. All rights reserved.
+        </p>
       </div>
     </div>
   );
