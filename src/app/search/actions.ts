@@ -1,7 +1,24 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
+
+async function batchFetchNames(
+  supabase: SupabaseClient,
+  userIds: string[]
+): Promise<Map<string, string>> {
+  if (userIds.length === 0) return new Map();
+  const { data } = await supabase
+    .from("users")
+    .select("id, name")
+    .in("id", userIds);
+  const map = new Map<string, string>();
+  for (const row of (data ?? []) as { id: string; name: string | null }[]) {
+    if (row.name) map.set(row.id, row.name);
+  }
+  return map;
+}
 
 function buildLocationPoint(
   lat: string | null,
@@ -150,20 +167,17 @@ export async function employerSearch(formData: FormData): Promise<SearchResult> 
 
     const rpcResults = (rpcRows ?? []) as Record<string, unknown>[];
 
-    for (const w of rpcResults) {
-      const { data: userRow } = await supabase
-        .from("users")
-        .select("name")
-        .eq("id", w.user_id as string)
-        .single();
+    // Batch fetch all user names in one query
+    const userIds = rpcResults.map((w) => w.user_id as string);
+    const nameMap = await batchFetchNames(supabase, userIds);
 
-      const userName = (userRow as { name: string | null } | null)?.name ?? "Worker";
+    for (const w of rpcResults) {
       const distanceM = w.distance_m as number | null;
 
       workers.push({
         id: w.id as string,
         user_id: w.user_id as string,
-        name: userName,
+        name: nameMap.get(w.user_id as string) ?? "Worker",
         gender: w.gender as string | null,
         categories: w.categories as string[],
         experience_years: w.experience_years as number,
@@ -188,19 +202,15 @@ export async function employerSearch(formData: FormData): Promise<SearchResult> 
 
     const workerRows = (workersRaw ?? []) as Record<string, unknown>[];
 
+    // Batch fetch all user names in one query
+    const userIds = workerRows.map((w) => w.user_id as string);
+    const nameMap = await batchFetchNames(supabase, userIds);
+
     for (const w of workerRows) {
-      const { data: userRow } = await supabase
-        .from("users")
-        .select("name")
-        .eq("id", w.user_id as string)
-        .single();
-
-      const userName = (userRow as { name: string | null } | null)?.name ?? "Worker";
-
       workers.push({
         id: w.id as string,
         user_id: w.user_id as string,
-        name: userName,
+        name: nameMap.get(w.user_id as string) ?? "Worker",
         gender: w.gender as string | null,
         categories: w.categories as string[],
         experience_years: w.experience_years as number,

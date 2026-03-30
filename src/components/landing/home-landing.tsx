@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 
 type Mode = "find_help" | "find_jobs";
@@ -77,9 +78,12 @@ export function HomeLanding() {
 
       {/* Hero image */}
       <div className="mx-4 mt-5">
-        <img
+        <Image
           src="/hero-staff.png"
           alt="kaamdha staff"
+          width={800}
+          height={331}
+          priority
           className="w-full rounded-[14px] object-cover"
         />
       </div>
