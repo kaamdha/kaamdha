@@ -19,6 +19,7 @@ interface WorkerCardProps {
   locality: string | null;
   isFavorited?: boolean;
   distanceKm?: number | null;
+  initialRevealedPhone?: string | null;
 }
 
 export function WorkerCard({
@@ -32,12 +33,13 @@ export function WorkerCard({
   locality,
   isFavorited = false,
   distanceKm,
+  initialRevealedPhone,
 }: WorkerCardProps) {
   const router = useRouter();
   const tc = useTranslations("common");
   const avatarSrc = gender === "female" ? "/icons/avatar-female.png" : "/icons/avatar-male.png";
   const [showReveal, setShowReveal] = useState(false);
-  const [revealedPhone, setRevealedPhone] = useState<string | null>(null);
+  const [revealedPhone, setRevealedPhone] = useState<string | null>(initialRevealedPhone ?? null);
 
   const salaryText =
     salaryMin || salaryMax

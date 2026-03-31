@@ -197,6 +197,7 @@ export function FavoritesView({
                         salaryMax={w.salary_max as number | null}
                         availableTimings={w.available_timings as string[]}
                         locality={w.locality as string | null}
+                        initialRevealedPhone={w.revealedPhone as string | null}
                       />
                     );
                   })}
@@ -284,7 +285,7 @@ export function FavoritesView({
                   const job = r.job as Record<string, unknown> | undefined;
                   if (!job) return null;
                   return (
-                    <JobCard key={r.id as string} job={job} locale={locale} isFavorited={false} />
+                    <JobCard key={r.id as string} job={job} locale={locale} isFavorited={false} revealedPhone={job.revealedPhone as string | null} />
                   );
                 })}
               </div>
@@ -316,7 +317,7 @@ export function FavoritesView({
   );
 }
 
-function JobCard({ job, locale, isFavorited }: { job: Record<string, unknown>; locale: string; isFavorited: boolean }) {
+function JobCard({ job, locale, isFavorited, revealedPhone }: { job: Record<string, unknown>; locale: string; isFavorited: boolean; revealedPhone?: string | null }) {
   const router = useRouter();
   const tc = useTranslations("common");
   const categoryId = job.category as string;
@@ -366,12 +367,28 @@ function JobCard({ job, locale, isFavorited }: { job: Record<string, unknown>; l
       </div>
 
       <div className="mt-2 flex items-center justify-between border-t border-slate-100 pt-2">
-        <span className="font-mono text-[12px] font-semibold text-foreground">
-          +91 981-XXX-XXXX
-        </span>
-        <span className="rounded-md bg-primary px-2.5 py-1 text-[11px] font-bold text-white">
-          {tc("connect")}
-        </span>
+        {revealedPhone ? (
+          <span className="font-mono text-[12px] font-bold text-green-700">
+            +91 {revealedPhone}
+          </span>
+        ) : (
+          <span className="font-mono text-[12px] font-semibold text-foreground">
+            +91 981-XXX-XXXX
+          </span>
+        )}
+        {revealedPhone ? (
+          <a
+            href={`tel:+91${revealedPhone.replace(/-/g, "")}`}
+            onClick={(e) => e.stopPropagation()}
+            className="rounded-md bg-green-600 px-2.5 py-1 text-[11px] font-bold text-white"
+          >
+            {tc("connect")}
+          </a>
+        ) : (
+          <span className="rounded-md bg-primary px-2.5 py-1 text-[11px] font-bold text-white">
+            {tc("connect")}
+          </span>
+        )}
       </div>
     </div>
   );

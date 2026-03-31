@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import type { User } from "@/types/database";
 import { FavoritesView } from "@/components/favorites/favorites-view";
@@ -155,19 +155,42 @@ export default async function FavoritesPage() {
     epMap.set(epP.id as string, usersMap.get(epP.user_id as string) ?? "");
   }
 
+  // Fetch revealed phone numbers (service client to bypass RLS)
+  const revealedUserIds = new Set<string>();
+  for (const r of revealsData) {
+    if (r.to_user_id) revealedUserIds.add(r.to_user_id as string);
+  }
+
+  const phonesMap = new Map<string, string>();
+  if (revealedUserIds.size > 0) {
+    const admin = createServiceClient();
+    const { data: phoneRows } = await admin
+      .from("users")
+      .select("id, phone")
+      .in("id", [...revealedUserIds]);
+    for (const p of (phoneRows ?? []) as { id: string; phone: string }[]) {
+      // Format as XXX-XXX-XXXX
+      const digits = p.phone.replace(/\D/g, "").slice(-10);
+      if (digits.length === 10) {
+        phonesMap.set(p.id, `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`);
+      }
+    }
+  }
+
   // Enrich reveals
   const reveals: Record<string, unknown>[] = revealsData.map((r) => {
     const enriched: Record<string, unknown> = { ...r };
+    const revealedPhone = phonesMap.get(r.to_user_id as string) ?? null;
     if (r.worker_profile_id) {
       const w = workersMap.get(r.worker_profile_id as string);
       if (w) {
-        enriched.worker = { ...w, name: usersMap.get(w.user_id as string) ?? "Worker" };
+        enriched.worker = { ...w, name: usersMap.get(w.user_id as string) ?? "Worker", revealedPhone };
       }
     }
     if (r.job_listing_id) {
       const j = jobsMap.get(r.job_listing_id as string);
       if (j) {
-        enriched.job = { ...j, employer_name: epMap.get(j.employer_id as string) ?? "" };
+        enriched.job = { ...j, employer_name: epMap.get(j.employer_id as string) ?? "", revealedPhone };
       }
     }
     return enriched;
