@@ -15,7 +15,7 @@ export function SiteFooter() {
   if (HIDDEN_ROUTES.some((r) => pathname.includes(r))) return null;
 
   return (
-    <footer className="bg-[#1e293b] px-4 pb-8 pt-6">
+    <footer className="bg-teal-50 px-4 pb-8 pt-6">
       {/* Per-category links — exclude trainer & eldercare */}
       {JOB_CATEGORIES
         .filter((cat) => !["personal-trainer", "eldercare"].includes(cat.slug))
@@ -23,7 +23,7 @@ export function SiteFooter() {
           const catLabel = locale === "hi" ? cat.labelHi : cat.labelEn;
           return (
             <div key={cat.id}>
-              <h4 className="mt-4 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+              <h4 className="mt-4 text-[10px] font-bold uppercase tracking-wider text-teal-800/60">
                 {catLabel}
               </h4>
               <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5">
@@ -33,7 +33,7 @@ export function SiteFooter() {
                     <Link
                       key={`hire-${city}`}
                       href={`/listings/${city}/${cat.slug}`}
-                      className="text-[11px] leading-relaxed text-slate-400 hover:text-teal-300"
+                      className="text-[11px] leading-relaxed text-teal-700/70 hover:text-primary"
                     >
                       {t("hireIn", { city: cityLabel })}
                     </Link>
@@ -47,7 +47,7 @@ export function SiteFooter() {
                     <Link
                       key={`jobs-${city}`}
                       href={`/jobs/${city}/${cat.slug}`}
-                      className="text-[11px] leading-relaxed text-slate-400 hover:text-teal-300"
+                      className="text-[11px] leading-relaxed text-teal-700/70 hover:text-primary"
                     >
                       {t("jobsIn", { city: cityLabel })}
                     </Link>
@@ -59,11 +59,11 @@ export function SiteFooter() {
         })}
 
       {/* Divider + copyright */}
-      <div className="my-5 h-px bg-slate-700" />
-      <p className="text-center text-[11px] text-slate-500">
+      <div className="my-5 h-px bg-teal-200" />
+      <p className="text-center text-[11px] text-teal-700/60">
         Made with ❤️ for Bharat
       </p>
-      <p className="mt-1 text-center text-[10px] text-slate-600">
+      <p className="mt-1 text-center text-[10px] text-teal-600/50">
         © 2025 kaamdha
       </p>
     </footer>
