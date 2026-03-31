@@ -1,10 +1,6 @@
 "use server";
 
 import { createClient, createServiceClient } from "@/lib/supabase/server";
-import {
-  sendLeadConnectMessage,
-  sendLeadNotifyMessage,
-} from "@/lib/gupshup";
 
 export interface RevealResult {
   success: boolean;
@@ -79,11 +75,9 @@ export async function revealWorkerPhone(
     was_free_lead: true,
   };
 
-  const { data: revealData, error: revealError } = await admin
+  const { error: revealError } = await admin
     .from("lead_reveals")
-    .insert(revealFields as Record<string, unknown> as never)
-    .select("id")
-    .single();
+    .insert(revealFields as Record<string, unknown> as never);
 
   if (revealError) {
     return { success: false, error: "Could not reveal. Please try again." };
@@ -97,54 +91,6 @@ export async function revealWorkerPhone(
     .single();
 
   const phone = (uRaw as { phone: string } | null)?.phone ?? "";
-  const revealId = (revealData as { id: string } | null)?.id;
-
-  // Send WhatsApp/SMS notifications (non-blocking)
-  // TODO: Enable once MSG91 WhatsApp or Gupshup is configured
-  if (process.env.GUPSHUP_API_KEY || process.env.MSG91_AUTH_KEY) {
-    try {
-      const [requesterData, workerData, categoryData] = await Promise.all([
-        admin.from("users").select("phone, name, locality").eq("id", user.id).single(),
-        admin.from("users").select("phone, name").eq("id", wp.user_id).single(),
-        wp.categories?.length
-          ? admin.from("categories").select("label_en").eq("id", wp.categories[0] as string).single()
-          : Promise.resolve({ data: null }),
-      ]);
-
-      const requester = requesterData.data as { phone: string; name: string | null; locality: string | null } | null;
-      const worker = workerData.data as { phone: string; name: string | null } | null;
-      const categoryLabel = (categoryData.data as { label_en: string } | null)?.label_en ?? "Staff";
-
-      if (requester && worker) {
-        const [connectResult] = await Promise.all([
-          sendLeadConnectMessage({
-            recipientPhone: requester.phone,
-            name: worker.name ?? "Staff",
-            phone,
-            category: categoryLabel,
-            locality: wp.locality ?? "your area",
-          }),
-          sendLeadNotifyMessage({
-            recipientPhone: worker.phone,
-            viewerName: requester.name ?? "Someone",
-            viewerLocality: requester.locality ?? "your area",
-          }),
-        ]);
-
-        if (revealId && connectResult.success) {
-          await admin
-            .from("lead_reveals")
-            .update({
-              whatsapp_sent: true,
-              whatsapp_message_id: connectResult.messageId ?? null,
-            } as Record<string, unknown> as never)
-            .eq("id", revealId);
-        }
-      }
-    } catch (err) {
-      console.error("[reveal] Notification send error (worker reveal):", err);
-    }
-  }
 
   return { success: true, phone: formatPhone(phone) };
 }
@@ -234,11 +180,9 @@ export async function revealEmployerPhone(
     was_free_lead: true,
   };
 
-  const { data: revealData, error: revealError } = await admin
+  const { error: revealError } = await admin
     .from("lead_reveals")
-    .insert(revealFields as Record<string, unknown> as never)
-    .select("id")
-    .single();
+    .insert(revealFields as Record<string, unknown> as never);
 
   if (revealError) {
     return { success: false, error: "Could not reveal. Please try again." };
@@ -252,52 +196,6 @@ export async function revealEmployerPhone(
     .single();
 
   const phone = (uRaw as { phone: string } | null)?.phone ?? "";
-  const revealId = (revealData as { id: string } | null)?.id;
-
-  // Send WhatsApp/SMS notifications (non-blocking)
-  // TODO: Enable once MSG91 WhatsApp or Gupshup is configured
-  if (process.env.GUPSHUP_API_KEY || process.env.MSG91_AUTH_KEY) {
-    try {
-      const [requesterData, employerData, categoryData] = await Promise.all([
-        admin.from("users").select("phone, name, locality").eq("id", user.id).single(),
-        admin.from("users").select("phone, name").eq("id", ep.user_id).single(),
-        admin.from("categories").select("label_en").eq("id", jl.category).single(),
-      ]);
-
-      const requester = requesterData.data as { phone: string; name: string | null; locality: string | null } | null;
-      const employer = employerData.data as { phone: string; name: string | null } | null;
-      const categoryLabel = (categoryData.data as { label_en: string } | null)?.label_en ?? "Staff";
-
-      if (requester && employer) {
-        const [connectResult] = await Promise.all([
-          sendLeadConnectMessage({
-            recipientPhone: requester.phone,
-            name: employer.name ?? "Employer",
-            phone,
-            category: categoryLabel,
-            locality: jl.locality ?? "your area",
-          }),
-          sendLeadNotifyMessage({
-            recipientPhone: employer.phone,
-            viewerName: requester.name ?? "Someone",
-            viewerLocality: requester.locality ?? "your area",
-          }),
-        ]);
-
-        if (revealId && connectResult.success) {
-          await admin
-            .from("lead_reveals")
-            .update({
-              whatsapp_sent: true,
-              whatsapp_message_id: connectResult.messageId ?? null,
-            } as Record<string, unknown> as never)
-            .eq("id", revealId);
-        }
-      }
-    } catch (err) {
-      console.error("[reveal] Notification send error (employer reveal):", err);
-    }
-  }
 
   return { success: true, phone: formatPhone(phone) };
 }

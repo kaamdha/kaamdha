@@ -76,8 +76,7 @@ export async function GET(request: NextRequest) {
 
     const soonExpiringCount = soonExpiring?.length ?? 0;
     if (soonExpiringCount > 0) {
-      // TODO: Send WhatsApp reminders via Gupshup when integration is ready.
-      // Template: "Your listing ({category}, {locality}) expires in 3 days."
+      // TODO: Send expiry reminders when notification channel is configured.
       console.log(
         `Found ${soonExpiringCount} listings expiring within 3 days:`,
         soonExpiring
