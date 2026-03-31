@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { StaffListings } from "@/components/listings/staff-listings";
+
+export const metadata: Metadata = {
+  title: "Staff listings",
+  description: "Browse verified household staff near you — maids, cooks, drivers, nannies and more in Gurgaon.",
+};
 
 export default async function ListingsPage() {
   const supabase = await createClient();

@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { WorkerDetail } from "@/components/details/worker-detail";
 import { JobDetail } from "@/components/details/job-detail";
-import { JobPostingJsonLd } from "@/components/shared/json-ld";
+import { JobPostingJsonLd, WorkerProfileJsonLd } from "@/components/shared/json-ld";
 import { JOB_CATEGORIES } from "@/lib/constants";
 
 export async function generateMetadata({
@@ -31,9 +31,16 @@ export async function generateMetadata({
       return {
         title: `${title} in ${location}`,
         description: `${title} job in ${location}. Connect directly on kaamdha — no middlemen.`,
+        alternates: { canonical: `/details/${id}` },
         openGraph: {
           title: `${title} in ${location} | kaamdha`,
           description: `${title} job in ${location}. Connect directly on kaamdha.`,
+          images: ["/og-image.png"],
+        },
+        twitter: {
+          card: "summary_large_image",
+          title: `${title} in ${location} | kaamdha`,
+          images: ["/og-image.png"],
         },
       };
     }
@@ -60,9 +67,16 @@ export async function generateMetadata({
       return {
         title: `${name} — ${skills || "Staff"} in ${location}`,
         description: `${name} is available as ${skills || "staff"} in ${location}. Connect on kaamdha.`,
+        alternates: { canonical: `/details/${id}` },
         openGraph: {
           title: `${name} — ${skills || "Staff"} in ${location} | kaamdha`,
           description: `${name} is available as ${skills || "staff"} in ${location}. Connect on kaamdha.`,
+          images: ["/og-image.png"],
+        },
+        twitter: {
+          card: "summary_large_image",
+          title: `${name} — ${skills || "Staff"} in ${location} | kaamdha`,
+          images: ["/og-image.png"],
         },
       };
     }
@@ -243,8 +257,15 @@ export default async function DetailsPage({
   }
 
   return (
-    <WorkerDetail
-      worker={{
+    <>
+      <WorkerProfileJsonLd
+        name={workerUser?.name ?? "Staff"}
+        skills={wp.categories as string[]}
+        locality={wp.locality as string | null}
+        experienceYears={wp.experience_years as number}
+      />
+      <WorkerDetail
+        worker={{
         id: wp.id as string,
         userId: wp.user_id as string,
         name: workerUser?.name ?? "Worker",
@@ -267,5 +288,6 @@ export default async function DetailsPage({
       revealedPhone={revealedPhone}
       isFavorited={isFavoritedWorker}
     />
+    </>
   );
 }

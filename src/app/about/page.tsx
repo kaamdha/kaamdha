@@ -1,4 +1,10 @@
+import type { Metadata } from "next";
 import { useTranslations } from "next-intl";
+
+export const metadata: Metadata = {
+  title: "About",
+  description: "kaamdha connects households with trusted maids, cooks, drivers, nannies and more in Gurgaon. No agents, direct contact.",
+};
 
 export default function AboutPage() {
   const t = useTranslations("common");

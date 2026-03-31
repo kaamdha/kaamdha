@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { JidEditor } from "@/components/account/jid-editor";
+
+export const metadata: Metadata = {
+  title: "Edit job listing",
+  robots: { index: false, follow: false },
+};
 
 export default async function JidEditorPage({
   params,

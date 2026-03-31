@@ -52,11 +52,11 @@ export function HomeLanding() {
 
       {/* Headline */}
       <div className="px-4 pt-6 text-center">
-        <h2 className="font-heading text-[22px] font-extrabold leading-tight text-foreground">
+        <h1 className="font-heading text-[22px] font-extrabold leading-tight text-foreground">
           {mode === "find_help"
             ? t("findHelpTitle")
             : t("findJobsTitle")}
-        </h2>
+        </h1>
       </div>
 
       {/* How it works steps */}

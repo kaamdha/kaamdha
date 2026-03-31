@@ -1,7 +1,13 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { User } from "@/types/database";
 import { WorkerOnboard } from "@/components/onboard/worker-onboard";
+
+export const metadata: Metadata = {
+  title: "Set up your profile",
+  robots: { index: false, follow: false },
+};
 
 export default async function WorkerOnboardPage() {
   const supabase = await createClient();

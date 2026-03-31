@@ -15,9 +15,33 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly",
       priority: 0.5,
     },
+    {
+      url: "https://kaamdha.com/about",
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.3,
+    },
+    {
+      url: "https://kaamdha.com/contact",
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.3,
+    },
+    {
+      url: "https://kaamdha.com/terms",
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.2,
+    },
+    {
+      url: "https://kaamdha.com/privacy",
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.2,
+    },
   ];
 
-  // Fetch active job listings for dynamic URLs
+  // Fetch active job listings and worker profiles for dynamic URLs
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -25,15 +49,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     if (supabaseUrl && supabaseKey) {
       const supabase = createClient(supabaseUrl, supabaseKey);
 
-      const { data: jobs } = await supabase
-        .from("job_listings")
-        .select("custom_id, updated_at")
-        .eq("status", "active")
-        .order("updated_at", { ascending: false })
-        .limit(500);
+      const [jobsResult, workersResult] = await Promise.all([
+        supabase
+          .from("job_listings")
+          .select("custom_id, updated_at")
+          .eq("status", "active")
+          .order("updated_at", { ascending: false })
+          .limit(500),
+        supabase
+          .from("worker_profiles")
+          .select("id, updated_at")
+          .eq("is_active", true)
+          .order("updated_at", { ascending: false })
+          .limit(500),
+      ]);
 
-      if (jobs) {
-        for (const job of jobs) {
+      if (jobsResult.data) {
+        for (const job of jobsResult.data) {
           entries.push({
             url: `https://kaamdha.com/details/${job.custom_id}`,
             lastModified: new Date(job.updated_at),
@@ -43,16 +75,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         }
       }
 
-      // Fetch active worker profiles
-      const { data: workers } = await supabase
-        .from("worker_profiles")
-        .select("id, updated_at")
-        .eq("is_active", true)
-        .order("updated_at", { ascending: false })
-        .limit(500);
-
-      if (workers) {
-        for (const worker of workers) {
+      if (workersResult.data) {
+        for (const worker of workersResult.data) {
           entries.push({
             url: `https://kaamdha.com/details/${worker.id}`,
             lastModified: new Date(worker.updated_at),

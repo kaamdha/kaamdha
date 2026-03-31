@@ -1,8 +1,14 @@
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import type { User } from "@/types/database";
 import { WorkerProfileEditor } from "@/components/account/worker-profile-editor";
 import { EmployerProfileEditor } from "@/components/account/employer-profile-editor";
+
+export const metadata: Metadata = {
+  title: "Edit profile",
+  robots: { index: false, follow: false },
+};
 
 export default async function ProfileEditorPage() {
   const supabase = await createClient();

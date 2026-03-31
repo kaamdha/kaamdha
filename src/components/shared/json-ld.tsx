@@ -96,3 +96,39 @@ export function JobPostingJsonLd({
 
   return <JsonLd data={data} />;
 }
+
+export function WorkerProfileJsonLd({
+  name,
+  skills,
+  locality,
+  experienceYears,
+}: {
+  name: string;
+  skills: string[];
+  locality?: string | null;
+  experienceYears?: number;
+}) {
+  const skillLabels = skills
+    .map((c) => JOB_CATEGORIES.find((j) => j.id === c)?.labelEn)
+    .filter(Boolean);
+
+  return (
+    <JsonLd
+      data={{
+        "@context": "https://schema.org",
+        "@type": "Person",
+        name,
+        jobTitle: skillLabels.join(", ") || "Household staff",
+        address: {
+          "@type": "PostalAddress",
+          addressLocality: locality ?? "Gurgaon",
+          addressRegion: "Haryana",
+          addressCountry: "IN",
+        },
+        ...(experienceYears
+          ? { description: `${name} — ${skillLabels.join(", ")} with ${experienceYears} years experience in ${locality ?? "Gurgaon"}` }
+          : {}),
+      }}
+    />
+  );
+}
