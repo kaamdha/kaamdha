@@ -1,12 +1,18 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { JOB_CATEGORIES, CITY_SLUGS, CITY_LABELS } from "@/lib/constants";
 
+const HIDDEN_ROUTES = ["/login", "/onboard"];
+
 export function SiteFooter() {
+  const pathname = usePathname();
   const t = useTranslations("footer");
   const locale = useLocale();
+
+  if (HIDDEN_ROUTES.some((r) => pathname.includes(r))) return null;
 
   return (
     <footer className="bg-[#1e293b] px-4 pb-8 pt-6">
