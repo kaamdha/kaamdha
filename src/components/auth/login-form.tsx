@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { checkUserRole } from "@/app/actions/login";
@@ -13,7 +12,6 @@ type Step = "phone" | "otp";
 
 export function LoginForm() {
   const t = useTranslations("auth");
-  const router = useRouter();
   const [step, setStep] = useState<Step>("phone");
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
@@ -94,14 +92,14 @@ export function LoginForm() {
           identifyUser(loggedInUser.id, { phone: fullPhone });
         }
         events.loginCompleted();
-        router.push(redirectTo);
+        window.location.href = redirectTo;
       } catch {
         setError(t("otpVerifyError"));
       } finally {
         setLoading(false);
       }
     },
-    [fullPhone, t, router, mapError]
+    [fullPhone, t, mapError]
   );
 
   const handleBack = useCallback(() => {
