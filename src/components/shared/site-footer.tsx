@@ -16,38 +16,6 @@ export function SiteFooter() {
 
   return (
     <footer className="bg-[#1e293b] px-4 pb-8 pt-6">
-      {/* Find staff by city */}
-      <h4 className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-        {t("findStaff")}
-      </h4>
-      <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5">
-        {CITY_SLUGS.map((city) => (
-          <Link
-            key={city}
-            href={`/listings/${city}`}
-            className="text-[11px] leading-relaxed text-slate-400 hover:text-teal-300"
-          >
-            {locale === "hi" ? CITY_LABELS[city]?.hi : CITY_LABELS[city]?.en}
-          </Link>
-        ))}
-      </div>
-
-      {/* Find jobs by city */}
-      <h4 className="mt-4 text-[10px] font-bold uppercase tracking-wider text-slate-500">
-        {t("findJobs")}
-      </h4>
-      <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5">
-        {CITY_SLUGS.map((city) => (
-          <Link
-            key={city}
-            href={`/jobs/${city}`}
-            className="text-[11px] leading-relaxed text-slate-400 hover:text-teal-300"
-          >
-            {locale === "hi" ? CITY_LABELS[city]?.hi : CITY_LABELS[city]?.en}
-          </Link>
-        ))}
-      </div>
-
       {/* Per-category links — exclude trainer & eldercare */}
       {JOB_CATEGORIES
         .filter((cat) => !["personal-trainer", "eldercare"].includes(cat.slug))
