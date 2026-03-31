@@ -9,13 +9,13 @@ function localeEntry(
   opts: { lastModified?: Date; changeFrequency?: MetadataRoute.Sitemap[number]["changeFrequency"]; priority?: number }
 ): MetadataRoute.Sitemap[number] {
   return {
-    url: `${BASE}/en${path}`,
+    url: `${BASE}${path}`,
     lastModified: opts.lastModified ?? new Date(),
     changeFrequency: opts.changeFrequency,
     priority: opts.priority,
     alternates: {
       languages: {
-        en: `${BASE}/en${path}`,
+        en: `${BASE}${path}`,
         hi: `${BASE}/hi${path}`,
       },
     },
