@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { resolveCityId } from "@/lib/location";
 
 interface LocationSuggestion {
   displayName: string;
   locality: string;
+  city: string | null;
   latitude: number;
   longitude: number;
 }
@@ -64,9 +66,11 @@ async function searchNominatim(query: string): Promise<LocationSuggestion[]> {
         addr?.city_district ||
         addr?.city ||
         (item.display_name as string).split(",")[0];
+      const rawCity = addr?.city_district || addr?.city || addr?.state_district || null;
       return {
         displayName: item.display_name as string,
         locality,
+        city: resolveCityId(rawCity),
         latitude: parseFloat(item.lat as string),
         longitude: parseFloat(item.lon as string),
       };
@@ -108,9 +112,16 @@ async function searchMappls(query: string): Promise<LocationSuggestion[]> {
         ? `${placeName}, ${placeAddress}`
         : placeName;
 
+      // Try to resolve city from placeAddress
+      const addressParts = placeAddress.split(",").map((s: string) => s.trim());
+      const cityFromAddress = addressParts.find((part: string) =>
+        resolveCityId(part) !== null
+      ) || null;
+
       return {
         displayName,
         locality,
+        city: resolveCityId(cityFromAddress),
         latitude: 0,
         longitude: 0,
       };

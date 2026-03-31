@@ -36,6 +36,7 @@ export function EmployerOnboard() {
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(
     null
   );
+  const [city, setCity] = useState<string | null>(null);
 
   function handleSubmit() {
     if (!firstName.trim()) {
@@ -58,6 +59,7 @@ export function EmployerOnboard() {
       formData.set("latitude", String(coords.lat));
       formData.set("longitude", String(coords.lng));
     }
+    if (city) formData.set("city", city);
 
     startTransition(async () => {
       const result = await saveEmployerOnboarding(formData);
@@ -144,6 +146,7 @@ export function EmployerOnboard() {
             value={locality}
             onChange={setLocality}
             onCoords={(lat, lng) => setCoords({ lat, lng })}
+            onCity={setCity}
             placeholder={t("locationPlaceholder")}
           />
         </div>

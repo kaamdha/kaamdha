@@ -134,7 +134,7 @@ export async function employerSearch(formData: FormData): Promise<SearchResult> 
           category,
           locality: searchLocality,
           search_radius_km: distance,
-          city: "gurgaon",
+          city: formData.get("city") as string || "gurgaon",
           expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
           ...(location ? { location } : {}),
         };
@@ -196,7 +196,6 @@ export async function employerSearch(formData: FormData): Promise<SearchResult> 
       .from("worker_profiles")
       .select("id, user_id, categories, experience_years, salary_min, salary_max, available_timings, locality, gender")
       .eq("is_active", true)
-      .eq("city", "gurgaon")
       .contains("categories", [category])
       .limit(20);
 

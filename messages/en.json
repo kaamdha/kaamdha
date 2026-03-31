@@ -187,9 +187,12 @@
   },
   "listings": {
     "all": "All",
+    "loginToConnect": "Login to connect",
     "noResultsTitle": "Sorry, no staff found nearby",
     "noResultsDesc": "We're working hard to bring more staff to your area. Please check back in a few days — new profiles are added every day!",
-    "noResultsHint": "Tip: Try a nearby locality or a different category"
+    "noResultsHint": "Tip: Try a nearby locality or a different category",
+    "noJobsTitle": "No jobs found nearby",
+    "noJobsDesc": "We're working hard to find great opportunities near you — check back soon!"
   },
   "filters": {
     "filterBy": "Filter by",

@@ -7,6 +7,7 @@ export interface LocationResult {
   latitude: number;
   longitude: number;
   locality: string | null;
+  city: string | null;
 }
 
 export function detectLocation(): Promise<LocationResult> {
@@ -19,8 +20,8 @@ export function detectLocation(): Promise<LocationResult> {
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
-        const locality = await reverseGeocode(latitude, longitude);
-        resolve({ latitude, longitude, locality });
+        const geo = await reverseGeocode(latitude, longitude);
+        resolve({ latitude, longitude, locality: geo.locality, city: geo.city });
       },
       (error) => {
         reject(new Error(geolocationErrorMessage(error.code)));
@@ -33,32 +34,48 @@ export function detectLocation(): Promise<LocationResult> {
 async function reverseGeocode(
   lat: number,
   lng: number
-): Promise<string | null> {
+): Promise<{ locality: string | null; city: string | null }> {
   try {
     const res = await fetch(
       `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&zoom=16&addressdetails=1`,
       { headers: { "Accept-Language": "en" } }
     );
-    if (!res.ok) return null;
+    if (!res.ok) return { locality: null, city: null };
     const data = await res.json();
     const addr = data.address;
-    return (
+    const locality =
       addr?.suburb ||
       addr?.neighbourhood ||
       addr?.village ||
       addr?.town ||
       addr?.city_district ||
       addr?.city ||
-      null
-    );
+      null;
+    const rawCity = addr?.city_district || addr?.city || addr?.state_district || null;
+    return { locality, city: resolveCityId(rawCity) };
   } catch {
-    return null;
+    return { locality: null, city: null };
   }
+}
+
+/**
+ * Maps a raw geocoded city name to our cities table ID.
+ * Handles common variations from Nominatim (Gurugram, New Delhi, etc.)
+ */
+export function resolveCityId(rawCity: string | null | undefined): string | null {
+  if (!rawCity) return null;
+  const lower = rawCity.toLowerCase().trim();
+  if (lower.includes("gurgaon") || lower.includes("gurugram")) return "gurgaon";
+  if (lower.includes("delhi") || lower.includes("new delhi")) return "delhi";
+  if (lower.includes("noida") || lower.includes("gautam buddh") || lower.includes("gautam buddha")) return "noida";
+  // Unknown city — store null, listing still works without city filter
+  return null;
 }
 
 export interface LocationSuggestion {
   displayName: string;
   locality: string;
+  city: string | null;
   latitude: number;
   longitude: number;
 }

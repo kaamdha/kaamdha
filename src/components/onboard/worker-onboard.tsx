@@ -37,6 +37,7 @@ export function WorkerOnboard() {
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(
     null
   );
+  const [city, setCity] = useState<string | null>(null);
 
   function toggle(list: string[], item: string): string[] {
     return list.includes(item)
@@ -64,6 +65,7 @@ export function WorkerOnboard() {
       formData.set("latitude", String(coords.lat));
       formData.set("longitude", String(coords.lng));
     }
+    if (city) formData.set("city", city);
     categories.forEach((c) => formData.append("categories", c));
     availableTimings.forEach((t) => formData.append("available_timings", t));
     if (experience) formData.set("experience", experience);
@@ -150,6 +152,7 @@ export function WorkerOnboard() {
             value={locality}
             onChange={setLocality}
             onCoords={(lat, lng) => setCoords({ lat, lng })}
+            onCity={setCity}
             placeholder={t("locationPlaceholder")}
           />
         </div>

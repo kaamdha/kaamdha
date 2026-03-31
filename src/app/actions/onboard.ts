@@ -27,6 +27,7 @@ export async function saveEmployerOnboarding(formData: FormData) {
   const locality = (formData.get("locality") as string)?.trim() || null;
   const lat = formData.get("latitude") as string | null;
   const lng = formData.get("longitude") as string | null;
+  const city = (formData.get("city") as string)?.trim() || null;
 
   if (!name) {
     return { error: "Name is required" };
@@ -40,9 +41,9 @@ export async function saveEmployerOnboarding(formData: FormData) {
     phone: user.phone ?? "",
     name,
     locality,
-    city: "gurgaon" as const,
     last_active_mode: "find_help" as const,
     updated_at: new Date().toISOString(),
+    ...(city ? { city } : {}),
     ...(location ? { location } : {}),
   };
 
@@ -73,7 +74,7 @@ export async function saveEmployerOnboarding(formData: FormData) {
     custom_id: customId as string,
     user_id: user.id,
     locality,
-    city: "gurgaon",
+    ...(city ? { city } : {}),
     ...(location ? { location } : {}),
   };
 
@@ -107,6 +108,7 @@ export async function saveWorkerOnboarding(formData: FormData) {
   const locality = (formData.get("locality") as string)?.trim() || null;
   const lat = formData.get("latitude") as string | null;
   const lng = formData.get("longitude") as string | null;
+  const city = (formData.get("city") as string)?.trim() || null;
   const categories = formData.getAll("categories") as string[];
   const experienceYears = parseInt(
     (formData.get("experience_years") as string) || "0",
@@ -134,9 +136,9 @@ export async function saveWorkerOnboarding(formData: FormData) {
     phone: user.phone ?? "",
     name,
     locality,
-    city: "gurgaon" as const,
     last_active_mode: "find_jobs" as const,
     updated_at: new Date().toISOString(),
+    ...(city ? { city } : {}),
     ...(location ? { location } : {}),
   };
 
@@ -170,7 +172,7 @@ export async function saveWorkerOnboarding(formData: FormData) {
     available_days: availableDays,
     available_timings: availableTimings,
     locality,
-    city: "gurgaon",
+    ...(city ? { city } : {}),
     ...(gender ? { gender } : {}),
     ...(location ? { location } : {}),
   };

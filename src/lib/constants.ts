@@ -42,10 +42,39 @@ export const JID_STATUSES = [
 ] as const;
 
 export const JOB_CATEGORIES = [
-  { id: "C0001", emoji: "🧹", labelEn: "Maid", labelHi: "कामवाली बाई" },
-  { id: "C0002", emoji: "🍳", labelEn: "Cook", labelHi: "रसोइया" },
-  { id: "C0003", emoji: "🚗", labelEn: "Driver", labelHi: "ड्राइवर" },
-  { id: "C0006", emoji: "👶", labelEn: "Nanny", labelHi: "आया" },
-  { id: "C0007", emoji: "💪", labelEn: "Trainer", labelHi: "ट्रेनर" },
-  { id: "C0008", emoji: "👴", labelEn: "Elder Care", labelHi: "बुज़ुर्गों की देखभाल" },
+  { id: "C0001", slug: "maid", emoji: "🧹", labelEn: "Maid", labelHi: "कामवाली बाई" },
+  { id: "C0002", slug: "cook", emoji: "🍳", labelEn: "Cook", labelHi: "रसोइया" },
+  { id: "C0003", slug: "driver", emoji: "🚗", labelEn: "Driver", labelHi: "ड्राइवर" },
+  { id: "C0006", slug: "nanny", emoji: "👶", labelEn: "Nanny", labelHi: "आया" },
+  { id: "C0007", slug: "personal-trainer", emoji: "💪", labelEn: "Trainer", labelHi: "ट्रेनर" },
+  { id: "C0008", slug: "eldercare", emoji: "👴", labelEn: "Elder Care", labelHi: "बुज़ुर्गों की देखभाल" },
 ] as const;
+
+export const CITY_SLUGS = ["gurgaon", "delhi", "noida"] as const;
+
+export const CITY_LABELS: Record<string, { en: string; hi: string }> = {
+  gurgaon: { en: "Gurgaon", hi: "गुरुग्राम" },
+  delhi: { en: "Delhi", hi: "दिल्ली" },
+  noida: { en: "Noida", hi: "नोएडा" },
+};
+
+/**
+ * Parse optional catch-all slug segments into city and category.
+ * e.g. ["gurgaon", "maid"] → { city: "gurgaon", categorySlug: "maid", categoryId: "C0001" }
+ */
+export function parseListingSlug(slug?: string[]): {
+  city?: string;
+  categorySlug?: string;
+  categoryId?: string;
+} {
+  if (!slug || slug.length === 0) return {};
+  const first = slug[0] as string;
+  if (!first) return {};
+  const city = (CITY_SLUGS as readonly string[]).includes(first) ? first : undefined;
+  if (!city) return {}; // invalid first segment
+  if (slug.length === 1) return { city };
+  const second = slug[1];
+  const cat = JOB_CATEGORIES.find((c) => c.slug === second);
+  if (!cat) return { city }; // invalid category slug, ignore
+  return { city, categorySlug: cat.slug, categoryId: cat.id };
+}

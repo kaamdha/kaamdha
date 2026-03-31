@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { createClient } from "@supabase/supabase-js";
+import { CITY_SLUGS, JOB_CATEGORIES } from "@/lib/constants";
 
 const BASE = "https://kaamdha.com";
 
@@ -24,6 +25,25 @@ function localeEntry(
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = [
     localeEntry("", { changeFrequency: "daily", priority: 1 }),
+
+    // Staff listings: /listings, /listings/{city}, /listings/{city}/{category}
+    localeEntry("/listings", { changeFrequency: "daily", priority: 0.8 }),
+    ...CITY_SLUGS.flatMap((city) => [
+      localeEntry(`/listings/${city}`, { changeFrequency: "daily", priority: 0.8 }),
+      ...JOB_CATEGORIES.map((cat) =>
+        localeEntry(`/listings/${city}/${cat.slug}`, { changeFrequency: "daily", priority: 0.7 })
+      ),
+    ]),
+
+    // Job listings: /jobs, /jobs/{city}, /jobs/{city}/{category}
+    localeEntry("/jobs", { changeFrequency: "daily", priority: 0.8 }),
+    ...CITY_SLUGS.flatMap((city) => [
+      localeEntry(`/jobs/${city}`, { changeFrequency: "daily", priority: 0.8 }),
+      ...JOB_CATEGORIES.map((cat) =>
+        localeEntry(`/jobs/${city}/${cat.slug}`, { changeFrequency: "daily", priority: 0.7 })
+      ),
+    ]),
+
     localeEntry("/login", { changeFrequency: "monthly", priority: 0.5 }),
     localeEntry("/about", { changeFrequency: "monthly", priority: 0.3 }),
     localeEntry("/contact", { changeFrequency: "monthly", priority: 0.3 }),

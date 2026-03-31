@@ -15,6 +15,7 @@ interface LocationInputProps {
   value: string;
   onChange: (locality: string) => void;
   onCoords?: (lat: number, lng: number) => void;
+  onCity?: (city: string | null) => void;
   placeholder?: string;
   startEditing?: boolean;
 }
@@ -23,6 +24,7 @@ export function LocationInput({
   value,
   onChange,
   onCoords,
+  onCity,
   placeholder = "Your area / locality",
   startEditing = false,
 }: LocationInputProps) {
@@ -101,6 +103,7 @@ export function LocationInput({
     setQuery(suggestion.locality);
     onChange(suggestion.locality);
     onCoords?.(suggestion.latitude, suggestion.longitude);
+    onCity?.(suggestion.city);
     setSuggestions([]);
     setShowDropdown(false);
     setEditing(false);
@@ -116,6 +119,7 @@ export function LocationInput({
         setEditing(false);
       }
       onCoords?.(result.latitude, result.longitude);
+      onCity?.(result.city);
     } catch {
       // User can type manually
     } finally {

@@ -20,6 +20,7 @@ interface WorkerCardProps {
   isFavorited?: boolean;
   distanceKm?: number | null;
   initialRevealedPhone?: string | null;
+  isPublic?: boolean;
 }
 
 export function WorkerCard({
@@ -34,15 +35,17 @@ export function WorkerCard({
   isFavorited = false,
   distanceKm,
   initialRevealedPhone,
+  isPublic = false,
 }: WorkerCardProps) {
   const router = useRouter();
   const tc = useTranslations("common");
+  const tl = useTranslations("listings");
   const avatarSrc = gender === "female" ? "/icons/avatar-female.png" : "/icons/avatar-male.png";
   const [showReveal, setShowReveal] = useState(false);
   const [revealedPhone, setRevealedPhone] = useState<string | null>(initialRevealedPhone ?? null);
 
   const salaryText =
-    salaryMin || salaryMax
+    !isPublic && (salaryMin || salaryMax)
       ? `₹${salaryMin ? (salaryMin / 1000).toFixed(0) + "k" : ""}${salaryMin && salaryMax ? "-" : ""}${salaryMax ? "₹" + (salaryMax / 1000).toFixed(0) + "k" : ""}/mo`
       : "";
 
@@ -101,6 +104,10 @@ export function WorkerCard({
         <div
           onClick={(e) => {
             e.stopPropagation();
+            if (isPublic) {
+              router.push("/login");
+              return;
+            }
             if (revealedPhone) {
               window.location.href = `tel:+91${revealedPhone.replace(/-/g, "")}`;
             } else {
@@ -109,7 +116,11 @@ export function WorkerCard({
           }}
           className="mt-2 flex cursor-pointer items-center justify-between border-t border-slate-100 pt-2"
         >
-          {revealedPhone ? (
+          {isPublic ? (
+            <span className="font-mono text-[12px] font-semibold text-slate-400">
+              +91 XXX-XXX-XXXX
+            </span>
+          ) : revealedPhone ? (
             <span className="font-mono text-[12px] font-bold text-green-700">
               +91 {revealedPhone}
             </span>
@@ -119,24 +130,26 @@ export function WorkerCard({
             </span>
           )}
           <span className="rounded-md bg-primary px-2.5 py-1 text-[11px] font-bold text-white">
-            {tc("connect")}
+            {isPublic ? tl("loginToConnect") : tc("connect")}
           </span>
         </div>
       </div>
 
-      <RevealModal
-        isOpen={showReveal}
-        onClose={() => setShowReveal(false)}
-        name={name}
-        type="worker"
-        onReveal={async () => {
-          const result = await revealWorkerPhone(id);
-          if (result.success && result.phone) {
-            setRevealedPhone(result.phone);
-          }
-          return result;
-        }}
-      />
+      {!isPublic && (
+        <RevealModal
+          isOpen={showReveal}
+          onClose={() => setShowReveal(false)}
+          name={name}
+          type="worker"
+          onReveal={async () => {
+            const result = await revealWorkerPhone(id);
+            if (result.success && result.phone) {
+              setRevealedPhone(result.phone);
+            }
+            return result;
+          }}
+        />
+      )}
     </>
   );
 }
