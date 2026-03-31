@@ -8,6 +8,7 @@ import { JOB_CATEGORIES } from "@/lib/constants";
 import { events } from "@/lib/posthog";
 import { employerSearch, type WorkerResult } from "@/app/search/actions";
 import { WorkerCard } from "@/components/shared/worker-card";
+import { Toast } from "@/components/shared/toast";
 
 interface EmployerSearchProps {
   initialLocality: string;
@@ -88,12 +89,8 @@ export function EmployerSearch({
         </div>
       )}
 
-      {/* JID notice */}
-      {jidNotice && (
-        <div className="mx-4 mt-3 rounded-lg bg-green-50 px-3 py-2 text-xs font-semibold text-green-700">
-          ✅ {jidNotice}
-        </div>
-      )}
+      {/* JID notice toast */}
+      <Toast message={jidNotice} onDismiss={() => setJidNotice(null)} />
 
       {/* Loading state */}
       {isPending && (
