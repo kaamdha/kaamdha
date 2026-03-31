@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { Link, useRouter } from "@/i18n/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { JOB_CATEGORIES } from "@/lib/constants";
 import { EditIcon } from "@/components/shared/edit-icon";

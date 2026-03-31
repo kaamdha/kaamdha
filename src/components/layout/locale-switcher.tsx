@@ -1,17 +1,17 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
+import { usePathname, useRouter } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 
 export function LocaleSwitcher() {
   const locale = useLocale();
+  const pathname = usePathname();
   const router = useRouter();
 
   function toggleLocale() {
     const nextLocale = locale === "en" ? "hi" : "en";
-    document.cookie = `locale=${nextLocale};path=/;max-age=31536000`;
-    router.refresh();
+    router.replace(pathname, { locale: nextLocale });
   }
 
   return (

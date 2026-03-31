@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { saveWorkerOnboarding } from "@/app/onboard/actions";
+import { saveWorkerOnboarding } from "@/app/actions/onboard";
 import { JOB_CATEGORIES } from "@/lib/constants";
 import { LocationInput } from "@/components/shared/location-input";
 import { events } from "@/lib/posthog";

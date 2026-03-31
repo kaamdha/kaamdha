@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
-import { checkUserRole } from "@/app/login/actions";
+import { checkUserRole } from "@/app/actions/login";
 import { events, identifyUser } from "@/lib/posthog";
 import { PhoneStep } from "./phone-step";
 import { OtpStep } from "./otp-step";

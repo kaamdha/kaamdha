@@ -1,47 +1,36 @@
 import type { MetadataRoute } from "next";
 import { createClient } from "@supabase/supabase-js";
 
+const BASE = "https://kaamdha.com";
+
+function localeEntry(
+  path: string,
+  opts: { lastModified?: Date; changeFrequency?: MetadataRoute.Sitemap[number]["changeFrequency"]; priority?: number }
+): MetadataRoute.Sitemap[number] {
+  return {
+    url: `${BASE}/en${path}`,
+    lastModified: opts.lastModified ?? new Date(),
+    changeFrequency: opts.changeFrequency,
+    priority: opts.priority,
+    alternates: {
+      languages: {
+        en: `${BASE}/en${path}`,
+        hi: `${BASE}/hi${path}`,
+      },
+    },
+  };
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = [
-    {
-      url: "https://kaamdha.com",
-      lastModified: new Date(),
-      changeFrequency: "daily",
-      priority: 1,
-    },
-    {
-      url: "https://kaamdha.com/login",
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.5,
-    },
-    {
-      url: "https://kaamdha.com/about",
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.3,
-    },
-    {
-      url: "https://kaamdha.com/contact",
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.3,
-    },
-    {
-      url: "https://kaamdha.com/terms",
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.2,
-    },
-    {
-      url: "https://kaamdha.com/privacy",
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.2,
-    },
+    localeEntry("", { changeFrequency: "daily", priority: 1 }),
+    localeEntry("/login", { changeFrequency: "monthly", priority: 0.5 }),
+    localeEntry("/about", { changeFrequency: "monthly", priority: 0.3 }),
+    localeEntry("/contact", { changeFrequency: "monthly", priority: 0.3 }),
+    localeEntry("/terms", { changeFrequency: "monthly", priority: 0.2 }),
+    localeEntry("/privacy", { changeFrequency: "monthly", priority: 0.2 }),
   ];
 
-  // Fetch active job listings and worker profiles for dynamic URLs
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -66,23 +55,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
       if (jobsResult.data) {
         for (const job of jobsResult.data) {
-          entries.push({
-            url: `https://kaamdha.com/details/${job.custom_id}`,
-            lastModified: new Date(job.updated_at),
-            changeFrequency: "weekly",
-            priority: 0.7,
-          });
+          entries.push(
+            localeEntry(`/details/${job.custom_id}`, {
+              lastModified: new Date(job.updated_at),
+              changeFrequency: "weekly",
+              priority: 0.7,
+            })
+          );
         }
       }
 
       if (workersResult.data) {
         for (const worker of workersResult.data) {
-          entries.push({
-            url: `https://kaamdha.com/details/${worker.id}`,
-            lastModified: new Date(worker.updated_at),
-            changeFrequency: "weekly",
-            priority: 0.6,
-          });
+          entries.push(
+            localeEntry(`/details/${worker.id}`, {
+              lastModified: new Date(worker.updated_at),
+              changeFrequency: "weekly",
+              priority: 0.6,
+            })
+          );
         }
       }
     }

@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { HOUSEHOLD_TYPES } from "@/lib/constants";
 import { LocationInput } from "@/components/shared/location-input";
-import { updateEmployerProfile } from "@/app/account/profile/actions";
+import { updateEmployerProfile } from "@/app/actions/profile";
 import { events } from "@/lib/posthog";
 import type { User } from "@/types/database";
 

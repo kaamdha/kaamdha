@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,7 @@ import { JOB_CATEGORIES } from "@/lib/constants";
 import {
   updateJobListing,
   deactivateJobListing,
-} from "@/app/account/job/[jid]/actions";
+} from "@/app/actions/jid";
 
 const TIMING_OPTIONS = [
   { value: "morning", labelEn: "Morning", labelHi: "सुबह" },

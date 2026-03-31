@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { JOB_CATEGORIES } from "@/lib/constants";
 import { LocationInput } from "@/components/shared/location-input";

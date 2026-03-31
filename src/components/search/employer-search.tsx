@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useTransition, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { JOB_CATEGORIES } from "@/lib/constants";
 import { events } from "@/lib/posthog";
-import { employerSearch, type WorkerResult } from "@/app/search/actions";
+import { employerSearch, type WorkerResult } from "@/app/actions/search";
 import { WorkerCard } from "@/components/shared/worker-card";
 import { Toast } from "@/components/shared/toast";
 

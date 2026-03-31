@@ -2,7 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element */
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { RevealModal } from "@/components/shared/reveal-modal";
 import { revealWorkerPhone } from "@/app/actions/reveal";
