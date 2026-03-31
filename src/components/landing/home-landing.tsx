@@ -3,13 +3,42 @@
 import { useState } from "react";
 import { Link } from "@/i18n/navigation";
 import Image from "next/image";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
+import { JOB_CATEGORIES, CITY_SLUGS, CITY_LABELS } from "@/lib/constants";
 
 type Mode = "find_help" | "find_jobs";
+
+const POPULAR_STAFF = [
+  { city: "gurgaon", cat: "maid" },
+  { city: "gurgaon", cat: "cook" },
+  { city: "gurgaon", cat: "driver" },
+  { city: "delhi", cat: "maid" },
+  { city: "delhi", cat: "cook" },
+  { city: "noida", cat: "maid" },
+  { city: "gurgaon", cat: "nanny" },
+  { city: "faridabad", cat: "maid" },
+  { city: "gurgaon", cat: "eldercare" },
+  { city: "manesar", cat: "maid" },
+];
+
+const POPULAR_JOBS = [
+  { city: "gurgaon", cat: "maid" },
+  { city: "gurgaon", cat: "cook" },
+  { city: "gurgaon", cat: "driver" },
+  { city: "delhi", cat: "maid" },
+  { city: "delhi", cat: "cook" },
+  { city: "noida", cat: "maid" },
+  { city: "gurgaon", cat: "nanny" },
+  { city: "faridabad", cat: "maid" },
+  { city: "gurgaon", cat: "eldercare" },
+  { city: "manesar", cat: "cook" },
+];
 
 export function HomeLanding() {
   const [mode, setMode] = useState<Mode>("find_help");
   const t = useTranslations("landing");
+  const tf = useTranslations("footer");
+  const locale = useLocale();
 
   const steps =
     mode === "find_help"
@@ -23,6 +52,21 @@ export function HomeLanding() {
           { title: t("findJobsStep2Title"), desc: t("findJobsStep2Desc") },
           { title: t("findJobsStep3Title"), desc: t("findJobsStep3Desc") },
         ];
+
+  const popularLinks = mode === "find_help" ? POPULAR_STAFF : POPULAR_JOBS;
+  const basePath = mode === "find_help" ? "/listings" : "/jobs";
+
+  function getCatLabel(slug: string): string {
+    const cat = JOB_CATEGORIES.find((c) => c.slug === slug);
+    if (!cat) return slug;
+    return locale === "hi" ? cat.labelHi : cat.labelEn;
+  }
+
+  function getCityLabel(city: string): string {
+    return locale === "hi"
+      ? CITY_LABELS[city]?.hi ?? city
+      : CITY_LABELS[city]?.en ?? city;
+  }
 
   return (
     <div className="flex flex-col">
@@ -89,7 +133,7 @@ export function HomeLanding() {
       </div>
 
       {/* Login CTA */}
-      <div className="px-4 pb-6 pt-5">
+      <div className="px-4 pb-2 pt-5">
         <Link
           href="/login"
           className="flex h-12 w-full items-center justify-center rounded-[10px] bg-primary text-[15px] font-bold text-white"
@@ -101,15 +145,52 @@ export function HomeLanding() {
         </p>
       </div>
 
-      {/* Footer */}
-      <div className="mt-5 bg-slate-100 pt-12 pb-6 pl-6 text-left">
-        <p className="font-heading text-[53px] font-extrabold leading-tight text-slate-300">
-          {t("madeWithLove")}
-        </p>
-        <p className="mt-4 text-[11px] text-slate-400">
-          © 2026 kaamdha. All rights reserved.
-        </p>
+      {/* Browse by city */}
+      <div className="px-4 pt-6">
+        <h2 className="font-heading text-[14px] font-bold text-foreground">
+          {mode === "find_help" ? tf("browseStaffByCity") : tf("browseJobsByCity")}
+        </h2>
+        <div className="mt-2.5 grid grid-cols-3 gap-2">
+          {CITY_SLUGS.map((city) => (
+            <Link
+              key={city}
+              href={`${basePath}/${city}`}
+              className="rounded-[12px] border-[1.5px] border-slate-200 bg-white px-2 py-3 text-center transition-all hover:border-primary hover:bg-teal-50"
+            >
+              <p className="text-[12px] font-bold text-foreground">
+                {getCityLabel(city)}
+              </p>
+            </Link>
+          ))}
+        </div>
       </div>
+
+      {/* Popular searches */}
+      <div className="px-4 pt-5 pb-6">
+        <h2 className="font-heading text-[14px] font-bold text-foreground">
+          {mode === "find_help" ? tf("popularSearches") : tf("popularJobSearches")}
+        </h2>
+        <div className="mt-2.5 flex flex-wrap gap-1.5">
+          {popularLinks.map(({ city, cat }) => {
+            const catLabel = getCatLabel(cat);
+            const cityLabel = getCityLabel(city);
+            const label =
+              mode === "find_help"
+                ? `${catLabel} in ${cityLabel}`
+                : `${catLabel} jobs in ${cityLabel}`;
+            return (
+              <Link
+                key={`${city}-${cat}`}
+                href={`${basePath}/${city}/${cat}`}
+                className="rounded-full border-[1.5px] border-teal-200 bg-teal-50 px-3 py-1 text-[11px] font-semibold text-teal-700 transition-all hover:bg-primary hover:text-white hover:border-primary"
+              >
+                {label}
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { routing } from "@/i18n/routing";
 import { Header } from "@/components/layout/header";
 import { OrganizationJsonLd } from "@/components/shared/json-ld";
 import { PostHogProvider } from "@/components/providers/posthog-provider";
+import { SiteFooter } from "@/components/shared/site-footer";
 import "../globals.css";
 
 const dmSans = DM_Sans({
@@ -101,6 +102,7 @@ export default async function LocaleLayout({
             <div className="mx-auto flex min-h-screen w-full max-w-[420px] flex-col bg-background shadow-xl sm:my-0 sm:min-h-screen">
               <Header />
               <main role="main" className="flex-1">{children}</main>
+              <SiteFooter />
             </div>
           </NextIntlClientProvider>
         </PostHogProvider>

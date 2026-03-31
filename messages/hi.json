@@ -325,6 +325,18 @@
     "helpSupport": "सहायता और समर्थन",
     "logout": "लॉगआउट"
   },
+  "footer": {
+    "findStaff": "स्टाफ खोजें",
+    "findJobs": "नौकरी पाएं",
+    "hireIn": "{city} में हायर करें",
+    "jobsIn": "{city} में नौकरी",
+    "browseStaffByCity": "शहर के अनुसार स्टाफ खोजें",
+    "browseJobsByCity": "शहर के अनुसार नौकरी खोजें",
+    "popularSearches": "लोकप्रिय खोज",
+    "popularJobSearches": "लोकप्रिय नौकरी खोज",
+    "staffCount": "{count} स्टाफ",
+    "jobsCount": "{count} नौकरियां"
+  },
   "cities": {
     "selectCity": "अपना शहर चुनें",
     "comingSoonMessage": "हम जल्द ही {city} में सेवा देंगे! लॉन्च होने पर सूचना पाने के लिए अभी रजिस्टर करें।",

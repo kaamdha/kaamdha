@@ -66,9 +66,12 @@ export function resolveCityId(rawCity: string | null | undefined): string | null
   if (!rawCity) return null;
   const lower = rawCity.toLowerCase().trim();
   if (lower.includes("gurgaon") || lower.includes("gurugram")) return "gurgaon";
-  if (lower.includes("delhi") || lower.includes("new delhi")) return "delhi";
+  if (lower.includes("manesar") || lower.includes("manesar")) return "manesar";
+  if (lower.includes("faridabad")) return "faridabad";
+  if (lower.includes("ghaziabad")) return "ghaziabad";
+  if (lower.includes("greater noida")) return "greater-noida";
   if (lower.includes("noida") || lower.includes("gautam buddh") || lower.includes("gautam buddha")) return "noida";
-  // Unknown city — store null, listing still works without city filter
+  if (lower.includes("delhi") || lower.includes("new delhi")) return "delhi";
   return null;
 }
 

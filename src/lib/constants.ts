@@ -50,12 +50,16 @@ export const JOB_CATEGORIES = [
   { id: "C0008", slug: "eldercare", emoji: "👴", labelEn: "Elder Care", labelHi: "बुज़ुर्गों की देखभाल" },
 ] as const;
 
-export const CITY_SLUGS = ["gurgaon", "delhi", "noida"] as const;
+export const CITY_SLUGS = ["gurgaon", "delhi", "noida", "faridabad", "ghaziabad", "greater-noida", "manesar"] as const;
 
 export const CITY_LABELS: Record<string, { en: string; hi: string }> = {
   gurgaon: { en: "Gurgaon", hi: "गुरुग्राम" },
   delhi: { en: "Delhi", hi: "दिल्ली" },
   noida: { en: "Noida", hi: "नोएडा" },
+  faridabad: { en: "Faridabad", hi: "फरीदाबाद" },
+  ghaziabad: { en: "Ghaziabad", hi: "गाज़ियाबाद" },
+  "greater-noida": { en: "Greater Noida", hi: "ग्रेटर नोएडा" },
+  manesar: { en: "Manesar", hi: "मानेसर" },
 };
 
 /**

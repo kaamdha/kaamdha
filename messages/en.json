@@ -325,6 +325,18 @@
     "helpSupport": "Help and support",
     "logout": "Logout"
   },
+  "footer": {
+    "findStaff": "Find staff",
+    "findJobs": "Find jobs",
+    "hireIn": "Hire in {city}",
+    "jobsIn": "Jobs in {city}",
+    "browseStaffByCity": "Browse staff by city",
+    "browseJobsByCity": "Browse jobs by city",
+    "popularSearches": "Popular searches",
+    "popularJobSearches": "Popular job searches",
+    "staffCount": "{count} staff",
+    "jobsCount": "{count} jobs"
+  },
   "cities": {
     "selectCity": "Select your city",
     "comingSoonMessage": "We'll be serving {city} soon! Register now to be notified when we launch.",
