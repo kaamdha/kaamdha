@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import {
   sendLeadConnectMessage,
   sendLeadNotifyMessage,
@@ -16,6 +16,7 @@ export async function revealWorkerPhone(
   workerProfileId: string
 ): Promise<RevealResult> {
   const supabase = await createClient();
+  const admin = createServiceClient();
 
   const {
     data: { user },
@@ -26,7 +27,7 @@ export async function revealWorkerPhone(
   }
 
   // Check if already revealed
-  const { data: existingRaw } = await supabase
+  const { data: existingRaw } = await admin
     .from("lead_reveals")
     .select("id")
     .eq("from_user_id", user.id)
@@ -35,7 +36,7 @@ export async function revealWorkerPhone(
 
   if (existingRaw) {
     // Already revealed — just fetch the phone
-    const { data: wpRaw } = await supabase
+    const { data: wpRaw } = await admin
       .from("worker_profiles")
       .select("user_id")
       .eq("id", workerProfileId)
@@ -44,7 +45,7 @@ export async function revealWorkerPhone(
     const wp = wpRaw as { user_id: string } | null;
     if (!wp) return { success: false, error: "Worker not found" };
 
-    const { data: uRaw } = await supabase
+    const { data: uRaw } = await admin
       .from("users")
       .select("phone")
       .eq("id", wp.user_id)
@@ -54,8 +55,8 @@ export async function revealWorkerPhone(
     return { success: true, phone: formatPhone(phone) };
   }
 
-  // Get worker profile + user (fetch extra fields for WhatsApp message)
-  const { data: wpRaw } = await supabase
+  // Get worker profile + user
+  const { data: wpRaw } = await admin
     .from("worker_profiles")
     .select("user_id, categories, locality")
     .eq("id", workerProfileId)
@@ -68,12 +69,6 @@ export async function revealWorkerPhone(
   } | null;
   if (!wp) return { success: false, error: "Worker not found" };
 
-  // Decrement free leads (Phase 1: always free, counter is informational)
-  await supabase
-    .from("users")
-    .update({ free_leads_remaining: Math.max(0, -1) } as Record<string, unknown> as never)
-    .eq("id", user.id);
-
   // Record the reveal
   const revealFields = {
     from_user_id: user.id,
@@ -84,7 +79,7 @@ export async function revealWorkerPhone(
     was_free_lead: true,
   };
 
-  const { data: revealData, error: revealError } = await supabase
+  const { data: revealData, error: revealError } = await admin
     .from("lead_reveals")
     .insert(revealFields as Record<string, unknown> as never)
     .select("id")
@@ -95,7 +90,7 @@ export async function revealWorkerPhone(
   }
 
   // Fetch revealed worker's phone
-  const { data: uRaw } = await supabase
+  const { data: uRaw } = await admin
     .from("users")
     .select("phone")
     .eq("id", wp.user_id)
@@ -106,14 +101,13 @@ export async function revealWorkerPhone(
 
   // Send WhatsApp/SMS notifications (non-blocking)
   // TODO: Enable once MSG91 WhatsApp or Gupshup is configured
-  // For now, notifications are disabled — users see the number on screen
   if (process.env.GUPSHUP_API_KEY || process.env.MSG91_AUTH_KEY) {
     try {
       const [requesterData, workerData, categoryData] = await Promise.all([
-        supabase.from("users").select("phone, name, locality").eq("id", user.id).single(),
-        supabase.from("users").select("phone, name").eq("id", wp.user_id).single(),
+        admin.from("users").select("phone, name, locality").eq("id", user.id).single(),
+        admin.from("users").select("phone, name").eq("id", wp.user_id).single(),
         wp.categories?.length
-          ? supabase.from("categories").select("label_en").eq("id", wp.categories[0] as string).single()
+          ? admin.from("categories").select("label_en").eq("id", wp.categories[0] as string).single()
           : Promise.resolve({ data: null }),
       ]);
 
@@ -137,9 +131,8 @@ export async function revealWorkerPhone(
           }),
         ]);
 
-        // Update lead_reveals with WhatsApp/SMS status
         if (revealId && connectResult.success) {
-          await supabase
+          await admin
             .from("lead_reveals")
             .update({
               whatsapp_sent: true,
@@ -160,6 +153,7 @@ export async function revealEmployerPhone(
   jobListingId: string
 ): Promise<RevealResult> {
   const supabase = await createClient();
+  const admin = createServiceClient();
 
   const {
     data: { user },
@@ -170,7 +164,7 @@ export async function revealEmployerPhone(
   }
 
   // Check if already revealed
-  const { data: existingRaw } = await supabase
+  const { data: existingRaw } = await admin
     .from("lead_reveals")
     .select("id")
     .eq("from_user_id", user.id)
@@ -179,7 +173,7 @@ export async function revealEmployerPhone(
 
   if (existingRaw) {
     // Already revealed — fetch employer phone
-    const { data: jlRaw } = await supabase
+    const { data: jlRaw } = await admin
       .from("job_listings")
       .select("employer_id")
       .eq("id", jobListingId)
@@ -188,7 +182,7 @@ export async function revealEmployerPhone(
     const jl = jlRaw as { employer_id: string } | null;
     if (!jl) return { success: false, error: "Job not found" };
 
-    const { data: epRaw } = await supabase
+    const { data: epRaw } = await admin
       .from("employer_profiles")
       .select("user_id")
       .eq("id", jl.employer_id)
@@ -197,7 +191,7 @@ export async function revealEmployerPhone(
     const ep = epRaw as { user_id: string } | null;
     if (!ep) return { success: false, error: "Employer not found" };
 
-    const { data: uRaw } = await supabase
+    const { data: uRaw } = await admin
       .from("users")
       .select("phone")
       .eq("id", ep.user_id)
@@ -207,8 +201,8 @@ export async function revealEmployerPhone(
     return { success: true, phone: formatPhone(phone) };
   }
 
-  // Get job listing → employer → user (fetch extra fields for WhatsApp)
-  const { data: jlRaw } = await supabase
+  // Get job listing → employer → user
+  const { data: jlRaw } = await admin
     .from("job_listings")
     .select("employer_id, category, locality")
     .eq("id", jobListingId)
@@ -221,7 +215,7 @@ export async function revealEmployerPhone(
   } | null;
   if (!jl) return { success: false, error: "Job not found" };
 
-  const { data: epRaw } = await supabase
+  const { data: epRaw } = await admin
     .from("employer_profiles")
     .select("user_id")
     .eq("id", jl.employer_id)
@@ -240,7 +234,7 @@ export async function revealEmployerPhone(
     was_free_lead: true,
   };
 
-  const { data: revealData, error: revealError } = await supabase
+  const { data: revealData, error: revealError } = await admin
     .from("lead_reveals")
     .insert(revealFields as Record<string, unknown> as never)
     .select("id")
@@ -251,7 +245,7 @@ export async function revealEmployerPhone(
   }
 
   // Fetch employer's phone
-  const { data: uRaw } = await supabase
+  const { data: uRaw } = await admin
     .from("users")
     .select("phone")
     .eq("id", ep.user_id)
@@ -265,9 +259,9 @@ export async function revealEmployerPhone(
   if (process.env.GUPSHUP_API_KEY || process.env.MSG91_AUTH_KEY) {
     try {
       const [requesterData, employerData, categoryData] = await Promise.all([
-        supabase.from("users").select("phone, name, locality").eq("id", user.id).single(),
-        supabase.from("users").select("phone, name").eq("id", ep.user_id).single(),
-        supabase.from("categories").select("label_en").eq("id", jl.category).single(),
+        admin.from("users").select("phone, name, locality").eq("id", user.id).single(),
+        admin.from("users").select("phone, name").eq("id", ep.user_id).single(),
+        admin.from("categories").select("label_en").eq("id", jl.category).single(),
       ]);
 
       const requester = requesterData.data as { phone: string; name: string | null; locality: string | null } | null;
@@ -291,7 +285,7 @@ export async function revealEmployerPhone(
         ]);
 
         if (revealId && connectResult.success) {
-          await supabase
+          await admin
             .from("lead_reveals")
             .update({
               whatsapp_sent: true,
