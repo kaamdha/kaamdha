@@ -37,8 +37,9 @@ export async function Header() {
 
   const minimalHeader = (
     <header className="border-b border-slate-100 bg-background">
-      <div className="flex h-12 items-center px-4">
+      <div className="flex h-12 items-center justify-between px-4">
         <Logo size="sm" />
+        <LocaleSwitcher />
       </div>
     </header>
   );
@@ -48,6 +49,7 @@ export async function Header() {
       <div className="flex h-12 items-center justify-between px-4">
         <Logo size="sm" />
         <div className="flex items-center gap-2">
+          <LocaleSwitcher />
           {isLoggedIn ? (
             <>
               <Link
@@ -65,15 +67,12 @@ export async function Header() {
               </Link>
             </>
           ) : (
-            <>
-              <LocaleSwitcher />
-              <Link
-                href="/login"
-                className="rounded-lg border-[1.5px] border-primary px-3 py-1 text-xs font-bold text-primary"
-              >
-                {t("login")}
-              </Link>
-            </>
+            <Link
+              href="/login"
+              className="rounded-lg border-[1.5px] border-primary px-3 py-1 text-xs font-bold text-primary"
+            >
+              {t("login")}
+            </Link>
           )}
         </div>
       </div>
