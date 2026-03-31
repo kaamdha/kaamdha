@@ -5,7 +5,6 @@ import { createServiceClient } from "@/lib/supabase/server";
 import { JobListings } from "@/components/listings/job-listings";
 import {
   JOB_CATEGORIES,
-  CITY_SLUGS,
   CITY_LABELS,
   parseListingSlug,
 } from "@/lib/constants";
@@ -40,16 +39,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return { title, description };
 }
 
-export function generateStaticParams() {
-  const params: { slug?: string[] }[] = [{}];
-  for (const city of CITY_SLUGS) {
-    params.push({ slug: [city] });
-    for (const cat of JOB_CATEGORIES) {
-      params.push({ slug: [city, cat.slug] });
-    }
-  }
-  return params;
-}
+export const dynamic = "force-dynamic";
 
 export default async function JobListingsPage({ params }: Props) {
   const { slug } = await params;
