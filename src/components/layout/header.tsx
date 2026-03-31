@@ -1,8 +1,11 @@
+import { headers } from "next/headers";
 import { Link } from "@/i18n/navigation";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { LocaleSwitcher } from "./locale-switcher";
 import { Logo } from "@/components/shared/logo";
+
+const MINIMAL_ROUTES = ["/login", "/onboard"];
 
 function getInitials(name: string | null): string {
   if (!name) return "?";
@@ -15,6 +18,20 @@ function getInitials(name: string | null): string {
 }
 
 export async function Header() {
+  const headersList = await headers();
+  const pathname = headersList.get("x-next-pathname") ?? headersList.get("x-invoke-path") ?? "";
+  const isMinimal = MINIMAL_ROUTES.some((r) => pathname.includes(r));
+
+  if (isMinimal) {
+    return (
+      <header className="border-b border-slate-100 bg-background">
+        <div className="flex h-12 items-center px-4">
+          <Logo size="sm" />
+        </div>
+      </header>
+    );
+  }
+
   const t = await getTranslations("common");
   const supabase = await createClient();
 

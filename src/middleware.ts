@@ -9,7 +9,10 @@ export async function middleware(request: NextRequest) {
   // 1. Run next-intl middleware (handles locale redirect/rewrite)
   const response = intlMiddleware(request);
 
-  // 2. Layer Supabase session refresh on the intl response
+  // 2. Pass pathname to server components via header
+  response.headers.set("x-next-pathname", request.nextUrl.pathname);
+
+  // 3. Layer Supabase session refresh on the intl response
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
