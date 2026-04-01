@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { useTranslations, useLocale } from "next-intl";
-import { CITY_LABELS } from "@/lib/constants";
+import { JOB_CATEGORIES, CITY_LABELS } from "@/lib/constants";
 
 const FOOTER_CITIES = ["gurgaon", "delhi", "noida", "faridabad", "ghaziabad", "greater-noida"] as const;
 
@@ -59,6 +59,48 @@ export function SiteFooter() {
           })}
         </div>
       </div>
+
+      {/* Per-category links — exclude trainer & eldercare */}
+      {JOB_CATEGORIES
+        .filter((cat) => !["personal-trainer", "eldercare"].includes(cat.slug))
+        .map((cat) => {
+          const catLabel = locale === "hi" ? cat.labelHi : cat.labelEn;
+          return (
+            <div key={cat.id} className="mt-4">
+              <h4 className="text-[10px] font-bold uppercase tracking-wider text-teal-800/60">
+                {catLabel}
+              </h4>
+              <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5">
+                {FOOTER_CITIES.map((city) => {
+                  const cityLabel = (locale === "hi" ? CITY_LABELS[city]?.hi : CITY_LABELS[city]?.en) ?? city;
+                  return (
+                    <Link
+                      key={`hire-${city}`}
+                      href={`/listings/${city}/${cat.slug}`}
+                      className="text-[11px] leading-relaxed text-teal-800 underline decoration-teal-300 hover:text-primary hover:decoration-primary"
+                    >
+                      {t("hireIn", { city: cityLabel })}
+                    </Link>
+                  );
+                })}
+              </div>
+              <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
+                {FOOTER_CITIES.map((city) => {
+                  const cityLabel = (locale === "hi" ? CITY_LABELS[city]?.hi : CITY_LABELS[city]?.en) ?? city;
+                  return (
+                    <Link
+                      key={`jobs-${city}`}
+                      href={`/jobs/${city}/${cat.slug}`}
+                      className="text-[11px] leading-relaxed text-teal-800 underline decoration-teal-300 hover:text-primary hover:decoration-primary"
+                    >
+                      {t("jobsIn", { city: cityLabel })}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
 
       {/* Divider + copyright */}
       <div className="my-5 h-px bg-teal-200" />
