@@ -30,6 +30,8 @@ function buildLocationPoint(
 
 export interface WorkerResult {
   id: string;
+  custom_id: string;
+  city: string | null;
   user_id: string;
   name: string;
   gender: string | null;
@@ -176,6 +178,8 @@ export async function employerSearch(formData: FormData): Promise<SearchResult> 
 
       workers.push({
         id: w.id as string,
+        custom_id: w.custom_id as string,
+        city: w.city as string | null,
         user_id: w.user_id as string,
         name: nameMap.get(w.user_id as string) ?? "Worker",
         gender: w.gender as string | null,
@@ -194,7 +198,7 @@ export async function employerSearch(formData: FormData): Promise<SearchResult> 
     // Fallback: basic category + city query (no distance info)
     const { data: workersRaw } = await supabase
       .from("worker_profiles")
-      .select("id, user_id, categories, experience_years, salary_min, salary_max, available_timings, locality, gender")
+      .select("id, custom_id, user_id, categories, experience_years, salary_min, salary_max, available_timings, locality, city, gender")
       .eq("is_active", true)
       .contains("categories", [category])
       .limit(20);
@@ -208,6 +212,8 @@ export async function employerSearch(formData: FormData): Promise<SearchResult> 
     for (const w of workerRows) {
       workers.push({
         id: w.id as string,
+        custom_id: w.custom_id as string,
+        city: w.city as string | null,
         user_id: w.user_id as string,
         name: nameMap.get(w.user_id as string) ?? "Worker",
         gender: w.gender as string | null,

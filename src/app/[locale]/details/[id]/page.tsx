@@ -1,293 +1,43 @@
-import type { Metadata } from "next";
-import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { WorkerDetail } from "@/components/details/worker-detail";
-import { JobDetail } from "@/components/details/job-detail";
-import { JobPostingJsonLd, WorkerProfileJsonLd } from "@/components/shared/json-ld";
-import { JOB_CATEGORIES } from "@/lib/constants";
+import { createServiceClient } from "@/lib/supabase/server";
+import { workerDetailUrl, jobDetailUrl } from "@/lib/constants";
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}): Promise<Metadata> {
-  const supabase = await createClient();
-  const { id } = await params;
-
-  const isJobListing = id.startsWith("JID");
-
-  if (isJobListing) {
-    const { data: jobRaw } = await supabase
-      .from("job_listings")
-      .select("title, category, locality")
-      .eq("custom_id", id)
-      .single();
-
-    const job = jobRaw as { title: string | null; category: string; locality: string | null } | null;
-    if (job) {
-      const catInfo = JOB_CATEGORIES.find((c) => c.id === job.category);
-      const title = job.title || `${catInfo?.labelEn ?? "Staff"} needed`;
-      const location = job.locality ?? "Gurgaon";
-      return {
-        title: `${title} in ${location}`,
-        description: `${title} job in ${location}. Connect directly on kaamdha — no middlemen.`,
-        alternates: { canonical: `/details/${id}` },
-        openGraph: {
-          title: `${title} in ${location} | kaamdha`,
-          description: `${title} job in ${location}. Connect directly on kaamdha.`,
-          images: ["/og-image.png"],
-        },
-        twitter: {
-          card: "summary_large_image",
-          title: `${title} in ${location} | kaamdha`,
-          images: ["/og-image.png"],
-        },
-      };
-    }
-  } else {
-    const { data: wpRaw } = await supabase
-      .from("worker_profiles")
-      .select("user_id, categories, locality")
-      .eq("id", id)
-      .single();
-
-    const wp = wpRaw as { user_id: string; categories: string[]; locality: string | null } | null;
-    if (wp) {
-      const { data: uRaw } = await supabase
-        .from("users")
-        .select("name")
-        .eq("id", wp.user_id)
-        .single();
-      const name = (uRaw as { name: string | null } | null)?.name ?? "Staff";
-      const skills = wp.categories
-        .map((c) => JOB_CATEGORIES.find((j) => j.id === c)?.labelEn)
-        .filter(Boolean)
-        .join(", ");
-      const location = wp.locality ?? "Gurgaon";
-      return {
-        title: `${name} — ${skills || "Staff"} in ${location}`,
-        description: `${name} is available as ${skills || "staff"} in ${location}. Connect on kaamdha.`,
-        alternates: { canonical: `/details/${id}` },
-        openGraph: {
-          title: `${name} — ${skills || "Staff"} in ${location} | kaamdha`,
-          description: `${name} is available as ${skills || "staff"} in ${location}. Connect on kaamdha.`,
-          images: ["/og-image.png"],
-        },
-        twitter: {
-          card: "summary_large_image",
-          title: `${name} — ${skills || "Staff"} in ${location} | kaamdha`,
-          images: ["/og-image.png"],
-        },
-      };
-    }
-  }
-
-  return {
-    title: "Details",
-  };
-}
-
-export default async function DetailsPage({
+/**
+ * Legacy detail page — redirects to new SEO-friendly URLs:
+ *   /details/JID... → /jobs/{city}/{category}/{customId}
+ *   /details/{uuid} → /listings/{city}/{category}/{customId}
+ */
+export default async function DetailsRedirect({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const supabase = await createClient();
   const { id } = await params;
+  const admin = createServiceClient();
 
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser();
-
-  if (!authUser) {
-    redirect("/login");
-  }
-
-  const isJobListing = id.startsWith("JID");
-
-  if (isJobListing) {
-    // Fetch job listing
-    const { data: jobRaw } = await supabase
+  if (id.startsWith("JID")) {
+    const { data: job } = await admin
       .from("job_listings")
-      .select("*")
+      .select("custom_id, category, city")
       .eq("custom_id", id)
       .single();
 
-    const job = jobRaw as Record<string, unknown> | null;
-    if (!job) {
-      redirect("/");
+    if (job) {
+      const j = job as { custom_id: string; category: string; city: string | null };
+      redirect(jobDetailUrl(j.city, j.category, j.custom_id));
     }
+  } else {
+    const { data: wp } = await admin
+      .from("worker_profiles")
+      .select("custom_id, categories, city")
+      .eq("id", id)
+      .single();
 
-    // Parallel: employer profile + recently_viewed + favorite check
-    const [epResult, _viewResult, favResult] = await Promise.all([
-      supabase
-        .from("employer_profiles")
-        .select("id, user_id, household_type, locality")
-        .eq("id", job.employer_id as string)
-        .single(),
-      supabase
-        .from("recently_viewed")
-        .insert({
-          user_id: authUser.id,
-          target_type: "job_listing",
-          job_listing_id: job.id as string,
-        } as Record<string, unknown> as never),
-      supabase
-        .from("favorites")
-        .select("id")
-        .eq("user_id", authUser.id)
-        .eq("job_listing_id", job.id as string)
-        .single(),
-    ]);
-
-    const ep = epResult.data as { id: string; user_id: string; household_type: string | null; locality: string | null } | null;
-    const isOwner = ep?.user_id === authUser.id;
-    const isFavorited = !isOwner && !!favResult.data;
-
-    // Get employer name
-    let employerName = "Employer";
-    if (ep) {
-      const { data: uRaw } = await supabase
-        .from("users")
-        .select("name")
-        .eq("id", ep.user_id)
-        .single();
-      employerName = (uRaw as { name: string | null } | null)?.name ?? "Employer";
+    if (wp) {
+      const w = wp as { custom_id: string; categories: string[]; city: string | null };
+      redirect(workerDetailUrl(w.city, w.categories[0] ?? null, w.custom_id));
     }
-
-    return (
-      <>
-        <JobPostingJsonLd
-          title={(job.title as string | null) ?? ""}
-          description={job.description as string | null}
-          category={job.category as string}
-          locality={job.locality as string | null}
-          salaryMin={job.salary_min as number | null}
-          salaryMax={job.salary_max as number | null}
-          createdAt={job.created_at as string}
-          expiresAt={job.expires_at as string}
-          employerName={employerName}
-        />
-        <JobDetail
-          job={{
-            id: job.id as string,
-            customId: job.custom_id as string,
-            category: job.category as string,
-            title: job.title as string | null,
-            description: job.description as string | null,
-            salaryMin: job.salary_min as number | null,
-            salaryMax: job.salary_max as number | null,
-            schedule: job.schedule as string | null,
-            preferredDays: job.preferred_days as string[],
-            preferredTimings: job.preferred_timings as string[],
-            locality: job.locality as string | null,
-            status: job.status as string,
-            createdAt: job.created_at as string,
-            expiresAt: job.expires_at as string,
-          }}
-          employer={{
-            name: employerName,
-            householdType: ep?.household_type ?? null,
-            locality: ep?.locality ?? null,
-          }}
-          isOwner={isOwner}
-          isFavorited={isFavorited}
-        />
-      </>
-    );
   }
 
-  // Worker profile — id is a UUID
-  // Parallel: fetch worker profile + user info + favorite + reveal check
-  const { data: wpRaw } = await supabase
-    .from("worker_profiles")
-    .select("*")
-    .eq("id", id)
-    .single();
-
-  const wp = wpRaw as Record<string, unknown> | null;
-  if (!wp) {
-    redirect("/");
-  }
-
-  const isOwner = (wp.user_id as string) === authUser.id;
-
-  // Parallel: user info + recently viewed + favorite + reveal
-  const [wuResult, _viewResult2, favResult2, revealResult] = await Promise.all([
-    supabase
-      .from("users")
-      .select("name, phone")
-      .eq("id", wp.user_id as string)
-      .single(),
-    isOwner
-      ? Promise.resolve({ data: null })
-      : supabase
-          .from("recently_viewed")
-          .insert({
-            user_id: authUser.id,
-            target_type: "worker_profile",
-            worker_profile_id: wp.id as string,
-          } as Record<string, unknown> as never),
-    isOwner
-      ? Promise.resolve({ data: null })
-      : supabase
-          .from("favorites")
-          .select("id")
-          .eq("user_id", authUser.id)
-          .eq("worker_profile_id", wp.id as string)
-          .single(),
-    isOwner
-      ? Promise.resolve({ data: null })
-      : supabase
-          .from("lead_reveals")
-          .select("id")
-          .eq("from_user_id", authUser.id)
-          .eq("worker_profile_id", wp.id as string)
-          .single(),
-  ]);
-
-  const workerUser = wuResult.data as { name: string | null; phone: string } | null;
-  const isFavoritedWorker = !!favResult2.data;
-  const isRevealed = !!revealResult.data;
-
-  let revealedPhone: string | null = null;
-  if (isRevealed) {
-    const phone = workerUser?.phone ?? "";
-    revealedPhone = phone.slice(-10, -4).replace(/./g, "X") + phone.slice(-4);
-  }
-
-  return (
-    <>
-      <WorkerProfileJsonLd
-        name={workerUser?.name ?? "Staff"}
-        skills={wp.categories as string[]}
-        locality={wp.locality as string | null}
-        experienceYears={wp.experience_years as number}
-      />
-      <WorkerDetail
-        worker={{
-        id: wp.id as string,
-        userId: wp.user_id as string,
-        name: workerUser?.name ?? "Worker",
-        gender: wp.gender as string | null,
-        categories: wp.categories as string[],
-        experienceYears: wp.experience_years as number,
-        salaryMin: wp.salary_min as number | null,
-        salaryMax: wp.salary_max as number | null,
-        availableDays: wp.available_days as string[],
-        availableTimings: wp.available_timings as string[],
-        languages: wp.languages as string[],
-        originallyFrom: wp.originally_from as string | null,
-        bio: wp.bio as string | null,
-        locality: wp.locality as string | null,
-        isActive: wp.is_active as boolean,
-        updatedAt: wp.updated_at as string | null,
-      }}
-      isOwner={isOwner}
-      isRevealed={isRevealed}
-      revealedPhone={revealedPhone}
-      isFavorited={isFavoritedWorker}
-    />
-    </>
-  );
+  redirect("/");
 }

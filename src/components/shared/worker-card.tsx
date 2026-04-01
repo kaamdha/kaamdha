@@ -6,9 +6,12 @@ import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { RevealModal } from "@/components/shared/reveal-modal";
 import { revealWorkerPhone } from "@/app/actions/reveal";
+import { workerDetailUrl } from "@/lib/constants";
 
 interface WorkerCardProps {
   id: string;
+  customId: string;
+  city: string | null;
   name: string;
   gender: string | null;
   categories: string[];
@@ -25,8 +28,11 @@ interface WorkerCardProps {
 
 export function WorkerCard({
   id,
+  customId,
+  city,
   name,
   gender,
+  categories,
   experienceYears,
   salaryMin,
   salaryMax,
@@ -56,7 +62,7 @@ export function WorkerCard({
   return (
     <>
       <div
-        onClick={() => router.push(`/details/${id}`)}
+        onClick={() => router.push(workerDetailUrl(city, categories[0] ?? null, customId))}
         className="relative block cursor-pointer rounded-[12px] border-[1.5px] border-slate-200 bg-white p-3"
       >
         {/* Bookmark top-right */}

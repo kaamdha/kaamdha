@@ -7,6 +7,8 @@ import { WorkerCard } from "@/components/shared/worker-card";
 
 interface WorkerData {
   id: string;
+  customId: string;
+  city: string | null;
   name: string;
   gender: string | null;
   categories: string[];
@@ -71,6 +73,8 @@ export function StaffListings({
             <WorkerCard
               key={w.id}
               id={w.id}
+              customId={w.customId}
+              city={w.city}
               name={w.name}
               gender={w.gender}
               categories={w.categories}

@@ -112,6 +112,8 @@ export function EmployerSearch({
               <WorkerCard
                 key={w.id}
                 id={w.id}
+                customId={w.custom_id}
+                city={w.city}
                 name={w.name}
                 gender={w.gender}
                 categories={w.categories}

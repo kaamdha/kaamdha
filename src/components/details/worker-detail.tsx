@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { ArrowLeft } from "lucide-react";
-import { JOB_CATEGORIES } from "@/lib/constants";
+import { JOB_CATEGORIES, workerDetailUrl } from "@/lib/constants";
 import { RevealModal } from "@/components/shared/reveal-modal";
 import { ShareModal } from "@/components/shared/share-modal";
 import { EditIcon } from "@/components/shared/edit-icon";
@@ -20,6 +20,7 @@ import { events } from "@/lib/posthog";
 interface WorkerDetailProps {
   worker: {
     id: string;
+    customId: string;
     userId: string;
     name: string;
     gender: string | null;
@@ -33,6 +34,7 @@ interface WorkerDetailProps {
     originallyFrom: string | null;
     bio: string | null;
     locality: string | null;
+    city: string | null;
     isActive: boolean;
     updatedAt: string | null;
   };
@@ -255,7 +257,7 @@ export function WorkerDetail({
         isOpen={showShareModal}
         onClose={() => setShowShareModal(false)}
         title={tShare("shareProfile")}
-        shareUrl={typeof window !== "undefined" ? `${window.location.origin}/details/${worker.id}` : `https://kaamdha.com/details/${worker.id}`}
+        shareUrl={typeof window !== "undefined" ? `${window.location.origin}${workerDetailUrl(worker.city, worker.categories[0] ?? null, worker.customId)}` : `https://kaamdha.com${workerDetailUrl(worker.city, worker.categories[0] ?? null, worker.customId)}`}
         shareName={worker.name}
       />
     </div>

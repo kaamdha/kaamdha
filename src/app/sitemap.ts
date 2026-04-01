@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { createClient } from "@supabase/supabase-js";
-import { CITY_SLUGS, JOB_CATEGORIES } from "@/lib/constants";
+import { CITY_SLUGS, JOB_CATEGORIES, workerDetailUrl, jobDetailUrl } from "@/lib/constants";
 
 const BASE = "https://kaamdha.com";
 
@@ -61,13 +61,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const [jobsResult, workersResult] = await Promise.all([
         supabase
           .from("job_listings")
-          .select("custom_id, updated_at")
+          .select("custom_id, category, city, updated_at")
           .eq("status", "active")
           .order("updated_at", { ascending: false })
           .limit(500),
         supabase
           .from("worker_profiles")
-          .select("id, updated_at")
+          .select("custom_id, categories, city, updated_at")
           .eq("is_active", true)
           .order("updated_at", { ascending: false })
           .limit(500),
@@ -76,7 +76,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       if (jobsResult.data) {
         for (const job of jobsResult.data) {
           entries.push(
-            localeEntry(`/details/${job.custom_id}`, {
+            localeEntry(jobDetailUrl(job.city, job.category, job.custom_id), {
               lastModified: new Date(job.updated_at),
               changeFrequency: "weekly",
               priority: 0.7,
@@ -88,7 +88,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       if (workersResult.data) {
         for (const worker of workersResult.data) {
           entries.push(
-            localeEntry(`/details/${worker.id}`, {
+            localeEntry(workerDetailUrl(worker.city, worker.categories?.[0] ?? null, worker.custom_id), {
               lastModified: new Date(worker.updated_at),
               changeFrequency: "weekly",
               priority: 0.6,

@@ -2,7 +2,7 @@
 
 import { Link, useRouter } from "@/i18n/navigation";
 import { useTranslations, useLocale } from "next-intl";
-import { JOB_CATEGORIES } from "@/lib/constants";
+import { JOB_CATEGORIES, jobDetailUrl } from "@/lib/constants";
 
 /* eslint-disable @next/next/no-img-element */
 
@@ -12,6 +12,7 @@ interface JobData {
   title: string | null;
   category: string;
   locality: string | null;
+  city: string | null;
   salaryMin: number | null;
   salaryMax: number | null;
   preferredTimings: string[];
@@ -122,7 +123,7 @@ function PublicJobCard({
 
   return (
     <div
-      onClick={() => router.push(`/details/${job.customId}`)}
+      onClick={() => router.push(jobDetailUrl(job.city, job.category, job.customId))}
       className="relative block cursor-pointer rounded-[12px] border-[1.5px] border-slate-200 bg-white p-3"
     >
       <div>

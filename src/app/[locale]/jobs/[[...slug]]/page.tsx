@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { JobListings } from "@/components/listings/job-listings";
+import { JobDetail } from "@/components/details/job-detail";
+import { JobPostingJsonLd } from "@/components/shared/json-ld";
 import {
   JOB_CATEGORIES,
   CITY_LABELS,
   parseListingSlug,
+  jobDetailUrl,
 } from "@/lib/constants";
 
 interface Props {
@@ -15,7 +18,35 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const { city, categorySlug } = parseListingSlug(slug);
+  const { city, categorySlug, detailId } = parseListingSlug(slug);
+
+  // Detail page metadata
+  if (detailId) {
+    const admin = createServiceClient();
+    const { data: jobRaw } = await admin
+      .from("job_listings")
+      .select("title, category, locality")
+      .eq("custom_id", detailId)
+      .single();
+    const job = jobRaw as { title: string | null; category: string; locality: string | null } | null;
+    if (job) {
+      const catInfo = JOB_CATEGORIES.find((c) => c.id === job.category);
+      const title = job.title || `${catInfo?.labelEn ?? "Staff"} needed`;
+      const location = job.locality ?? CITY_LABELS[city ?? "gurgaon"]?.en ?? "Gurgaon";
+      const url = jobDetailUrl(city ?? null, job.category, detailId);
+      return {
+        title: `${title} in ${location}`,
+        description: `${title} job in ${location}. Connect directly on kaamdha — no middlemen.`,
+        alternates: { canonical: url },
+        openGraph: {
+          title: `${title} in ${location} | kaamdha`,
+          description: `${title} job in ${location}. Connect directly on kaamdha.`,
+          images: ["/og-image.png"],
+        },
+      };
+    }
+  }
+
   const cat = categorySlug
     ? JOB_CATEGORIES.find((c) => c.slug === categorySlug)
     : undefined;
@@ -52,8 +83,13 @@ export default async function JobListingsPage({ params }: Props) {
   if (slug && slug.length > 1 && !parsed.categoryId) {
     notFound();
   }
-  if (slug && slug.length > 2) {
+  if (slug && slug.length > 3) {
     notFound();
+  }
+
+  // 3 segments = detail view
+  if (parsed.detailId) {
+    return renderJobDetail(parsed.detailId);
   }
 
   const supabase = await createClient();
@@ -69,7 +105,7 @@ export default async function JobListingsPage({ params }: Props) {
   let query = admin
     .from("job_listings")
     .select(
-      "id, custom_id, title, category, locality, salary_min, salary_max, preferred_timings"
+      "id, custom_id, title, category, locality, city, salary_min, salary_max, preferred_timings"
     )
     .eq("status", "active")
     .order("created_at", { ascending: false })
@@ -90,6 +126,7 @@ export default async function JobListingsPage({ params }: Props) {
     title: j.title as string | null,
     category: j.category as string,
     locality: j.locality as string | null,
+    city: j.city as string | null,
     salaryMin: j.salary_min as number | null,
     salaryMax: j.salary_max as number | null,
     preferredTimings: (j.preferred_timings as string[]) ?? [],
@@ -102,5 +139,108 @@ export default async function JobListingsPage({ params }: Props) {
       city={parsed.city}
       categorySlug={parsed.categorySlug}
     />
+  );
+}
+
+async function renderJobDetail(customId: string) {
+  const supabase = await createClient();
+  const admin = createServiceClient();
+
+  const {
+    data: { user: authUser },
+  } = await supabase.auth.getUser();
+
+  if (!authUser) {
+    redirect("/login");
+  }
+
+  const { data: jobRaw } = await admin
+    .from("job_listings")
+    .select("*")
+    .eq("custom_id", customId)
+    .single();
+
+  const job = jobRaw as Record<string, unknown> | null;
+  if (!job) {
+    notFound();
+  }
+
+  // Parallel: employer profile + recently_viewed + favorite check
+  const [epResult, , favResult] = await Promise.all([
+    admin
+      .from("employer_profiles")
+      .select("id, user_id, household_type, locality")
+      .eq("id", job.employer_id as string)
+      .single(),
+    admin
+      .from("recently_viewed")
+      .insert({
+        user_id: authUser.id,
+        target_type: "job_listing",
+        job_listing_id: job.id as string,
+      } as Record<string, unknown> as never),
+    admin
+      .from("favorites")
+      .select("id")
+      .eq("user_id", authUser.id)
+      .eq("job_listing_id", job.id as string)
+      .single(),
+  ]);
+
+  const ep = epResult.data as { id: string; user_id: string; household_type: string | null; locality: string | null } | null;
+  const isOwner = ep?.user_id === authUser.id;
+  const isFavorited = !isOwner && !!favResult.data;
+
+  // Get employer name
+  let employerName = "Employer";
+  if (ep) {
+    const { data: uRaw } = await admin
+      .from("users")
+      .select("name")
+      .eq("id", ep.user_id)
+      .single();
+    employerName = (uRaw as { name: string | null } | null)?.name ?? "Employer";
+  }
+
+  return (
+    <>
+      <JobPostingJsonLd
+        title={(job.title as string | null) ?? ""}
+        description={job.description as string | null}
+        category={job.category as string}
+        locality={job.locality as string | null}
+        salaryMin={job.salary_min as number | null}
+        salaryMax={job.salary_max as number | null}
+        createdAt={job.created_at as string}
+        expiresAt={job.expires_at as string}
+        employerName={employerName}
+      />
+      <JobDetail
+        job={{
+          id: job.id as string,
+          customId: job.custom_id as string,
+          category: job.category as string,
+          title: job.title as string | null,
+          description: job.description as string | null,
+          salaryMin: job.salary_min as number | null,
+          salaryMax: job.salary_max as number | null,
+          schedule: job.schedule as string | null,
+          preferredDays: (job.preferred_days as string[]) ?? [],
+          preferredTimings: (job.preferred_timings as string[]) ?? [],
+          locality: job.locality as string | null,
+          city: job.city as string | null,
+          status: job.status as string,
+          createdAt: job.created_at as string,
+          expiresAt: job.expires_at as string,
+        }}
+        employer={{
+          name: employerName,
+          householdType: ep?.household_type ?? null,
+          locality: ep?.locality ?? null,
+        }}
+        isOwner={isOwner}
+        isFavorited={isFavorited}
+      />
+    </>
   );
 }

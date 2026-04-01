@@ -63,22 +63,45 @@ export const CITY_LABELS: Record<string, { en: string; hi: string }> = {
 };
 
 /**
- * Parse optional catch-all slug segments into city and category.
+ * Parse optional catch-all slug segments into city, category, and detail ID.
  * e.g. ["gurgaon", "maid"] → { city: "gurgaon", categorySlug: "maid", categoryId: "C0001" }
+ * e.g. ["gurgaon", "maid", "W000000001"] → { city, categorySlug, categoryId, detailId: "W000000001" }
  */
 export function parseListingSlug(slug?: string[]): {
   city?: string;
   categorySlug?: string;
   categoryId?: string;
+  detailId?: string;
 } {
   if (!slug || slug.length === 0) return {};
   const first = slug[0] as string;
   if (!first) return {};
   const city = (CITY_SLUGS as readonly string[]).includes(first) ? first : undefined;
-  if (!city) return {}; // invalid first segment
+  if (!city) return {};
   if (slug.length === 1) return { city };
   const second = slug[1];
   const cat = JOB_CATEGORIES.find((c) => c.slug === second);
-  if (!cat) return { city }; // invalid category slug, ignore
-  return { city, categorySlug: cat.slug, categoryId: cat.id };
+  if (!cat) return { city };
+  if (slug.length === 2) return { city, categorySlug: cat.slug, categoryId: cat.id };
+  const detailId = slug[2];
+  if (!detailId) return { city, categorySlug: cat.slug, categoryId: cat.id };
+  return { city, categorySlug: cat.slug, categoryId: cat.id, detailId };
+}
+
+/**
+ * Build a detail page URL for a worker profile.
+ */
+export function workerDetailUrl(city: string | null, categoryId: string | null, customId: string): string {
+  const catSlug = categoryId ? JOB_CATEGORIES.find((c) => c.id === categoryId)?.slug : undefined;
+  if (city && catSlug) return `/listings/${city}/${catSlug}/${customId}`;
+  return `/listings/gurgaon/${catSlug ?? "maid"}/${customId}`;
+}
+
+/**
+ * Build a detail page URL for a job listing.
+ */
+export function jobDetailUrl(city: string | null, categoryId: string | null, customId: string): string {
+  const catSlug = categoryId ? JOB_CATEGORIES.find((c) => c.id === categoryId)?.slug : undefined;
+  if (city && catSlug) return `/jobs/${city}/${catSlug}/${customId}`;
+  return `/jobs/gurgaon/${catSlug ?? "maid"}/${customId}`;
 }

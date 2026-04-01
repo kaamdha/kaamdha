@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { ArrowLeft } from "lucide-react";
-import { JOB_CATEGORIES } from "@/lib/constants";
+import { JOB_CATEGORIES, jobDetailUrl } from "@/lib/constants";
 import { RevealModal } from "@/components/shared/reveal-modal";
 import { ShareModal } from "@/components/shared/share-modal";
 import { EditIcon } from "@/components/shared/edit-icon";
@@ -26,6 +26,7 @@ interface JobDetailProps {
     preferredDays: string[];
     preferredTimings: string[];
     locality: string | null;
+    city: string | null;
     status: string;
     createdAt: string;
     expiresAt: string;
@@ -211,7 +212,7 @@ export function JobDetail({ job, employer, isOwner, isFavorited: initialFavorite
         isOpen={showShareModal}
         onClose={() => setShowShareModal(false)}
         title={tShare("shareJob")}
-        shareUrl={typeof window !== "undefined" ? `${window.location.origin}/details/${job.customId}` : `https://kaamdha.com/details/${job.customId}`}
+        shareUrl={typeof window !== "undefined" ? `${window.location.origin}${jobDetailUrl(job.city, job.category, job.customId)}` : `https://kaamdha.com${jobDetailUrl(job.city, job.category, job.customId)}`}
         shareName={title}
       />
     </div>

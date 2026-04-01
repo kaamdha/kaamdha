@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Link, useRouter } from "@/i18n/navigation";
 import { useTranslations, useLocale } from "next-intl";
-import { JOB_CATEGORIES } from "@/lib/constants";
+import { JOB_CATEGORIES, jobDetailUrl } from "@/lib/constants";
 import { EditIcon } from "@/components/shared/edit-icon";
 import { RevealModal } from "@/components/shared/reveal-modal";
 import { revealEmployerPhone } from "@/app/actions/reveal";
@@ -122,7 +122,7 @@ function JobCard({ job, locale, isFavorited = false }: { job: Record<string, unk
   return (
     <>
       <div
-        onClick={() => router.push(`/details/${job.custom_id as string}`)}
+        onClick={() => router.push(jobDetailUrl(job.city as string | null, job.category as string, job.custom_id as string))}
         className="relative block cursor-pointer rounded-[12px] border-[1.5px] border-slate-200 bg-white p-3"
       >
         {/* Bookmark top-right */}

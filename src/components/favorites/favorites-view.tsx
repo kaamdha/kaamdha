@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { ArrowLeft } from "lucide-react";
-import { JOB_CATEGORIES } from "@/lib/constants";
+import { JOB_CATEGORIES, jobDetailUrl } from "@/lib/constants";
 import { EditIcon } from "@/components/shared/edit-icon";
 import { WorkerCard } from "@/components/shared/worker-card";
 
@@ -189,6 +189,8 @@ export function FavoritesView({
                       <WorkerCard
                         key={r.id as string}
                         id={w.id as string}
+                        customId={w.custom_id as string}
+                        city={w.city as string | null}
                         name={w.name as string}
                         gender={w.gender as string | null}
                         categories={w.categories as string[]}
@@ -219,6 +221,8 @@ export function FavoritesView({
                       <WorkerCard
                         key={f.id as string}
                         id={w.id as string}
+                        customId={w.custom_id as string}
+                        city={w.city as string | null}
                         name={w.name as string}
                         gender={w.gender as string | null}
                         categories={w.categories as string[]}
@@ -341,7 +345,7 @@ function JobCard({ job, locale, isFavorited, revealedPhone }: { job: Record<stri
 
   return (
     <div
-      onClick={() => router.push(`/details/${job.custom_id as string}`)}
+      onClick={() => router.push(jobDetailUrl(job.city as string | null, job.category as string, job.custom_id as string))}
       className="relative block cursor-pointer rounded-[12px] border-[1.5px] border-slate-200 bg-white p-3"
     >
       {/* Bookmark top-right */}

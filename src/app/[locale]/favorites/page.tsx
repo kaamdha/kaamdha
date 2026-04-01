@@ -90,13 +90,13 @@ export default async function FavoritesPage() {
     workerIds.size > 0
       ? supabase
           .from("worker_profiles")
-          .select("id, user_id, categories, experience_years, salary_min, salary_max, available_timings, locality, gender")
+          .select("id, custom_id, user_id, categories, experience_years, salary_min, salary_max, available_timings, locality, city, gender")
           .in("id", [...workerIds])
       : Promise.resolve({ data: [] }),
     jobIds.size > 0
       ? supabase
           .from("job_listings")
-          .select("id, custom_id, category, title, salary_min, salary_max, preferred_timings, locality, status, employer_id")
+          .select("id, custom_id, category, title, salary_min, salary_max, preferred_timings, locality, city, status, employer_id")
           .in("id", [...jobIds])
       : Promise.resolve({ data: [] }),
   ]);
