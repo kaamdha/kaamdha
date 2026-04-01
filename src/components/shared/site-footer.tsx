@@ -6,6 +6,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { JOB_CATEGORIES, CITY_LABELS } from "@/lib/constants";
 
 const FOOTER_CITIES = ["gurgaon", "delhi", "noida", "faridabad", "ghaziabad", "greater-noida"] as const;
+const CATEGORY_CITIES = ["gurgaon", "delhi", "noida"] as const;
 
 const HIDDEN_ROUTES = ["/login", "/onboard"];
 
@@ -71,7 +72,7 @@ export function SiteFooter() {
                 {catLabel}
               </h4>
               <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5">
-                {FOOTER_CITIES.map((city) => {
+                {CATEGORY_CITIES.map((city) => {
                   const cityLabel = (locale === "hi" ? CITY_LABELS[city]?.hi : CITY_LABELS[city]?.en) ?? city;
                   return (
                     <Link
@@ -85,7 +86,7 @@ export function SiteFooter() {
                 })}
               </div>
               <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
-                {FOOTER_CITIES.map((city) => {
+                {CATEGORY_CITIES.map((city) => {
                   const cityLabel = (locale === "hi" ? CITY_LABELS[city]?.hi : CITY_LABELS[city]?.en) ?? city;
                   return (
                     <Link
