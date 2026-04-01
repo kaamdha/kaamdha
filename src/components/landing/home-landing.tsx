@@ -4,35 +4,11 @@ import { useState } from "react";
 import { Link } from "@/i18n/navigation";
 import Image from "next/image";
 import { useTranslations, useLocale } from "next-intl";
-import { JOB_CATEGORIES, CITY_SLUGS, CITY_LABELS } from "@/lib/constants";
+import { CITY_LABELS } from "@/lib/constants";
 
 type Mode = "find_help" | "find_jobs";
 
-const POPULAR_STAFF = [
-  { city: "gurgaon", cat: "maid" },
-  { city: "gurgaon", cat: "cook" },
-  { city: "gurgaon", cat: "driver" },
-  { city: "delhi", cat: "maid" },
-  { city: "delhi", cat: "cook" },
-  { city: "noida", cat: "maid" },
-  { city: "gurgaon", cat: "nanny" },
-  { city: "faridabad", cat: "maid" },
-  { city: "gurgaon", cat: "eldercare" },
-  { city: "manesar", cat: "maid" },
-];
-
-const POPULAR_JOBS = [
-  { city: "gurgaon", cat: "maid" },
-  { city: "gurgaon", cat: "cook" },
-  { city: "gurgaon", cat: "driver" },
-  { city: "delhi", cat: "maid" },
-  { city: "delhi", cat: "cook" },
-  { city: "noida", cat: "maid" },
-  { city: "gurgaon", cat: "nanny" },
-  { city: "faridabad", cat: "maid" },
-  { city: "gurgaon", cat: "eldercare" },
-  { city: "manesar", cat: "cook" },
-];
+const LANDING_CITIES = ["gurgaon", "delhi", "noida", "faridabad", "ghaziabad", "greater-noida"] as const;
 
 export function HomeLanding() {
   const [mode, setMode] = useState<Mode>("find_help");
@@ -53,14 +29,7 @@ export function HomeLanding() {
           { title: t("findJobsStep3Title"), desc: t("findJobsStep3Desc") },
         ];
 
-  const popularLinks = mode === "find_help" ? POPULAR_STAFF : POPULAR_JOBS;
   const basePath = mode === "find_help" ? "/listings" : "/jobs";
-
-  function getCatLabel(slug: string): string {
-    const cat = JOB_CATEGORIES.find((c) => c.slug === slug);
-    if (!cat) return slug;
-    return locale === "hi" ? cat.labelHi : cat.labelEn;
-  }
 
   function getCityLabel(city: string): string {
     return locale === "hi"
@@ -146,12 +115,12 @@ export function HomeLanding() {
       </div>
 
       {/* Browse by city */}
-      <div className="px-4 pt-6">
+      <div className="px-4 pt-6 pb-6">
         <h2 className="font-heading text-[14px] font-bold text-foreground">
           {mode === "find_help" ? tf("browseStaffByCity") : tf("browseJobsByCity")}
         </h2>
         <div className="mt-2.5 grid grid-cols-3 gap-2">
-          {CITY_SLUGS.map((city) => (
+          {LANDING_CITIES.map((city) => (
             <Link
               key={city}
               href={`${basePath}/${city}`}
@@ -162,32 +131,6 @@ export function HomeLanding() {
               </p>
             </Link>
           ))}
-        </div>
-      </div>
-
-      {/* Popular searches */}
-      <div className="px-4 pt-5 pb-6">
-        <h2 className="font-heading text-[14px] font-bold text-foreground">
-          {mode === "find_help" ? tf("popularSearches") : tf("popularJobSearches")}
-        </h2>
-        <div className="mt-2.5 flex flex-wrap gap-1.5">
-          {popularLinks.map(({ city, cat }) => {
-            const catLabel = getCatLabel(cat);
-            const cityLabel = getCityLabel(city);
-            const label =
-              mode === "find_help"
-                ? `${catLabel} in ${cityLabel}`
-                : `${catLabel} jobs in ${cityLabel}`;
-            return (
-              <Link
-                key={`${city}-${cat}`}
-                href={`${basePath}/${city}/${cat}`}
-                className="rounded-full border-[1.5px] border-teal-200 bg-teal-50 px-3 py-1 text-[11px] font-semibold text-teal-700 transition-all hover:bg-primary hover:text-white hover:border-primary"
-              >
-                {label}
-              </Link>
-            );
-          })}
         </div>
       </div>
 
