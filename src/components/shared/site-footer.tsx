@@ -6,7 +6,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { JOB_CATEGORIES, CITY_LABELS } from "@/lib/constants";
 
 const FOOTER_CITIES = ["gurgaon", "delhi", "noida", "faridabad", "ghaziabad", "greater-noida"] as const;
-const CATEGORY_CITIES = ["gurgaon", "delhi", "noida"] as const;
+const CATEGORY_CITIES = ["gurgaon", "delhi", "noida", "faridabad"] as const;
 
 const HIDDEN_ROUTES = ["/login", "/onboard"];
 
