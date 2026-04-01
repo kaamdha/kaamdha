@@ -109,7 +109,7 @@ export function SiteFooter() {
         Made with ❤️ for Bharat
       </p>
       <p className="mt-1 text-center text-[10px] text-teal-600/50">
-        © 2025 kaamdha
+        © 2026 kaamdha
       </p>
     </footer>
   );
