@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations, useLocale } from "next-intl";
+import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { JOB_CATEGORIES, jobDetailUrl } from "@/lib/constants";
 import { RevealModal } from "@/components/shared/reveal-modal";
@@ -38,9 +39,10 @@ interface JobDetailProps {
   };
   isOwner: boolean;
   isFavorited: boolean;
+  isPublic?: boolean;
 }
 
-export function JobDetail({ job, employer, isOwner, isFavorited: initialFavorited }: JobDetailProps) {
+export function JobDetail({ job, employer, isOwner, isFavorited: initialFavorited, isPublic = false }: JobDetailProps) {
   const router = useRouter();
   const t = useTranslations("detail");
   const tc = useTranslations("common");
@@ -62,7 +64,7 @@ export function JobDetail({ job, employer, isOwner, isFavorited: initialFavorite
   const title = job.title || tc("needed", { category: catLabel });
 
   const salaryText =
-    job.salaryMin || job.salaryMax
+    !isPublic && (job.salaryMin || job.salaryMax)
       ? `₹${job.salaryMin ? (job.salaryMin / 1000).toFixed(0) + "k" : ""}${job.salaryMin && job.salaryMax ? " - " : ""}${job.salaryMax ? "₹" + (job.salaryMax / 1000).toFixed(0) + "k" : ""}/mo`
       : "—";
 
@@ -102,8 +104,8 @@ export function JobDetail({ job, employer, isOwner, isFavorited: initialFavorite
             <p className="font-heading text-[16px] font-bold text-foreground">
               {title}
             </p>
-            <p className="mt-1 font-mono text-[12px] font-semibold text-foreground">
-              +91 981-XXX-XXXX
+            <p className={`mt-1 font-mono text-[12px] font-semibold ${isPublic ? "text-slate-400" : "text-foreground"}`}>
+              +91 {isPublic ? "XXX-XXX-XXXX" : "981-XXX-XXXX"}
             </p>
           </div>
           {!isOwner && (
@@ -156,39 +158,50 @@ export function JobDetail({ job, employer, isOwner, isFavorited: initialFavorite
       {!isOwner && (
         <div className="fixed bottom-0 left-1/2 w-full max-w-[420px] -translate-x-1/2 border-t border-slate-200 bg-white px-4 py-3">
           <div className="flex items-center gap-3">
-            <button
-              onClick={async () => {
-                const result = await toggleFavorite("job_listing", job.id);
-                setIsFavorited(result.isFavorited);
-                if (result.isFavorited) {
-                  events.favoriteAdded({ targetType: "job_listing", targetId: job.id });
-                } else {
-                  events.favoriteRemoved({ targetType: "job_listing", targetId: job.id });
-                }
-              }}
-              className={`flex size-11 items-center justify-center rounded-lg border-[1.5px] ${
-                isFavorited ? "border-primary bg-teal-50" : "border-slate-200"
-              }`}
-            >
-              <img
-                src={isFavorited ? "/icons/bookmark-nav.png" : "/icons/bookmark.png"}
-                alt=""
-                className={`size-5 ${isFavorited ? "opacity-100" : "opacity-30"}`}
-              />
-            </button>
-            {revealedPhone ? (
-              <div className="flex flex-1 items-center justify-center gap-2 rounded-[10px] bg-green-50 py-2.5">
-                <span className="font-mono text-[13px] font-bold text-green-700">
-                  📞 {revealedPhone}
-                </span>
-              </div>
-            ) : (
-              <button
-                onClick={() => setShowRevealModal(true)}
+            {isPublic ? (
+              <Link
+                href="/login"
                 className="flex flex-1 items-center justify-center gap-1.5 rounded-[10px] bg-primary py-2.5 text-[13px] font-bold text-white"
               >
-                {tc("connectFree")}
-              </button>
+                {tc("loginToConnect")}
+              </Link>
+            ) : (
+              <>
+                <button
+                  onClick={async () => {
+                    const result = await toggleFavorite("job_listing", job.id);
+                    setIsFavorited(result.isFavorited);
+                    if (result.isFavorited) {
+                      events.favoriteAdded({ targetType: "job_listing", targetId: job.id });
+                    } else {
+                      events.favoriteRemoved({ targetType: "job_listing", targetId: job.id });
+                    }
+                  }}
+                  className={`flex size-11 items-center justify-center rounded-lg border-[1.5px] ${
+                    isFavorited ? "border-primary bg-teal-50" : "border-slate-200"
+                  }`}
+                >
+                  <img
+                    src={isFavorited ? "/icons/bookmark-nav.png" : "/icons/bookmark.png"}
+                    alt=""
+                    className={`size-5 ${isFavorited ? "opacity-100" : "opacity-30"}`}
+                  />
+                </button>
+                {revealedPhone ? (
+                  <div className="flex flex-1 items-center justify-center gap-2 rounded-[10px] bg-green-50 py-2.5">
+                    <span className="font-mono text-[13px] font-bold text-green-700">
+                      📞 {revealedPhone}
+                    </span>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setShowRevealModal(true)}
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-[10px] bg-primary py-2.5 text-[13px] font-bold text-white"
+                  >
+                    {tc("connectFree")}
+                  </button>
+                )}
+              </>
             )}
           </div>
         </div>

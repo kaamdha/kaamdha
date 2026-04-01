@@ -53,7 +53,8 @@
     "result": "result",
     "results": "results",
     "gender": "Gender",
-    "connectFree": "Connect · FREE"
+    "connectFree": "Connect · FREE",
+    "loginToConnect": "Login to connect"
   },
   "landing": {
     "findStaff": "Find staff",

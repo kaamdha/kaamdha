@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { JobListings } from "@/components/listings/job-listings";
@@ -67,7 +67,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       "Browse household job openings — maid, cook, driver, nanny and more jobs near you.";
   }
 
-  return { title, description };
+  const canonicalParts = ["/jobs"];
+  if (city) canonicalParts.push(city);
+  if (categorySlug) canonicalParts.push(categorySlug);
+  const canonical = canonicalParts.join("/");
+
+  return { title, description, alternates: { canonical } };
 }
 
 export const dynamic = "force-dynamic";
@@ -150,10 +155,6 @@ async function renderJobDetail(customId: string) {
     data: { user: authUser },
   } = await supabase.auth.getUser();
 
-  if (!authUser) {
-    redirect("/login");
-  }
-
   const { data: jobRaw } = await admin
     .from("job_listings")
     .select("*")
@@ -165,13 +166,76 @@ async function renderJobDetail(customId: string) {
     notFound();
   }
 
-  // Parallel: employer profile + recently_viewed + favorite check
-  const [epResult, , favResult] = await Promise.all([
-    admin
-      .from("employer_profiles")
-      .select("id, user_id, household_type, locality")
-      .eq("id", job.employer_id as string)
-      .single(),
+  // Get employer profile + name (needed for both public and auth views)
+  const { data: epRaw } = await admin
+    .from("employer_profiles")
+    .select("id, user_id, household_type, locality")
+    .eq("id", job.employer_id as string)
+    .single();
+  const ep = epRaw as { id: string; user_id: string; household_type: string | null; locality: string | null } | null;
+
+  let employerName = "Employer";
+  if (ep) {
+    const { data: uRaw } = await admin
+      .from("users")
+      .select("name")
+      .eq("id", ep.user_id)
+      .single();
+    employerName = (uRaw as { name: string | null } | null)?.name ?? "Employer";
+  }
+
+  const jobProps = {
+    id: job.id as string,
+    customId: job.custom_id as string,
+    category: job.category as string,
+    title: job.title as string | null,
+    description: job.description as string | null,
+    salaryMin: job.salary_min as number | null,
+    salaryMax: job.salary_max as number | null,
+    schedule: job.schedule as string | null,
+    preferredDays: (job.preferred_days as string[]) ?? [],
+    preferredTimings: (job.preferred_timings as string[]) ?? [],
+    locality: job.locality as string | null,
+    city: job.city as string | null,
+    status: job.status as string,
+    createdAt: job.created_at as string,
+    expiresAt: job.expires_at as string,
+  };
+
+  const employerProps = {
+    name: employerName,
+    householdType: ep?.household_type ?? null,
+    locality: ep?.locality ?? null,
+  };
+
+  // Public view — no auth
+  if (!authUser) {
+    return (
+      <>
+        <JobPostingJsonLd
+          title={(job.title as string | null) ?? ""}
+          description={job.description as string | null}
+          category={job.category as string}
+          locality={job.locality as string | null}
+          salaryMin={job.salary_min as number | null}
+          salaryMax={job.salary_max as number | null}
+          createdAt={job.created_at as string}
+          expiresAt={job.expires_at as string}
+          employerName={employerName}
+        />
+        <JobDetail
+          job={jobProps}
+          employer={employerProps}
+          isOwner={false}
+          isFavorited={false}
+          isPublic
+        />
+      </>
+    );
+  }
+
+  // Authenticated view
+  const [, favResult] = await Promise.all([
     admin
       .from("recently_viewed")
       .insert({
@@ -187,20 +251,8 @@ async function renderJobDetail(customId: string) {
       .single(),
   ]);
 
-  const ep = epResult.data as { id: string; user_id: string; household_type: string | null; locality: string | null } | null;
   const isOwner = ep?.user_id === authUser.id;
   const isFavorited = !isOwner && !!favResult.data;
-
-  // Get employer name
-  let employerName = "Employer";
-  if (ep) {
-    const { data: uRaw } = await admin
-      .from("users")
-      .select("name")
-      .eq("id", ep.user_id)
-      .single();
-    employerName = (uRaw as { name: string | null } | null)?.name ?? "Employer";
-  }
 
   return (
     <>
@@ -216,28 +268,8 @@ async function renderJobDetail(customId: string) {
         employerName={employerName}
       />
       <JobDetail
-        job={{
-          id: job.id as string,
-          customId: job.custom_id as string,
-          category: job.category as string,
-          title: job.title as string | null,
-          description: job.description as string | null,
-          salaryMin: job.salary_min as number | null,
-          salaryMax: job.salary_max as number | null,
-          schedule: job.schedule as string | null,
-          preferredDays: (job.preferred_days as string[]) ?? [],
-          preferredTimings: (job.preferred_timings as string[]) ?? [],
-          locality: job.locality as string | null,
-          city: job.city as string | null,
-          status: job.status as string,
-          createdAt: job.created_at as string,
-          expiresAt: job.expires_at as string,
-        }}
-        employer={{
-          name: employerName,
-          householdType: ep?.household_type ?? null,
-          locality: ep?.locality ?? null,
-        }}
+        job={jobProps}
+        employer={employerProps}
         isOwner={isOwner}
         isFavorited={isFavorited}
       />

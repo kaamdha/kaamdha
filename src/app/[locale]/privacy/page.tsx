@@ -4,6 +4,7 @@ import { PlaceholderPage } from "@/components/shared/placeholder-page";
 export const metadata: Metadata = {
   title: "Privacy policy",
   description: "Privacy policy for kaamdha — how we handle your data.",
+  alternates: { canonical: "/privacy" },
 };
 
 export default function PrivacyPage() {

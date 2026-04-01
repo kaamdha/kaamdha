@@ -53,7 +53,8 @@
     "result": "परिणाम",
     "results": "परिणाम",
     "gender": "लिंग",
-    "connectFree": "कनेक्ट करें · मुफ़्त"
+    "connectFree": "कनेक्ट करें · मुफ़्त",
+    "loginToConnect": "कनेक्ट करने के लिए लॉगिन करें"
   },
   "landing": {
     "findStaff": "स्टाफ खोजें",

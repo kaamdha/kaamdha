@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { StaffListings } from "@/components/listings/staff-listings";
@@ -75,7 +75,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       "Browse verified household staff near you — maids, cooks, drivers, nannies and more.";
   }
 
-  return { title, description };
+  // Build canonical URL for listing pages
+  const canonicalParts = ["/listings"];
+  if (city) canonicalParts.push(city);
+  if (categorySlug) canonicalParts.push(categorySlug);
+  const canonical = canonicalParts.join("/");
+
+  return { title, description, alternates: { canonical } };
 }
 
 export const dynamic = "force-dynamic";
@@ -176,10 +182,6 @@ async function renderWorkerDetail(customId: string) {
     data: { user: authUser },
   } = await supabase.auth.getUser();
 
-  if (!authUser) {
-    redirect("/login");
-  }
-
   const { data: wpRaw } = await admin
     .from("worker_profiles")
     .select("*")
@@ -189,6 +191,54 @@ async function renderWorkerDetail(customId: string) {
   const wp = wpRaw as Record<string, unknown> | null;
   if (!wp) {
     notFound();
+  }
+
+  // Public view — no auth
+  if (!authUser) {
+    const { data: uRaw } = await admin
+      .from("users")
+      .select("name")
+      .eq("id", wp.user_id as string)
+      .single();
+    const name = (uRaw as { name: string | null } | null)?.name ?? "Staff";
+
+    return (
+      <>
+        <WorkerProfileJsonLd
+          name={name}
+          skills={wp.categories as string[]}
+          locality={wp.locality as string | null}
+          experienceYears={wp.experience_years as number}
+        />
+        <WorkerDetail
+          worker={{
+            id: wp.id as string,
+            customId: wp.custom_id as string,
+            userId: wp.user_id as string,
+            name,
+            gender: wp.gender as string | null,
+            categories: wp.categories as string[],
+            experienceYears: wp.experience_years as number,
+            salaryMin: wp.salary_min as number | null,
+            salaryMax: wp.salary_max as number | null,
+            availableDays: (wp.available_days as string[]) ?? [],
+            availableTimings: (wp.available_timings as string[]) ?? [],
+            languages: (wp.languages as string[]) ?? [],
+            originallyFrom: wp.originally_from as string | null,
+            bio: wp.bio as string | null,
+            locality: wp.locality as string | null,
+            city: wp.city as string | null,
+            isActive: wp.is_active as boolean,
+            updatedAt: wp.updated_at as string | null,
+          }}
+          isOwner={false}
+          isRevealed={false}
+          revealedPhone={null}
+          isFavorited={false}
+          isPublic
+        />
+      </>
+    );
   }
 
   const isOwner = (wp.user_id as string) === authUser.id;
@@ -255,9 +305,9 @@ async function renderWorkerDetail(customId: string) {
           experienceYears: wp.experience_years as number,
           salaryMin: wp.salary_min as number | null,
           salaryMax: wp.salary_max as number | null,
-          availableDays: wp.available_days as string[],
-          availableTimings: wp.available_timings as string[],
-          languages: wp.languages as string[],
+          availableDays: (wp.available_days as string[]) ?? [],
+          availableTimings: (wp.available_timings as string[]) ?? [],
+          languages: (wp.languages as string[]) ?? [],
           originallyFrom: wp.originally_from as string | null,
           bio: wp.bio as string | null,
           locality: wp.locality as string | null,

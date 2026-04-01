@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: "Login",
   description:
     "Login or register on kaamdha with your phone number. Find household staff or jobs near you in Gurgaon.",
+  alternates: { canonical: "/login" },
 };
 
 export default async function LoginPage() {

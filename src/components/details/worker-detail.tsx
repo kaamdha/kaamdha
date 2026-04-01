@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations, useLocale } from "next-intl";
+import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { JOB_CATEGORIES, workerDetailUrl } from "@/lib/constants";
 import { RevealModal } from "@/components/shared/reveal-modal";
@@ -12,8 +13,6 @@ import { ShareIcon } from "@/components/shared/share-icon";
 import { revealWorkerPhone } from "@/app/actions/reveal";
 import { toggleFavorite } from "@/app/actions/favorite";
 import { events } from "@/lib/posthog";
-
-/* eslint-disable @next/next/no-img-element */
 
 /* eslint-disable @next/next/no-img-element */
 
@@ -42,6 +41,7 @@ interface WorkerDetailProps {
   isRevealed: boolean;
   revealedPhone: string | null;
   isFavorited: boolean;
+  isPublic?: boolean;
 }
 
 export function WorkerDetail({
@@ -50,6 +50,7 @@ export function WorkerDetail({
   isRevealed: initialRevealed,
   revealedPhone: initialPhone,
   isFavorited: initialFavorited,
+  isPublic = false,
 }: WorkerDetailProps) {
   const router = useRouter();
   const t = useTranslations("detail");
@@ -74,7 +75,7 @@ export function WorkerDetail({
     .filter(Boolean) as { emoji: string; label: string }[];
 
   const salaryText =
-    worker.salaryMin || worker.salaryMax
+    !isPublic && (worker.salaryMin || worker.salaryMax)
       ? `₹${worker.salaryMin ? (worker.salaryMin / 1000).toFixed(0) + "k" : ""}${worker.salaryMin && worker.salaryMax ? " - " : ""}${worker.salaryMax ? "₹" + (worker.salaryMax / 1000).toFixed(0) + "k" : ""}/mo`
       : "—";
 
@@ -104,8 +105,8 @@ export function WorkerDetail({
             <p className="font-heading text-[16px] font-bold text-foreground">
               {worker.name}
             </p>
-            <p className="mt-1 font-mono text-[12px] font-semibold text-foreground">
-              +91 981-XXX-XXXX
+            <p className={`mt-1 font-mono text-[12px] font-semibold ${isPublic ? "text-slate-400" : "text-foreground"}`}>
+              +91 {isPublic ? "XXX-XXX-XXXX" : "981-XXX-XXXX"}
             </p>
           </div>
           {!isOwner && (
@@ -200,39 +201,50 @@ export function WorkerDetail({
       {!isOwner && (
         <div className="fixed bottom-0 left-1/2 w-full max-w-[420px] -translate-x-1/2 border-t border-slate-200 bg-white px-4 py-3">
           <div className="flex items-center gap-3">
-            <button
-              onClick={async () => {
-                const result = await toggleFavorite("worker_profile", worker.id);
-                setIsFavorited(result.isFavorited);
-                if (result.isFavorited) {
-                  events.favoriteAdded({ targetType: "worker_profile", targetId: worker.id });
-                } else {
-                  events.favoriteRemoved({ targetType: "worker_profile", targetId: worker.id });
-                }
-              }}
-              className={`flex size-11 items-center justify-center rounded-lg border-[1.5px] ${
-                isFavorited ? "border-primary bg-teal-50" : "border-slate-200"
-              }`}
-            >
-              <img
-                src={isFavorited ? "/icons/bookmark-nav.png" : "/icons/bookmark.png"}
-                alt=""
-                className={`size-5 ${isFavorited ? "opacity-100" : "opacity-30"}`}
-              />
-            </button>
-            {isRevealed && revealedPhone ? (
-              <div className="flex flex-1 items-center justify-center gap-2 rounded-[10px] bg-green-50 py-2.5">
-                <span className="font-mono text-[13px] font-bold text-green-700">
-                  📞 {revealedPhone}
-                </span>
-              </div>
-            ) : (
-              <button
-                onClick={() => setShowRevealModal(true)}
+            {isPublic ? (
+              <Link
+                href="/login"
                 className="flex flex-1 items-center justify-center gap-1.5 rounded-[10px] bg-primary py-2.5 text-[13px] font-bold text-white"
               >
-                {tc("connectFree")}
-              </button>
+                {tc("loginToConnect")}
+              </Link>
+            ) : (
+              <>
+                <button
+                  onClick={async () => {
+                    const result = await toggleFavorite("worker_profile", worker.id);
+                    setIsFavorited(result.isFavorited);
+                    if (result.isFavorited) {
+                      events.favoriteAdded({ targetType: "worker_profile", targetId: worker.id });
+                    } else {
+                      events.favoriteRemoved({ targetType: "worker_profile", targetId: worker.id });
+                    }
+                  }}
+                  className={`flex size-11 items-center justify-center rounded-lg border-[1.5px] ${
+                    isFavorited ? "border-primary bg-teal-50" : "border-slate-200"
+                  }`}
+                >
+                  <img
+                    src={isFavorited ? "/icons/bookmark-nav.png" : "/icons/bookmark.png"}
+                    alt=""
+                    className={`size-5 ${isFavorited ? "opacity-100" : "opacity-30"}`}
+                  />
+                </button>
+                {isRevealed && revealedPhone ? (
+                  <div className="flex flex-1 items-center justify-center gap-2 rounded-[10px] bg-green-50 py-2.5">
+                    <span className="font-mono text-[13px] font-bold text-green-700">
+                      📞 {revealedPhone}
+                    </span>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setShowRevealModal(true)}
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-[10px] bg-primary py-2.5 text-[13px] font-bold text-white"
+                  >
+                    {tc("connectFree")}
+                  </button>
+                )}
+              </>
             )}
           </div>
         </div>
