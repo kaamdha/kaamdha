@@ -8,6 +8,7 @@ import { Header } from "@/components/layout/header";
 import { OrganizationJsonLd } from "@/components/shared/json-ld";
 import { PostHogProvider } from "@/components/providers/posthog-provider";
 import { SiteFooter } from "@/components/shared/site-footer";
+import { createClient } from "@/lib/supabase/server";
 import "../globals.css";
 
 const dmSans = DM_Sans({
@@ -91,6 +92,19 @@ export default async function LocaleLayout({
 
   const messages = await getMessages();
 
+  // Fetch user mode for footer personalization
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  let userMode: "find_staff" | "find_jobs" | null = null;
+  if (user) {
+    const { data: userRow } = await supabase
+      .from("users")
+      .select("last_active_mode")
+      .eq("id", user.id)
+      .single();
+    userMode = (userRow as { last_active_mode: string | null } | null)?.last_active_mode as typeof userMode;
+  }
+
   return (
     <html lang={locale}>
       <head>
@@ -102,7 +116,7 @@ export default async function LocaleLayout({
             <div className="mx-auto flex min-h-screen w-full max-w-[420px] flex-col bg-background shadow-xl sm:my-0 sm:min-h-screen">
               <Header />
               <main role="main" className="flex-1">{children}</main>
-              <SiteFooter />
+              <SiteFooter userMode={userMode} />
             </div>
           </NextIntlClientProvider>
         </PostHogProvider>
