@@ -92,7 +92,7 @@ export function HomeLanding() {
       {/* Hero image */}
       <div className="mx-4 mt-5">
         <Image
-          src="/hero-staff.png"
+          src="/assets/hero-staff.png"
           alt="kaamdha staff"
           width={800}
           height={331}

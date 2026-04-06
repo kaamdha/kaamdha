@@ -133,7 +133,7 @@ export function EmployerSearch({
       {hasSearched && !isPending && workers.length === 0 && (
         <div className="mx-4 mt-6 rounded-[14px] bg-slate-50 px-6 py-8 text-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/icons/no-results.png" alt="No results found" className="mx-auto size-16" />
+          <img src="/assets/no-results.png" alt="No results found" className="mx-auto size-16" />
           <h3 className="mt-3 font-heading text-[16px] font-bold text-foreground">
             {t("noResultsTitle")}
           </h3>

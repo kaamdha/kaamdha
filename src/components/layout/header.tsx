@@ -57,7 +57,7 @@ export async function Header() {
                 className="flex size-8 items-center justify-center rounded-full bg-slate-100"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/icons/bookmark-nav.png" alt="Favorites" className="size-4" />
+                <img src="/assets/bookmark-nav.png" alt="Favorites" className="size-4" />
               </Link>
               <Link
                 href="/account"

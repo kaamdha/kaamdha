@@ -79,7 +79,7 @@ export function JobListings({
         </div>
       ) : (
         <div className="mx-4 mt-6 rounded-[14px] bg-slate-50 px-6 py-8 text-center">
-          <img src="/icons/no-results.png" alt="" className="mx-auto size-16" />
+          <img src="/assets/no-results.png" alt="" className="mx-auto size-16" />
           <h3 className="mt-3 font-heading text-[16px] font-bold text-foreground">
             {t("noJobsTitle")}
           </h3>

@@ -49,7 +49,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         openGraph: {
           title: `${name} — ${skills || "Staff"} in ${location} | kaamdha`,
           description: `${name} is available as ${skills || "staff"} in ${location}. Connect on kaamdha.`,
-          images: ["/og-image.png"],
+          images: ["/assets/og-image.png"],
         },
       };
     }

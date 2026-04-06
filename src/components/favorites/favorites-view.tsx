@@ -173,7 +173,7 @@ export function FavoritesView({
                   })}
                 </div>
               ) : (
-                <EmptyState message={t("noJobsCreated")} icon="/icons/no-content.png" />
+                <EmptyState message={t("noJobsCreated")} icon="/assets/no-content.png" />
               )}
             </>
           )}
@@ -205,7 +205,7 @@ export function FavoritesView({
                   })}
                 </div>
               ) : (
-                <EmptyState message={t("noContacted")} icon="/icons/no-contact.png" />
+                <EmptyState message={t("noContacted")} icon="/assets/no-contact.png" />
               )}
             </>
           )}
@@ -237,7 +237,7 @@ export function FavoritesView({
                   })}
                 </div>
               ) : (
-                <EmptyState message={t("noSaved")} icon="/icons/no-content.png" />
+                <EmptyState message={t("noSaved")} icon="/assets/no-content.png" />
               )}
             </>
           )}
@@ -294,7 +294,7 @@ export function FavoritesView({
                 })}
               </div>
             ) : (
-              <EmptyState message={t("noContacted")} icon="/icons/no-contact.png" />
+              <EmptyState message={t("noContacted")} icon="/assets/no-contact.png" />
             )}
           </>
         )}
@@ -312,7 +312,7 @@ export function FavoritesView({
                 })}
               </div>
             ) : (
-              <EmptyState message={t("noSaved")} icon="/icons/no-content.png" />
+              <EmptyState message={t("noSaved")} icon="/assets/no-content.png" />
             )}
           </>
         )}
@@ -350,7 +350,7 @@ function JobCard({ job, locale, isFavorited, revealedPhone }: { job: Record<stri
     >
       {/* Bookmark top-right */}
       <img
-        src={isFavorited ? "/icons/bookmark-nav.png" : "/icons/bookmark.png"}
+        src={isFavorited ? "/assets/bookmark-nav.png" : "/assets/bookmark.png"}
         alt=""
         className={`absolute right-3 top-2.5 size-4 ${isFavorited ? "opacity-100" : "opacity-30"}`}
       />

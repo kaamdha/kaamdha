@@ -109,7 +109,7 @@ export function HomeEmployer({ user, recentJobs }: HomeEmployerProps) {
             <div
               className="absolute inset-0"
               style={{
-                backgroundImage: "url(/hero-staff.png)",
+                backgroundImage: "url(/assets/hero-staff.png)",
                 backgroundSize: "600% auto",
                 backgroundPosition: `${HERO_CROPS[cat.id] ?? "50%"} ${cat.id === "C0003" || cat.id === "C0007" ? "5%" : "15%"}`,
                 backgroundRepeat: "no-repeat",
@@ -177,7 +177,7 @@ export function HomeEmployer({ user, recentJobs }: HomeEmployerProps) {
                   <div
                     className="size-10 shrink-0 overflow-hidden rounded-full"
                     style={{
-                      backgroundImage: "url(/hero-staff.png)",
+                      backgroundImage: "url(/assets/hero-staff.png)",
                       backgroundSize: "600% auto",
                       backgroundPosition: `${HERO_CROPS[categoryId] ?? "50%"} ${categoryId === "C0003" || categoryId === "C0007" ? "5%" : "15%"}`,
                       backgroundRepeat: "no-repeat",

@@ -6,7 +6,7 @@ interface ShareIconProps {
 export function ShareIcon({ className = "size-4" }: ShareIconProps) {
   return (
     <img
-      src="/icons/share.png"
+      src="/assets/share.png"
       alt="Share"
       className={className}
     />

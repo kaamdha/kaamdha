@@ -201,7 +201,7 @@ export function WorkerProfileEditor({ user, profile }: WorkerProfileEditorProps)
                 <div
                   className="absolute inset-0"
                   style={{
-                    backgroundImage: "url(/hero-staff.png)",
+                    backgroundImage: "url(/assets/hero-staff.png)",
                     backgroundSize: "600% auto",
                     backgroundPosition: `${HERO_CROPS[cat.id] ?? "50%"} ${cat.id === "C0003" || cat.id === "C0007" ? "5%" : "15%"}`,
                     backgroundRepeat: "no-repeat",

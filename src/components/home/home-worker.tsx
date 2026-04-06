@@ -80,7 +80,7 @@ export function HomeWorker({ user, jobs, workerCategories = [], favoritedJobIds 
       ) : (
         <div className="mx-4 mt-6 rounded-[14px] bg-slate-50 px-6 py-8 text-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/icons/no-results.png" alt="" className="mx-auto size-16" />
+          <img src="/assets/no-results.png" alt="" className="mx-auto size-16" />
           <h3 className="mt-3 font-heading text-[16px] font-bold text-foreground">
             {t("noJobsTitle")}
           </h3>
@@ -127,7 +127,7 @@ function JobCard({ job, locale, isFavorited = false }: { job: Record<string, unk
       >
         {/* Bookmark top-right */}
         <img
-          src={isFavorited ? "/icons/bookmark-nav.png" : "/icons/bookmark.png"}
+          src={isFavorited ? "/assets/bookmark-nav.png" : "/assets/bookmark.png"}
           alt=""
           className={`absolute right-3 top-2.5 size-4 ${isFavorited ? "opacity-100" : "opacity-30"}`}
         />

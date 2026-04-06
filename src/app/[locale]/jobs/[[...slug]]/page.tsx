@@ -41,7 +41,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         openGraph: {
           title: `${title} in ${location} | kaamdha`,
           description: `${title} job in ${location}. Connect directly on kaamdha.`,
-          images: ["/og-image.png"],
+          images: ["/assets/og-image.png"],
         },
       };
     }

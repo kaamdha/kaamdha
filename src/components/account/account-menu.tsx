@@ -65,25 +65,25 @@ export function AccountMenu({ user, activeJobCount }: AccountMenuProps) {
       {/* Menu items */}
       <div className="mx-4 mt-4 overflow-hidden rounded-[14px] bg-white">
         <MenuItem
-          icon="/icons/edit.png"
+          icon="/assets/edit.png"
           label={t("editProfile")}
           href="/account/profile"
         />
         {isEmployer && (
           <MenuItem
-            icon="/icons/job-listing.png"
+            icon="/assets/job-listing.png"
             label={t("myJobListings")}
             value={activeJobCount > 0 ? `${activeJobCount} ${t("active")}` : undefined}
             href="/favorites"
           />
         )}
         <MenuItem
-          icon="/icons/bookmark-nav.png"
+          icon="/assets/bookmark-nav.png"
           label={isEmployer ? t("savedProfiles") : t("savedJobs")}
           href="/favorites"
         />
         <MenuItem
-          icon="/icons/help-support.png"
+          icon="/assets/help-support.png"
           label={t("helpSupport")}
           value="kaamdha@gmail.com"
           href="mailto:kaamdha@gmail.com"

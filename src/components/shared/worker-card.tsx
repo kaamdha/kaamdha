@@ -46,7 +46,7 @@ export function WorkerCard({
   const router = useRouter();
   const tc = useTranslations("common");
   const tl = useTranslations("listings");
-  const avatarSrc = gender === "female" ? "/icons/avatar-female.png" : "/icons/avatar-male.png";
+  const avatarSrc = gender === "female" ? "/assets/avatar-female.png" : "/assets/avatar-male.png";
   const [showReveal, setShowReveal] = useState(false);
   const [revealedPhone, setRevealedPhone] = useState<string | null>(initialRevealedPhone ?? null);
 
@@ -67,7 +67,7 @@ export function WorkerCard({
       >
         {/* Bookmark top-right */}
         <img
-          src={isFavorited ? "/icons/bookmark-nav.png" : "/icons/bookmark.png"}
+          src={isFavorited ? "/assets/bookmark-nav.png" : "/assets/bookmark.png"}
           alt=""
           className={`absolute right-3 top-2.5 size-4 ${isFavorited ? "opacity-100" : "opacity-30"}`}
         />

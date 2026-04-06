@@ -182,7 +182,7 @@ export function JobDetail({ job, employer, isOwner, isFavorited: initialFavorite
                   }`}
                 >
                   <img
-                    src={isFavorited ? "/icons/bookmark-nav.png" : "/icons/bookmark.png"}
+                    src={isFavorited ? "/assets/bookmark-nav.png" : "/assets/bookmark.png"}
                     alt=""
                     className={`size-5 ${isFavorited ? "opacity-100" : "opacity-30"}`}
                   />

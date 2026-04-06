@@ -6,7 +6,7 @@ interface EditIconProps {
 export function EditIcon({ className = "size-3.5" }: EditIconProps) {
   return (
     <img
-      src="/icons/edit.png"
+      src="/assets/edit.png"
       alt="Edit"
       className={className}
     />

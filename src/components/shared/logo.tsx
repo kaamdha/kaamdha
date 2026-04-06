@@ -20,7 +20,7 @@ const ICON_ASPECT = 366 / 300; // logo-icon-light.png
 export function Logo({ size = "md", variant = "full", href = "/" }: LogoProps) {
   const height = sizes[size][variant];
   const width = Math.round(height * (variant === "full" ? FULL_ASPECT : ICON_ASPECT));
-  const src = variant === "full" ? "/logo-full-light.png" : "/logo-icon-light.png";
+  const src = variant === "full" ? "/assets/logo-full-light.png" : "/assets/logo-icon-light.png";
 
   return (
     <Link href={href} className="flex shrink-0 items-center">

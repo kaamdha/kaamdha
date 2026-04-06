@@ -91,7 +91,7 @@ export function StaffListings({
         <div className="mx-4 mt-6 rounded-[14px] bg-slate-50 px-6 py-8 text-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/icons/no-results.png"
+            src="/assets/no-results.png"
             alt=""
             className="mx-auto size-16"
           />

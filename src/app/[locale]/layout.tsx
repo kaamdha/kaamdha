@@ -39,10 +39,10 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/favicon.png", sizes: "32x32", type: "image/png" },
-      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/assets/favicon.png", sizes: "32x32", type: "image/png" },
+      { url: "/assets/icon-192.png", sizes: "192x192", type: "image/png" },
     ],
-    apple: "/apple-touch-icon.png",
+    apple: "/assets/apple-touch-icon.png",
   },
   openGraph: {
     title: "kaamdha — Find household staff near you",
@@ -53,7 +53,7 @@ export const metadata: Metadata = {
     siteName: "kaamdha",
     images: [
       {
-        url: "/og-image.png",
+        url: "/assets/og-image.png",
         width: 1200,
         height: 630,
         alt: "kaamdha — Find household staff near you",
@@ -65,7 +65,7 @@ export const metadata: Metadata = {
     title: "kaamdha — Find household staff near you",
     description:
       "kaamdha connects households with verified maids, cooks, drivers, nannies and more in Gurgaon. Find staff or find jobs near you.",
-    images: ["/og-image.png"],
+    images: ["/assets/og-image.png"],
   },
   other: {
     "theme-color": "#0D9488",

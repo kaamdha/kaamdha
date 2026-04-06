@@ -63,7 +63,7 @@ export function WorkerDetail({
   const [revealedPhone, setRevealedPhone] = useState(initialPhone);
   const [isFavorited, setIsFavorited] = useState(initialFavorited);
 
-  const avatarSrc = worker.gender === "female" ? "/icons/avatar-female.png" : "/icons/avatar-male.png";
+  const avatarSrc = worker.gender === "female" ? "/assets/avatar-female.png" : "/assets/avatar-male.png";
 
   const categoryTags = worker.categories
     .map((cId) => {
@@ -225,7 +225,7 @@ export function WorkerDetail({
                   }`}
                 >
                   <img
-                    src={isFavorited ? "/icons/bookmark-nav.png" : "/icons/bookmark.png"}
+                    src={isFavorited ? "/assets/bookmark-nav.png" : "/assets/bookmark.png"}
                     alt=""
                     className={`size-5 ${isFavorited ? "opacity-100" : "opacity-30"}`}
                   />
