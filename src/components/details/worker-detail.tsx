@@ -233,7 +233,7 @@ export function WorkerDetail({
                 {isRevealed && revealedPhone ? (
                   <div className="flex flex-1 items-center justify-center gap-2 rounded-[10px] bg-green-50 py-2.5">
                     <span className="font-mono text-[13px] font-bold text-green-700">
-                      📞 {revealedPhone}
+                      {revealedPhone}
                     </span>
                   </div>
                 ) : (

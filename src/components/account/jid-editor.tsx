@@ -50,8 +50,6 @@ export function JidEditor({ job }: JidEditorProps) {
   const catLabel = catInfo
     ? locale === "hi" ? catInfo.labelHi : catInfo.labelEn
     : "";
-  const catEmoji = catInfo?.emoji ?? "📋";
-
   const [title, setTitle] = useState(job.title ?? "");
   const [description, setDescription] = useState(job.description ?? "");
   const [salaryMin, setSalaryMin] = useState(job.salaryMin?.toString() ?? "");
