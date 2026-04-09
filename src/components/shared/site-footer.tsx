@@ -1,7 +1,6 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Link } from "@/i18n/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { JOB_CATEGORIES, CITY_LABELS } from "@/lib/constants";
 
@@ -25,7 +24,7 @@ export function SiteFooter({ userMode = null }: SiteFooterProps) {
   // - Logged in: use userMode directly
   // - Logged out on /listings/*: employer flow (staff links)
   // - Logged out on /jobs/*: worker flow (job links)
-  // - Logged out on homepage: show both
+  // - Logged out on homepage or unknown: show both
   let effectiveMode = userMode;
   if (!userMode) {
     if (pathname.includes("/listings")) effectiveMode = "find_staff";
@@ -33,12 +32,21 @@ export function SiteFooter({ userMode = null }: SiteFooterProps) {
     // else null = homepage, show both
   }
 
-  const showStaffLinks = !effectiveMode || effectiveMode === "find_staff";
-  const showJobLinks = !effectiveMode || effectiveMode === "find_jobs";
+  let showStaffLinks = !effectiveMode || effectiveMode === "find_staff";
+  let showJobLinks = !effectiveMode || effectiveMode === "find_jobs";
+
+  // Safeguard: if both are false (unexpected mode value), show both
+  if (!showStaffLinks && !showJobLinks) {
+    showStaffLinks = true;
+    showJobLinks = true;
+  }
 
   const staffCategories = JOB_CATEGORIES.filter(
-    (cat) => !["personal-trainer", "eldercare"].includes(cat.slug)
+    (cat) => !["personal_trainer", "eldercare"].includes(cat.slug)
   );
+
+  // Build locale-prefixed href
+  const localePrefix = locale === "hi" ? "/hi" : "";
 
   return (
     <footer className="bg-teal-50 px-4 pb-8 pt-6">
@@ -52,13 +60,13 @@ export function SiteFooter({ userMode = null }: SiteFooterProps) {
             {FOOTER_CITIES.map((city) => {
               const cityLabel = (locale === "hi" ? CITY_LABELS[city]?.hi : CITY_LABELS[city]?.en) ?? city;
               return (
-                <Link
+                <a
                   key={city}
-                  href={`/listings/${city}`}
+                  href={`${localePrefix}/listings/${city}`}
                   className="text-[11px] leading-relaxed text-teal-800 underline decoration-teal-300 hover:text-primary hover:decoration-primary"
                 >
                   {cityLabel}
-                </Link>
+                </a>
               );
             })}
           </div>
@@ -75,13 +83,13 @@ export function SiteFooter({ userMode = null }: SiteFooterProps) {
             {FOOTER_CITIES.map((city) => {
               const cityLabel = (locale === "hi" ? CITY_LABELS[city]?.hi : CITY_LABELS[city]?.en) ?? city;
               return (
-                <Link
+                <a
                   key={city}
-                  href={`/jobs/${city}`}
+                  href={`${localePrefix}/jobs/${city}`}
                   className="text-[11px] leading-relaxed text-teal-800 underline decoration-teal-300 hover:text-primary hover:decoration-primary"
                 >
                   {cityLabel}
-                </Link>
+                </a>
               );
             })}
           </div>
@@ -91,6 +99,8 @@ export function SiteFooter({ userMode = null }: SiteFooterProps) {
       {/* Per-category links — context-aware */}
       {staffCategories.map((cat) => {
         const catLabel = locale === "hi" ? cat.labelHi : cat.labelEn;
+        const hasLinks = showStaffLinks || showJobLinks;
+        if (!hasLinks) return null;
         return (
           <div key={cat.id} className="mt-4">
             <h4 className="text-[10px] font-bold uppercase tracking-wider text-teal-800/60">
@@ -102,13 +112,13 @@ export function SiteFooter({ userMode = null }: SiteFooterProps) {
                 {CATEGORY_CITIES.map((city) => {
                   const cityLabel = (locale === "hi" ? CITY_LABELS[city]?.hi : CITY_LABELS[city]?.en) ?? city;
                   return (
-                    <Link
+                    <a
                       key={`hire-${city}`}
-                      href={`/listings/${city}/${cat.slug}`}
+                      href={`${localePrefix}/listings/${city}/${cat.slug}`}
                       className="text-[11px] leading-relaxed text-teal-800 underline decoration-teal-300 hover:text-primary hover:decoration-primary"
                     >
                       {t("hireIn", { city: cityLabel })}
-                    </Link>
+                    </a>
                   );
                 })}
               </div>
@@ -119,13 +129,13 @@ export function SiteFooter({ userMode = null }: SiteFooterProps) {
                 {CATEGORY_CITIES.map((city) => {
                   const cityLabel = (locale === "hi" ? CITY_LABELS[city]?.hi : CITY_LABELS[city]?.en) ?? city;
                   return (
-                    <Link
+                    <a
                       key={`jobs-${city}`}
-                      href={`/jobs/${city}/${cat.slug}`}
+                      href={`${localePrefix}/jobs/${city}/${cat.slug}`}
                       className="text-[11px] leading-relaxed text-teal-800 underline decoration-teal-300 hover:text-primary hover:decoration-primary"
                     >
                       {t("jobsIn", { city: cityLabel })}
-                    </Link>
+                    </a>
                   );
                 })}
               </div>
