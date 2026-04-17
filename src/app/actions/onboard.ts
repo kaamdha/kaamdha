@@ -32,6 +32,14 @@ export async function saveEmployerOnboarding(formData: FormData) {
   const lat = formData.get("latitude") as string | null;
   const lng = formData.get("longitude") as string | null;
   const city = (formData.get("city") as string)?.trim() || null;
+  const category = (formData.get("category") as string)?.trim() || null;
+  const jobTitle = (formData.get("jobTitle") as string)?.trim() || null;
+  const requirements = (formData.get("requirements") as string)?.trim() || null;
+  const salaryMin =
+    parseInt((formData.get("salaryMin") as string) || "0", 10) || null;
+  const salaryMax =
+    parseInt((formData.get("salaryMax") as string) || "0", 10) || null;
+  const timings = formData.getAll("timings") as string[];
 
   if (!name) {
     return { error: "Name is required" };
@@ -72,8 +80,6 @@ export async function saveEmployerOnboarding(formData: FormData) {
     return { error: "Could not create profile. Please try again." };
   }
 
-  console.log("Generated custom ID:", customId);
-
   const profileFields = {
     custom_id: customId as string,
     user_id: user.id,
@@ -93,7 +99,72 @@ export async function saveEmployerOnboarding(formData: FormData) {
     }
   }
 
-  redirect("/search");
+  // Auto-create JID from onboarding criteria (per CLAUDE.md §7)
+  if (category && locality) {
+    const { data: epRow } = await supabase
+      .from("employer_profiles")
+      .select("id")
+      .eq("user_id", user.id)
+      .single();
+    const employerProfileId = (epRow as { id: string } | null)?.id;
+
+    if (employerProfileId) {
+      // Dedup: same employer + category + locality with status=active → update
+      const { data: existing } = await supabase
+        .from("job_listings")
+        .select("id")
+        .eq("employer_id", employerProfileId)
+        .eq("category", category)
+        .eq("locality", locality)
+        .eq("status", "active")
+        .maybeSingle();
+
+      const jidFields = {
+        title: jobTitle,
+        description: requirements,
+        salary_min: salaryMin,
+        salary_max: salaryMax,
+        preferred_timings: timings,
+        updated_at: new Date().toISOString(),
+        ...(location ? { location } : {}),
+      };
+
+      if (existing) {
+        await supabase
+          .from("job_listings")
+          .update(jidFields as Record<string, unknown> as never)
+          .eq("id", (existing as { id: string }).id);
+      } else {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: jidCustomId } = await (supabase.rpc as any)(
+          "next_custom_id",
+          { p_type: "job_listing" }
+        );
+        if (jidCustomId) {
+          const insertFields = {
+            custom_id: jidCustomId as string,
+            employer_id: employerProfileId,
+            category,
+            locality,
+            expires_at: new Date(
+              Date.now() + 30 * 24 * 60 * 60 * 1000
+            ).toISOString(),
+            ...(city ? { city } : {}),
+            ...jidFields,
+          };
+          await supabase
+            .from("job_listings")
+            .insert(insertFields as Record<string, unknown> as never);
+        }
+      }
+    }
+  }
+
+  const params = new URLSearchParams();
+  if (category) params.set("category", category);
+  if (locality) params.set("locality", locality);
+  const qs = params.toString();
+  redirect(qs ? `/search?${qs}` : "/search");
 }
 
 export async function saveWorkerOnboarding(formData: FormData) {
