@@ -5,6 +5,7 @@ import { createServiceClient } from "@/lib/supabase/server";
 import { JobListings } from "@/components/listings/job-listings";
 import { JobDetail } from "@/components/details/job-detail";
 import { JobPostingJsonLd } from "@/components/shared/json-ld";
+import { getPhonePrefix } from "@/lib/phone";
 import {
   JOB_CATEGORIES,
   CITY_LABELS,
@@ -110,7 +111,7 @@ export default async function JobListingsPage({ params }: Props) {
   let query = admin
     .from("job_listings")
     .select(
-      "id, custom_id, title, category, locality, city, salary_min, salary_max, preferred_timings"
+      "id, custom_id, title, category, locality, city, salary_min, salary_max, preferred_timings, employer_id"
     )
     .eq("status", "active")
     .order("created_at", { ascending: false })
@@ -124,8 +125,33 @@ export default async function JobListingsPage({ params }: Props) {
   }
 
   const { data: jobsRaw } = await query;
+  const jobRows = (jobsRaw ?? []) as Record<string, unknown>[];
 
-  const jobs = ((jobsRaw ?? []) as Record<string, unknown>[]).map((j) => ({
+  // Batch-fetch employer phone prefixes (only meaningful when logged in)
+  const phonePrefixByEmployerId = new Map<string, string>();
+  if (isLoggedIn && jobRows.length > 0) {
+    const employerIds = [...new Set(jobRows.map((j) => j.employer_id as string))];
+    const { data: epRows } = await admin
+      .from("employer_profiles")
+      .select("id, user_id")
+      .in("id", employerIds);
+    const epList = (epRows ?? []) as { id: string; user_id: string }[];
+    const userIds = [...new Set(epList.map((e) => e.user_id))];
+    const { data: uRows } = await admin
+      .from("users")
+      .select("id, phone")
+      .in("id", userIds);
+    const phoneByUserId = new Map<string, string>();
+    for (const u of (uRows ?? []) as { id: string; phone: string | null }[]) {
+      phoneByUserId.set(u.id, getPhonePrefix(u.phone));
+    }
+    for (const e of epList) {
+      const prefix = phoneByUserId.get(e.user_id);
+      if (prefix) phonePrefixByEmployerId.set(e.id, prefix);
+    }
+  }
+
+  const jobs = jobRows.map((j) => ({
     id: j.id as string,
     customId: j.custom_id as string,
     title: j.title as string | null,
@@ -135,6 +161,7 @@ export default async function JobListingsPage({ params }: Props) {
     salaryMin: j.salary_min as number | null,
     salaryMax: j.salary_max as number | null,
     preferredTimings: (j.preferred_timings as string[]) ?? [],
+    phonePrefix: phonePrefixByEmployerId.get(j.employer_id as string),
   }));
 
   return (
@@ -175,13 +202,16 @@ async function renderJobDetail(customId: string) {
   const ep = epRaw as { id: string; user_id: string; household_type: string | null; locality: string | null } | null;
 
   let employerName = "Employer";
+  let employerPhonePrefix: string | undefined;
   if (ep) {
     const { data: uRaw } = await admin
       .from("users")
-      .select("name")
+      .select("name, phone")
       .eq("id", ep.user_id)
       .single();
-    employerName = (uRaw as { name: string | null } | null)?.name ?? "Employer";
+    const u = uRaw as { name: string | null; phone: string | null } | null;
+    employerName = u?.name ?? "Employer";
+    employerPhonePrefix = getPhonePrefix(u?.phone ?? null);
   }
 
   const jobProps = {
@@ -204,6 +234,7 @@ async function renderJobDetail(customId: string) {
     name: employerName,
     householdType: ep?.household_type ?? null,
     locality: ep?.locality ?? null,
+    phonePrefix: employerPhonePrefix,
   };
 
   // Public view — no auth

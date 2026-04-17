@@ -34,6 +34,7 @@ interface JobDetailProps {
     name: string;
     householdType: string | null;
     locality: string | null;
+    phonePrefix?: string;
   };
   isOwner: boolean;
   isFavorited: boolean;
@@ -101,7 +102,7 @@ export function JobDetail({ job, employer, isOwner, isFavorited: initialFavorite
               {title}
             </p>
             <p className={`mt-1 font-mono text-[12px] font-semibold ${isPublic ? "text-slate-400" : "text-foreground"}`}>
-              +91 {isPublic ? "XXX-XXX-XXXX" : "981-XXX-XXXX"}
+              +91 {isPublic ? "XXX-XXX-XXXX" : `${employer.phonePrefix ?? "XXX"}-XXX-XXXX`}
             </p>
           </div>
           {!isOwner && (

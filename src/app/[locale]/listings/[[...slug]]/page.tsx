@@ -5,6 +5,7 @@ import { createServiceClient } from "@/lib/supabase/server";
 import { StaffListings } from "@/components/listings/staff-listings";
 import { WorkerDetail } from "@/components/details/worker-detail";
 import { WorkerProfileJsonLd } from "@/components/shared/json-ld";
+import { getPhonePrefix } from "@/lib/phone";
 import {
   JOB_CATEGORIES,
   CITY_LABELS,
@@ -137,16 +138,19 @@ export default async function ListingsPage({ params }: Props) {
 
   const userIds = workerRows.map((w) => w.user_id as string);
   const nameMap = new Map<string, string>();
+  const phonePrefixMap = new Map<string, string>();
   if (userIds.length > 0) {
     const { data: usersData } = await admin
       .from("users")
-      .select("id, name")
+      .select("id, name, phone")
       .in("id", userIds);
     for (const row of (usersData ?? []) as {
       id: string;
       name: string | null;
+      phone: string | null;
     }[]) {
       if (row.name) nameMap.set(row.id, row.name);
+      if (isLoggedIn) phonePrefixMap.set(row.id, getPhonePrefix(row.phone));
     }
   }
 
@@ -162,6 +166,7 @@ export default async function ListingsPage({ params }: Props) {
     availableTimings: w.available_timings as string[],
     locality: w.locality as string | null,
     city: w.city as string | null,
+    phonePrefix: phonePrefixMap.get(w.user_id as string),
   }));
 
   return (
@@ -312,6 +317,7 @@ async function renderWorkerDetail(customId: string) {
           city: wp.city as string | null,
           isActive: wp.is_active as boolean,
           updatedAt: wp.updated_at as string | null,
+          phonePrefix: getPhonePrefix(workerUser?.phone ?? null),
         }}
         isOwner={isOwner}
         isRevealed={isRevealed}

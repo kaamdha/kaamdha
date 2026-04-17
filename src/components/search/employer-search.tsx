@@ -122,6 +122,7 @@ export function EmployerSearch({
                 salaryMax={w.salary_max}
                 availableTimings={w.available_timings}
                 locality={w.locality}
+                phonePrefix={w.phone_prefix}
                 isFavorited={w.is_favorited}
                 distanceKm={w.distance_km}
               />

@@ -199,6 +199,7 @@ export function FavoritesView({
                         salaryMax={w.salary_max as number | null}
                         availableTimings={w.available_timings as string[]}
                         locality={w.locality as string | null}
+                        phonePrefix={w.phone_prefix as string | undefined}
                         initialRevealedPhone={w.revealedPhone as string | null}
                       />
                     );
@@ -231,6 +232,7 @@ export function FavoritesView({
                         salaryMax={w.salary_max as number | null}
                         availableTimings={w.available_timings as string[]}
                         locality={w.locality as string | null}
+                        phonePrefix={w.phone_prefix as string | undefined}
                         isFavorited={true}
                       />
                     );
@@ -377,7 +379,7 @@ function JobCard({ job, locale, isFavorited, revealedPhone }: { job: Record<stri
           </span>
         ) : (
           <span className="font-mono text-[12px] font-semibold text-foreground">
-            +91 981-XXX-XXXX
+            +91 {(job.phone_prefix as string | undefined) ?? "XXX"}-XXX-XXXX
           </span>
         )}
         {revealedPhone ? (

@@ -35,6 +35,7 @@ interface WorkerDetailProps {
     city: string | null;
     isActive: boolean;
     updatedAt: string | null;
+    phonePrefix?: string;
   };
   isOwner: boolean;
   isRevealed: boolean;
@@ -105,7 +106,7 @@ export function WorkerDetail({
               {worker.name}
             </p>
             <p className={`mt-1 font-mono text-[12px] font-semibold ${isPublic ? "text-slate-400" : "text-foreground"}`}>
-              +91 {isPublic ? "XXX-XXX-XXXX" : "981-XXX-XXXX"}
+              +91 {isPublic ? "XXX-XXX-XXXX" : `${worker.phonePrefix ?? "XXX"}-XXX-XXXX`}
             </p>
           </div>
           {!isOwner && (

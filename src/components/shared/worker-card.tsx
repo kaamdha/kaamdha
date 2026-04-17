@@ -20,6 +20,7 @@ interface WorkerCardProps {
   salaryMax: number | null;
   availableTimings: string[];
   locality: string | null;
+  phonePrefix?: string;
   isFavorited?: boolean;
   distanceKm?: number | null;
   initialRevealedPhone?: string | null;
@@ -38,6 +39,7 @@ export function WorkerCard({
   salaryMax,
   availableTimings,
   locality,
+  phonePrefix = "XXX",
   isFavorited = false,
   distanceKm,
   initialRevealedPhone,
@@ -132,7 +134,7 @@ export function WorkerCard({
             </span>
           ) : (
             <span className="font-mono text-[12px] font-semibold text-foreground">
-              +91 981-XXX-XXXX
+              +91 {phonePrefix}-XXX-XXXX
             </span>
           )}
           <span className="rounded-md bg-primary px-2.5 py-1 text-[11px] font-bold text-white">

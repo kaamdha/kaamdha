@@ -3,6 +3,7 @@ import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import type { User } from "@/types/database";
 import { FavoritesView } from "@/components/favorites/favorites-view";
+import { getPhonePrefix } from "@/lib/phone";
 
 export const metadata: Metadata = {
   title: "Saved",
@@ -136,44 +137,39 @@ export default async function FavoritesPage() {
     userIds.add(epP.user_id as string);
   }
 
-  // Single batch: fetch all user names
+  // Single batch: fetch all user names + phones (service client to bypass RLS)
+  const admin = createServiceClient();
   const usersResult = userIds.size > 0
-    ? await supabase
+    ? await admin
         .from("users")
-        .select("id, name")
+        .select("id, name, phone")
         .in("id", [...userIds])
     : { data: [] };
 
   const usersMap = new Map<string, string>();
-  for (const u of (usersResult.data ?? []) as { id: string; name: string | null }[]) {
+  const phonePrefixByUserId = new Map<string, string>();
+  for (const u of (usersResult.data ?? []) as { id: string; name: string | null; phone: string | null }[]) {
     usersMap.set(u.id, u.name ?? "");
+    phonePrefixByUserId.set(u.id, getPhonePrefix(u.phone));
   }
 
-  // Build employer profiles map
-  const epMap = new Map<string, string>();
+  // Build employer profiles map (name + phone prefix)
+  const epNameMap = new Map<string, string>();
+  const epPhonePrefixMap = new Map<string, string>();
   for (const epP of (epProfilesResult.data ?? []) as Record<string, unknown>[]) {
-    epMap.set(epP.id as string, usersMap.get(epP.user_id as string) ?? "");
+    const uid = epP.user_id as string;
+    epNameMap.set(epP.id as string, usersMap.get(uid) ?? "");
+    const prefix = phonePrefixByUserId.get(uid);
+    if (prefix) epPhonePrefixMap.set(epP.id as string, prefix);
   }
 
-  // Fetch revealed phone numbers (service client to bypass RLS)
-  const revealedUserIds = new Set<string>();
-  for (const r of revealsData) {
-    if (r.to_user_id) revealedUserIds.add(r.to_user_id as string);
-  }
-
+  // Fetch revealed phone numbers using already-fetched user rows
   const phonesMap = new Map<string, string>();
-  if (revealedUserIds.size > 0) {
-    const admin = createServiceClient();
-    const { data: phoneRows } = await admin
-      .from("users")
-      .select("id, phone")
-      .in("id", [...revealedUserIds]);
-    for (const p of (phoneRows ?? []) as { id: string; phone: string }[]) {
-      // Format as XXX-XXX-XXXX
-      const digits = p.phone.replace(/\D/g, "").slice(-10);
-      if (digits.length === 10) {
-        phonesMap.set(p.id, `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`);
-      }
+  for (const u of (usersResult.data ?? []) as { id: string; phone: string | null }[]) {
+    if (!u.phone) continue;
+    const digits = u.phone.replace(/\D/g, "").slice(-10);
+    if (digits.length === 10) {
+      phonesMap.set(u.id, `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`);
     }
   }
 
@@ -184,13 +180,23 @@ export default async function FavoritesPage() {
     if (r.worker_profile_id) {
       const w = workersMap.get(r.worker_profile_id as string);
       if (w) {
-        enriched.worker = { ...w, name: usersMap.get(w.user_id as string) ?? "Worker", revealedPhone };
+        enriched.worker = {
+          ...w,
+          name: usersMap.get(w.user_id as string) ?? "Worker",
+          phone_prefix: phonePrefixByUserId.get(w.user_id as string),
+          revealedPhone,
+        };
       }
     }
     if (r.job_listing_id) {
       const j = jobsMap.get(r.job_listing_id as string);
       if (j) {
-        enriched.job = { ...j, employer_name: epMap.get(j.employer_id as string) ?? "", revealedPhone };
+        enriched.job = {
+          ...j,
+          employer_name: epNameMap.get(j.employer_id as string) ?? "",
+          phone_prefix: epPhonePrefixMap.get(j.employer_id as string),
+          revealedPhone,
+        };
       }
     }
     return enriched;
@@ -202,13 +208,21 @@ export default async function FavoritesPage() {
     if (f.worker_profile_id) {
       const w = workersMap.get(f.worker_profile_id as string);
       if (w) {
-        enriched.worker = { ...w, name: usersMap.get(w.user_id as string) ?? "Worker" };
+        enriched.worker = {
+          ...w,
+          name: usersMap.get(w.user_id as string) ?? "Worker",
+          phone_prefix: phonePrefixByUserId.get(w.user_id as string),
+        };
       }
     }
     if (f.job_listing_id) {
       const j = jobsMap.get(f.job_listing_id as string);
       if (j) {
-        enriched.job = { ...j, employer_name: epMap.get(j.employer_id as string) ?? "" };
+        enriched.job = {
+          ...j,
+          employer_name: epNameMap.get(j.employer_id as string) ?? "",
+          phone_prefix: epPhonePrefixMap.get(j.employer_id as string),
+        };
       }
     }
     return enriched;

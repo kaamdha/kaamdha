@@ -16,6 +16,7 @@ interface JobData {
   salaryMin: number | null;
   salaryMax: number | null;
   preferredTimings: string[];
+  phonePrefix?: string;
 }
 
 interface JobListingsProps {
@@ -153,7 +154,7 @@ function PublicJobCard({
         <span
           className={`font-mono text-[12px] font-semibold ${isPublic ? "text-slate-400" : "text-foreground"}`}
         >
-          +91 {isPublic ? "XXX-XXX-XXXX" : "981-XXX-XXXX"}
+          +91 {isPublic ? "XXX-XXX-XXXX" : `${job.phonePrefix ?? "XXX"}-XXX-XXXX`}
         </span>
         <span className="rounded-md bg-primary px-2.5 py-1 text-[11px] font-bold text-white">
           {isPublic ? tl("loginToConnect") : tc("connect")}

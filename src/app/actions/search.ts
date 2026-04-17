@@ -3,19 +3,23 @@
 import { createClient } from "@/lib/supabase/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
+import { getPhonePrefix } from "@/lib/phone";
 
-async function batchFetchNames(
+async function batchFetchUsers(
   supabase: SupabaseClient,
   userIds: string[]
-): Promise<Map<string, string>> {
+): Promise<Map<string, { name: string; phonePrefix: string }>> {
   if (userIds.length === 0) return new Map();
   const { data } = await supabase
     .from("users")
-    .select("id, name")
+    .select("id, name, phone")
     .in("id", userIds);
-  const map = new Map<string, string>();
-  for (const row of (data ?? []) as { id: string; name: string | null }[]) {
-    if (row.name) map.set(row.id, row.name);
+  const map = new Map<string, { name: string; phonePrefix: string }>();
+  for (const row of (data ?? []) as { id: string; name: string | null; phone: string | null }[]) {
+    map.set(row.id, {
+      name: row.name ?? "",
+      phonePrefix: getPhonePrefix(row.phone),
+    });
   }
   return map;
 }
@@ -45,6 +49,7 @@ export interface WorkerResult {
   salary_max: number | null;
   available_timings: string[];
   locality: string | null;
+  phone_prefix: string;
   is_favorited: boolean;
   distance_km: number | null;
 }
@@ -170,19 +175,20 @@ export async function employerSearch(formData: FormData): Promise<SearchResult> 
 
     const rpcResults = (rpcRows ?? []) as Record<string, unknown>[];
 
-    // Batch fetch all user names in one query
+    // Batch fetch all user names + phone prefixes in one query
     const userIds = rpcResults.map((w) => w.user_id as string);
-    const nameMap = await batchFetchNames(supabase, userIds);
+    const userMap = await batchFetchUsers(supabase, userIds);
 
     for (const w of rpcResults) {
       const distanceM = w.distance_m as number | null;
+      const userInfo = userMap.get(w.user_id as string);
 
       workers.push({
         id: w.id as string,
         custom_id: w.custom_id as string,
         city: w.city as string | null,
         user_id: w.user_id as string,
-        name: nameMap.get(w.user_id as string) ?? "Worker",
+        name: userInfo?.name || "Worker",
         gender: w.gender as string | null,
         categories: w.categories as string[],
         experience_years: w.experience_years as number,
@@ -190,6 +196,7 @@ export async function employerSearch(formData: FormData): Promise<SearchResult> 
         salary_max: w.salary_max as number | null,
         available_timings: w.available_timings as string[],
         locality: w.locality as string | null,
+        phone_prefix: userInfo?.phonePrefix ?? "XXX",
         is_favorited: false,
         distance_km: distanceM != null ? Math.round((distanceM / 1000) * 10) / 10 : null,
       });
@@ -205,17 +212,18 @@ export async function employerSearch(formData: FormData): Promise<SearchResult> 
 
     const workerRows = (workersRaw ?? []) as Record<string, unknown>[];
 
-    // Batch fetch all user names in one query
+    // Batch fetch all user names + phone prefixes in one query
     const userIds = workerRows.map((w) => w.user_id as string);
-    const nameMap = await batchFetchNames(supabase, userIds);
+    const userMap = await batchFetchUsers(supabase, userIds);
 
     for (const w of workerRows) {
+      const userInfo = userMap.get(w.user_id as string);
       workers.push({
         id: w.id as string,
         custom_id: w.custom_id as string,
         city: w.city as string | null,
         user_id: w.user_id as string,
-        name: nameMap.get(w.user_id as string) ?? "Worker",
+        name: userInfo?.name || "Worker",
         gender: w.gender as string | null,
         categories: w.categories as string[],
         experience_years: w.experience_years as number,
@@ -223,6 +231,7 @@ export async function employerSearch(formData: FormData): Promise<SearchResult> 
         salary_max: w.salary_max as number | null,
         available_timings: w.available_timings as string[],
         locality: w.locality as string | null,
+        phone_prefix: userInfo?.phonePrefix ?? "XXX",
         is_favorited: false,
         distance_km: null,
       });

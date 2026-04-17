@@ -17,6 +17,7 @@ interface WorkerData {
   salaryMax: number | null;
   availableTimings: string[];
   locality: string | null;
+  phonePrefix?: string;
 }
 
 interface StaffListingsProps {
@@ -83,6 +84,7 @@ export function StaffListings({
               salaryMax={w.salaryMax}
               availableTimings={w.availableTimings}
               locality={w.locality}
+              phonePrefix={w.phonePrefix}
               isPublic={isPublic}
             />
           ))}

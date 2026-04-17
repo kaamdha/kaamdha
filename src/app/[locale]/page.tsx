@@ -1,9 +1,10 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import type { User } from "@/types/database";
 import { HomeLanding } from "@/components/landing/home-landing";
 import { HomeEmployer } from "@/components/home/home-employer";
 import { HomeWorker } from "@/components/home/home-worker";
+import { getPhonePrefix } from "@/lib/phone";
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -96,14 +97,40 @@ export default async function HomePage() {
   const [jobsResult, favsResult] = await Promise.all([jobsPromise, favsPromise]);
 
   const rawJobs = (jobsResult.data ?? []) as Record<string, unknown>[];
-  const jobs = wpLocation
-    ? rawJobs.map((j) => ({
-        ...j,
-        distance_km: j.distance_m != null
-          ? Math.round(((j.distance_m as number) / 1000) * 10) / 10
-          : null,
-      }))
-    : rawJobs;
+
+  // Batch-fetch employer phone prefixes for jobs (workers see other employers' jobs)
+  const phonePrefixByEmployerId = new Map<string, string>();
+  if (rawJobs.length > 0) {
+    const admin = createServiceClient();
+    const employerIds = [...new Set(rawJobs.map((j) => j.employer_id as string))];
+    const { data: epRows } = await admin
+      .from("employer_profiles")
+      .select("id, user_id")
+      .in("id", employerIds);
+    const epList = (epRows ?? []) as { id: string; user_id: string }[];
+    const employerUserIds = [...new Set(epList.map((e) => e.user_id))];
+    const { data: uRows } = await admin
+      .from("users")
+      .select("id, phone")
+      .in("id", employerUserIds);
+    const phoneByUserId = new Map<string, string>();
+    for (const u of (uRows ?? []) as { id: string; phone: string | null }[]) {
+      phoneByUserId.set(u.id, getPhonePrefix(u.phone));
+    }
+    for (const e of epList) {
+      const prefix = phoneByUserId.get(e.user_id);
+      if (prefix) phonePrefixByEmployerId.set(e.id, prefix);
+    }
+  }
+
+  const jobs = rawJobs.map((j) => ({
+    ...j,
+    phone_prefix: phonePrefixByEmployerId.get(j.employer_id as string),
+    distance_km:
+      wpLocation && j.distance_m != null
+        ? Math.round(((j.distance_m as number) / 1000) * 10) / 10
+        : j.distance_km ?? null,
+  }));
 
   const favoritedJobIds = ((favsResult.data ?? []) as { job_listing_id: string }[]).map(
     (f) => f.job_listing_id

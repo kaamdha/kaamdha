@@ -166,7 +166,7 @@ function JobCard({ job, locale, isFavorited = false }: { job: Record<string, unk
             </span>
           ) : (
             <span className="font-mono text-[12px] font-semibold text-foreground">
-              +91 981-XXX-XXXX
+              +91 {(job.phone_prefix as string | undefined) ?? "XXX"}-XXX-XXXX
             </span>
           )}
           <span className="rounded-md bg-primary px-2.5 py-1 text-[11px] font-bold text-white">
