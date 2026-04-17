@@ -31,7 +31,7 @@ export default async function FavoritesPage() {
     redirect("/onboard");
   }
 
-  const isEmployer = user.last_active_mode === "find_help";
+  const isEmployer = user.last_active_mode === "find_staff";
 
   // Parallel: fetch all base data at once
   const [revealsResult, favsResult, epResult] = await Promise.all([

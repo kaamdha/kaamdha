@@ -30,7 +30,7 @@ export function AccountMenu({ user, activeJobCount }: AccountMenuProps) {
   const tc = useTranslations("common");
   const router = useRouter();
   const greeting = useGreeting();
-  const isEmployer = user.last_active_mode === "find_help";
+  const isEmployer = user.last_active_mode === "find_staff";
 
   async function handleLogout() {
     events.logout();

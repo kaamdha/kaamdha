@@ -91,7 +91,7 @@ CREATE TABLE users (
   city TEXT REFERENCES cities(id),
   free_leads_remaining INTEGER DEFAULT 3,
   wallet_balance INTEGER DEFAULT 0,          -- paise, Phase 2
-  last_active_mode TEXT CHECK (last_active_mode IN ('find_help', 'find_jobs')),
+  last_active_mode TEXT CHECK (last_active_mode IN ('find_staff', 'find_jobs')),
   search_status TEXT DEFAULT 'actively_looking'
     CHECK (search_status IN ('actively_looking', 'not_looking')),
   created_at TIMESTAMPTZ DEFAULT now(),

@@ -31,7 +31,7 @@ export default async function ProfileEditorPage() {
     redirect("/onboard");
   }
 
-  const isEmployer = user.last_active_mode === "find_help";
+  const isEmployer = user.last_active_mode === "find_staff";
 
   if (isEmployer) {
     const { data: epRaw } = await supabase
@@ -79,7 +79,6 @@ export default async function ProfileEditorPage() {
               experienceYears: wp.experience_years as number,
               salaryMin: wp.salary_min as number | null,
               salaryMax: wp.salary_max as number | null,
-              availableDays: wp.available_days as string[],
               availableTimings: wp.available_timings as string[],
               languages: wp.languages as string[],
               bio: wp.bio as string | null,

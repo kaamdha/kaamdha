@@ -21,8 +21,6 @@ export async function updateJobListing(formData: FormData) {
     parseInt((formData.get("salary_min") as string) || "0", 10) || null;
   const salaryMax =
     parseInt((formData.get("salary_max") as string) || "0", 10) || null;
-  const schedule = (formData.get("schedule") as string) || null;
-  const preferredDays = formData.getAll("preferred_days") as string[];
   const preferredTimings = formData.getAll("preferred_timings") as string[];
 
   const updateFields = {
@@ -30,8 +28,6 @@ export async function updateJobListing(formData: FormData) {
     description,
     salary_min: salaryMin,
     salary_max: salaryMax,
-    schedule,
-    preferred_days: preferredDays,
     preferred_timings: preferredTimings,
     updated_at: new Date().toISOString(),
   };

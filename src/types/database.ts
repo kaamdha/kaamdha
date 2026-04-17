@@ -12,7 +12,7 @@ export type Database = {
           city: string | null;
           free_leads_remaining: number;
           wallet_balance: number;
-          last_active_mode: "find_help" | "find_jobs" | null;
+          last_active_mode: "find_staff" | "find_jobs" | null;
           search_status: "actively_looking" | "not_looking";
           created_at: string;
           updated_at: string;
@@ -27,7 +27,7 @@ export type Database = {
           city?: string | null;
           free_leads_remaining?: number;
           wallet_balance?: number;
-          last_active_mode?: "find_help" | "find_jobs" | null;
+          last_active_mode?: "find_staff" | "find_jobs" | null;
           search_status?: "actively_looking" | "not_looking";
           created_at?: string;
           updated_at?: string;
@@ -42,7 +42,7 @@ export type Database = {
           city?: string | null;
           free_leads_remaining?: number;
           wallet_balance?: number;
-          last_active_mode?: "find_help" | "find_jobs" | null;
+          last_active_mode?: "find_staff" | "find_jobs" | null;
           search_status?: "actively_looking" | "not_looking";
           updated_at?: string;
         };
@@ -57,7 +57,6 @@ export type Database = {
           experience_years: number;
           salary_min: number | null;
           salary_max: number | null;
-          available_days: string[];
           available_timings: string[];
           languages: string[];
           gender: "male" | "female" | "other" | null;
@@ -78,7 +77,6 @@ export type Database = {
           experience_years?: number;
           salary_min?: number | null;
           salary_max?: number | null;
-          available_days?: string[];
           available_timings?: string[];
           languages?: string[];
           gender?: "male" | "female" | "other" | null;
@@ -98,7 +96,6 @@ export type Database = {
           experience_years?: number;
           salary_min?: number | null;
           salary_max?: number | null;
-          available_days?: string[];
           available_timings?: string[];
           languages?: string[];
           gender?: "male" | "female" | "other" | null;
@@ -171,10 +168,7 @@ export type Database = {
           description: string | null;
           salary_min: number | null;
           salary_max: number | null;
-          schedule: "full_time" | "part_time" | "flexible" | null;
-          preferred_days: string[];
           preferred_timings: string[];
-          search_radius_km: number;
           location: unknown;
           locality: string | null;
           city: string | null;
@@ -193,10 +187,7 @@ export type Database = {
           description?: string | null;
           salary_min?: number | null;
           salary_max?: number | null;
-          schedule?: "full_time" | "part_time" | "flexible" | null;
-          preferred_days?: string[];
           preferred_timings?: string[];
-          search_radius_km?: number;
           location?: unknown;
           locality?: string | null;
           city?: string | null;
@@ -214,10 +205,7 @@ export type Database = {
           description?: string | null;
           salary_min?: number | null;
           salary_max?: number | null;
-          schedule?: "full_time" | "part_time" | "flexible" | null;
-          preferred_days?: string[];
           preferred_timings?: string[];
-          search_radius_km?: number;
           location?: unknown;
           locality?: string | null;
           city?: string | null;

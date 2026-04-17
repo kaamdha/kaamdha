@@ -58,8 +58,6 @@ export default async function JidEditorPage({
         description: job.description as string | null,
         salaryMin: job.salary_min as number | null,
         salaryMax: job.salary_max as number | null,
-        schedule: job.schedule as string | null,
-        preferredDays: job.preferred_days as string[],
         preferredTimings: job.preferred_timings as string[],
         locality: job.locality as string | null,
         status: job.status as string,

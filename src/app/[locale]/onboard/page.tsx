@@ -29,7 +29,7 @@ export default async function OnboardPage() {
 
   if (data?.name) {
     // Also check if they have a profile — if not, they need to redo onboarding
-    const hasEmployer = data.last_active_mode === "find_help";
+    const hasEmployer = data.last_active_mode === "find_staff";
     if (hasEmployer) {
       const { data: ep } = await supabase
         .from("employer_profiles")

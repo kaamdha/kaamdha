@@ -27,7 +27,7 @@ export default async function HomePage() {
     return <HomeLanding />;
   }
 
-  const isEmployer = user.last_active_mode === "find_help";
+  const isEmployer = user.last_active_mode === "find_staff";
 
   if (isEmployer) {
     // Parallel: fetch employer profile + recent jobs at once

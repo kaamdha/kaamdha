@@ -27,7 +27,6 @@ interface WorkerDetailProps {
     experienceYears: number;
     salaryMin: number | null;
     salaryMax: number | null;
-    availableDays: string[];
     availableTimings: string[];
     languages: string[];
     originallyFrom: string | null;

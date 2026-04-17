@@ -28,8 +28,6 @@ interface JidEditorProps {
     description: string | null;
     salaryMin: number | null;
     salaryMax: number | null;
-    schedule: string | null;
-    preferredDays: string[];
     preferredTimings: string[];
     locality: string | null;
     status: string;

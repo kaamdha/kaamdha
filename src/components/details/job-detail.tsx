@@ -23,8 +23,6 @@ interface JobDetailProps {
     description: string | null;
     salaryMin: number | null;
     salaryMax: number | null;
-    schedule: string | null;
-    preferredDays: string[];
     preferredTimings: string[];
     locality: string | null;
     city: string | null;

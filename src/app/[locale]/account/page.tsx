@@ -43,7 +43,7 @@ export default async function AccountPage() {
   // Count active job listings for employer
   let activeJobCount = 0;
   const ep = epResult.data as { id: string } | null;
-  if (user.last_active_mode === "find_help" && ep) {
+  if (user.last_active_mode === "find_staff" && ep) {
     const { count } = await supabase
       .from("job_listings")
       .select("id", { count: "exact", head: true })

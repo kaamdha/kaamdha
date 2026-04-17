@@ -8,7 +8,11 @@ function buildLocationPoint(
   lng: string | null
 ): string | null {
   if (!lat || !lng) return null;
-  return `POINT(${parseFloat(lng)} ${parseFloat(lat)})`;
+  const latNum = parseFloat(lat);
+  const lngNum = parseFloat(lng);
+  if (!Number.isFinite(latNum) || !Number.isFinite(lngNum)) return null;
+  if (latNum < -90 || latNum > 90 || lngNum < -180 || lngNum > 180) return null;
+  return `POINT(${lngNum} ${latNum})`;
 }
 
 export async function updateWorkerProfile(formData: FormData) {
@@ -37,7 +41,6 @@ export async function updateWorkerProfile(formData: FormData) {
     parseInt((formData.get("salary_min") as string) || "0", 10) || null;
   const salaryMax =
     parseInt((formData.get("salary_max") as string) || "0", 10) || null;
-  const availableDays = formData.getAll("available_days") as string[];
   const availableTimings = formData.getAll("available_timings") as string[];
   const bio = (formData.get("bio") as string)?.trim() || null;
 
@@ -67,7 +70,6 @@ export async function updateWorkerProfile(formData: FormData) {
     experience_years: experienceYears,
     salary_min: salaryMin,
     salary_max: salaryMax,
-    available_days: availableDays,
     available_timings: availableTimings,
     bio,
     locality,

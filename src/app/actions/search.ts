@@ -25,7 +25,11 @@ function buildLocationPoint(
   lng: string | null
 ): string | null {
   if (!lat || !lng) return null;
-  return `POINT(${parseFloat(lng)} ${parseFloat(lat)})`;
+  const latNum = parseFloat(lat);
+  const lngNum = parseFloat(lng);
+  if (!Number.isFinite(latNum) || !Number.isFinite(lngNum)) return null;
+  if (latNum < -90 || latNum > 90 || lngNum < -180 || lngNum > 180) return null;
+  return `POINT(${lngNum} ${latNum})`;
 }
 
 export interface WorkerResult {
@@ -39,7 +43,6 @@ export interface WorkerResult {
   experience_years: number;
   salary_min: number | null;
   salary_max: number | null;
-  available_days: string[];
   available_timings: string[];
   locality: string | null;
   is_favorited: boolean;
@@ -112,7 +115,6 @@ export async function employerSearch(formData: FormData): Promise<SearchResult> 
 
       // Update search params
       const updateFields = {
-        search_radius_km: distance,
         updated_at: new Date().toISOString(),
         ...(location ? { location } : {}),
       };
@@ -135,7 +137,6 @@ export async function employerSearch(formData: FormData): Promise<SearchResult> 
           employer_id: employerProfile.id,
           category,
           locality: searchLocality,
-          search_radius_km: distance,
           city: formData.get("city") as string || "gurgaon",
           expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
           ...(location ? { location } : {}),
@@ -187,7 +188,6 @@ export async function employerSearch(formData: FormData): Promise<SearchResult> 
         experience_years: w.experience_years as number,
         salary_min: w.salary_min as number | null,
         salary_max: w.salary_max as number | null,
-        available_days: [],
         available_timings: w.available_timings as string[],
         locality: w.locality as string | null,
         is_favorited: false,
@@ -221,7 +221,6 @@ export async function employerSearch(formData: FormData): Promise<SearchResult> 
         experience_years: w.experience_years as number,
         salary_min: w.salary_min as number | null,
         salary_max: w.salary_max as number | null,
-        available_days: [],
         available_timings: w.available_timings as string[],
         locality: w.locality as string | null,
         is_favorited: false,

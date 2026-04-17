@@ -37,7 +37,6 @@ interface WorkerProfileEditorProps {
     experienceYears: number;
     salaryMin: number | null;
     salaryMax: number | null;
-    availableDays: string[];
     availableTimings: string[];
     languages: string[];
     bio: string | null;
