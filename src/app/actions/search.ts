@@ -1,16 +1,16 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { getPhonePrefix } from "@/lib/phone";
 
 async function batchFetchUsers(
-  supabase: SupabaseClient,
   userIds: string[]
 ): Promise<Map<string, { name: string; phonePrefix: string }>> {
   if (userIds.length === 0) return new Map();
-  const { data } = await supabase
+  // Service client — users table RLS restricts to own row
+  const admin = createServiceClient();
+  const { data } = await admin
     .from("users")
     .select("id, name, phone")
     .in("id", userIds);
@@ -177,7 +177,7 @@ export async function employerSearch(formData: FormData): Promise<SearchResult> 
 
     // Batch fetch all user names + phone prefixes in one query
     const userIds = rpcResults.map((w) => w.user_id as string);
-    const userMap = await batchFetchUsers(supabase, userIds);
+    const userMap = await batchFetchUsers(userIds);
 
     for (const w of rpcResults) {
       const distanceM = w.distance_m as number | null;
@@ -214,7 +214,7 @@ export async function employerSearch(formData: FormData): Promise<SearchResult> 
 
     // Batch fetch all user names + phone prefixes in one query
     const userIds = workerRows.map((w) => w.user_id as string);
-    const userMap = await batchFetchUsers(supabase, userIds);
+    const userMap = await batchFetchUsers(userIds);
 
     for (const w of workerRows) {
       const userInfo = userMap.get(w.user_id as string);
